@@ -34,3 +34,12 @@ Route::get('/blog/{slug}', [HomeController::class, 'showBlogPost'])->name('blog.
 
 Route::post('/contact', [HomeController::class, 'storeContact'])->name('contact.store');
 Route::get('/business-status', [HomeController::class, 'getBusinessStatus'])->name('business.status');
+
+// Admin Routes
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/users', [App\Http\Controllers\AdminController::class, 'users'])->name('users');
+    Route::get('/reservations', [App\Http\Controllers\AdminController::class, 'reservations'])->name('reservations');
+    Route::get('/orders', [App\Http\Controllers\AdminController::class, 'orders'])->name('orders');
+    Route::get('/settings', [App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
+});
