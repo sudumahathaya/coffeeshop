@@ -15,13 +15,20 @@ Route::get('/features', [HomeController::class, 'features'])->name('features');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return view('user.dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    
+    // User Dashboard Routes
+    Route::get('/my-orders', [App\Http\Controllers\UserController::class, 'orders'])->name('user.orders');
+    Route::get('/user/profile/update', [App\Http\Controllers\UserController::class, 'updateProfile'])->name('user.profile.update');
+    Route::get('/user/orders/history', [App\Http\Controllers\UserController::class, 'getOrderHistory'])->name('user.orders.history');
+    Route::post('/user/reorder-last', [App\Http\Controllers\UserController::class, 'reorderLast'])->name('user.reorder.last');
+    Route::get('/user/loyalty/details', [App\Http\Controllers\UserController::class, 'getLoyaltyDetails'])->name('user.loyalty.details');
 });
 
 require __DIR__.'/auth.php';

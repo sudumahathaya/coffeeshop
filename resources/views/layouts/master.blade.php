@@ -466,6 +466,9 @@
                                 <li><a class="dropdown-item" href="{{ route('dashboard') }}">
                                         <i class="bi bi-speedometer2 me-2"></i>Dashboard
                                     </a></li>
+                                <li><a class="dropdown-item" href="{{ route('user.orders') }}">
+                                        <i class="bi bi-receipt me-2"></i>My Orders
+                                    </a></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">
                                         <i class="bi bi-gear me-2"></i>Admin Panel
                                     </a></li>
