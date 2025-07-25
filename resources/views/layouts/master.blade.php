@@ -469,13 +469,16 @@
                                 <li><a class="dropdown-item" href="{{ route('user.orders') }}">
                                         <i class="bi bi-receipt me-2"></i>My Orders
                                     </a></li>
+                                <li><a class="dropdown-item" href="{{ route('profile.view') }}">
+                                        <i class="bi bi-person me-2"></i>My Profile
+                                    </a></li>
                                 @if(Auth::user()->role === 'admin')
                                     <li><a class="dropdown-item" href="{{ route('admin.dashboard') }}">
                                             <i class="bi bi-gear me-2"></i>Admin Panel
                                         </a></li>
                                 @endif
                                 <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                        <i class="bi bi-person me-2"></i>Profile
+                                        <i class="bi bi-gear me-2"></i>Account Settings
                                     </a></li>
                                 <li>
                                     <hr class="dropdown-divider">
