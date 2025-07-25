@@ -3,65 +3,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\MenuItem;
+use App\Models\Reservation;
+use App\Models\ContactMessage;
+use App\Models\NewsletterSubscriber;
 
 class HomeController extends Controller
 {
     public function index()
     {
-        $featuredProducts = [
-            (object) [
-                'name' => 'Elixir Espresso',
-                'description' => 'Our signature espresso blend with rich, bold flavor and perfect crema',
-                'price' => 320.00,
-                'originalPrice' => 420.00,
-                'currency' => 'LKR',
-                'image' => 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&h=300&fit=crop',
-                'rating' => 4.9,
-                'isOnSale' => true,
-                'category' => 'Signature'
-            ],
-            (object) [
-                'name' => 'Caramel Cloud Latte',
-                'description' => 'Smooth latte with house-made caramel syrup and steamed milk foam',
-                'price' => 650.00,
-                'originalPrice' => null,
-                'currency' => 'LKR',
-                'image' => 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=300&fit=crop',
-                'rating' => 4.8,
-                'isOnSale' => false,
-                'category' => 'Specialty'
-            ],
-            (object) [
-                'name' => 'Ceylon Gold Tea',
-                'description' => 'Premium Sri Lankan black tea with authentic golden color and rich taste',
-                'price' => 380.00,
-                'originalPrice' => null,
-                'currency' => 'LKR',
-                'image' => 'https://images.unsplash.com/photo-1597318374671-96ee162414ca?w=400&h=300&fit=crop',
-                'rating' => 4.7,
-                'isOnSale' => false,
-                'category' => 'Local Specials',
-                'isLocal' => true
-            ]
-        ];
-
-        // Format prices with LKR currency
-        $featuredProducts = collect($featuredProducts)->map(function ($product) {
-            $product->formattedPrice = 'Rs. ' . number_format($product->price, 2);
-            if ($product->originalPrice) {
-                $product->formattedOriginalPrice = 'Rs. ' . number_format($product->originalPrice, 2);
-                $product->savings = 'Rs. ' . number_format($product->originalPrice - $product->price, 2);
-                $product->discountPercentage = round((($product->originalPrice - $product->price) / $product->originalPrice) * 100);
-            }
-            return $product;
-        })->shuffle()->take(3);
+        // Get featured menu items
+        $featuredProducts = MenuItem::active()
+            ->whereIn('category', ['Hot Coffee', 'Specialty', 'Tea & Others'])
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
 
         return view('home', compact('featuredProducts'));
     }
 
     public function menu()
     {
-        return view('menu');
+        $menuItems = MenuItem::active()->get()->groupBy('category');
+        $categories = MenuItem::select('category')->distinct()->pluck('category');
+        
+        return view('menu', compact('menuItems', 'categories'));
     }
 
     public function reservation()
@@ -150,19 +116,27 @@ class HomeController extends Controller
         ]);
 
         // Generate message ID
-        $messageId = 'CM' . time();
+        $messageId = 'CM' . str_pad(ContactMessage::count() + 1, 6, '0', STR_PAD_LEFT);
 
-        // In production, you would:
-        // 1. Save to database
-        // 2. Send email notifications to staff
-        // 3. Send auto-reply to customer
-        // 4. Create ticket in support system
+        $contactMessage = ContactMessage::create([
+            'message_id' => $messageId,
+            'first_name' => $validatedData['firstName'],
+            'last_name' => $validatedData['lastName'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'subject' => $validatedData['subject'],
+            'message' => $validatedData['message'],
+            'contact_method' => $validatedData['contactMethod'],
+            'best_time' => $validatedData['bestTime'],
+            'urgency' => $validatedData['urgency'],
+            'newsletter' => $validatedData['newsletter'] ?? false,
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Your message has been sent successfully!',
             'message_id' => $messageId,
-            'data' => $validatedData
+            'data' => $contactMessage
         ]);
     }
 
@@ -173,7 +147,13 @@ class HomeController extends Controller
             'email' => 'required|email|max:255'
         ]);
 
-        // In production, you would save to database and send welcome email
+        NewsletterSubscriber::updateOrCreate(
+            ['email' => $validatedData['email']],
+            [
+                'subscribed_at' => now(),
+                'is_active' => true
+            ]
+        );
 
         return response()->json([
             'success' => true,
@@ -198,13 +178,30 @@ class HomeController extends Controller
             'emailUpdates' => 'nullable|boolean'
         ]);
 
-        $reservationId = 'CE' . time();
+        $reservationId = 'CE' . str_pad(Reservation::count() + 1, 6, '0', STR_PAD_LEFT);
+
+        $reservation = Reservation::create([
+            'reservation_id' => $reservationId,
+            'first_name' => $validatedData['firstName'],
+            'last_name' => $validatedData['lastName'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'reservation_date' => $validatedData['reservationDate'],
+            'reservation_time' => $validatedData['reservationTime'],
+            'guests' => $validatedData['guests'],
+            'table_type' => $validatedData['tableType'],
+            'occasion' => $validatedData['occasion'],
+            'special_requests' => $validatedData['specialRequests'],
+            'email_updates' => $validatedData['emailUpdates'] ?? false,
+            'user_id' => auth()->id(),
+            'status' => 'confirmed'
+        ]);
 
         return response()->json([
             'success' => true,
             'message' => 'Reservation confirmed successfully!',
             'reservation_id' => $reservationId,
-            'data' => $validatedData
+            'data' => $reservation
         ]);
     }
 

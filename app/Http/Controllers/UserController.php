@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Order;
+use App\Models\Reservation;
+use App\Models\LoyaltyPoint;
 
 class UserController extends Controller
 {
@@ -11,77 +14,21 @@ class UserController extends Controller
     {
         $user = Auth::user();
         
-        // Sample data - in production, this would come from database
+        // Get real user data
         $dashboardData = [
             'user' => $user,
             'stats' => [
-                'total_orders' => 24,
-                'loyalty_points' => 1250,
-                'total_reservations' => 8,
-                'favorite_items' => 12,
-                'total_spent' => 28500.00,
-                'current_tier' => 'Gold',
-                'points_to_next_tier' => 250
+                'total_orders' => $user->orders()->count(),
+                'loyalty_points' => $user->total_loyalty_points,
+                'total_reservations' => $user->reservations()->count(),
+                'favorite_items' => 12, // This would be calculated from user preferences
+                'total_spent' => $user->orders()->sum('total'),
+                'current_tier' => $user->loyalty_tier,
+                'points_to_next_tier' => $this->getPointsToNextTier($user->total_loyalty_points)
             ],
-            'recent_orders' => [
-                (object) [
-                    'id' => 'CE2024001',
-                    'items' => 'Cappuccino x2, Croissant x1',
-                    'total' => 1240.00,
-                    'status' => 'completed',
-                    'date' => '2024-12-15 14:30:00'
-                ],
-                (object) [
-                    'id' => 'CE2024002',
-                    'items' => 'Latte x1, Sandwich x1',
-                    'total' => 850.00,
-                    'status' => 'completed',
-                    'date' => '2024-12-12 10:15:00'
-                ],
-                (object) [
-                    'id' => 'CE2024003',
-                    'items' => 'Iced Coffee x1, Muffin x2',
-                    'total' => 920.00,
-                    'status' => 'completed',
-                    'date' => '2024-12-10 16:45:00'
-                ]
-            ],
-            'upcoming_reservations' => [
-                (object) [
-                    'id' => 'RES001',
-                    'date' => '2024-12-22',
-                    'time' => '18:30',
-                    'guests' => 4,
-                    'table_preference' => 'Window Side',
-                    'status' => 'confirmed'
-                ]
-            ],
-            'favorite_items' => [
-                (object) [
-                    'name' => 'Cappuccino',
-                    'price' => 480.00,
-                    'order_count' => 8,
-                    'image' => 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=80&h=80&fit=crop'
-                ],
-                (object) [
-                    'name' => 'Café Latte',
-                    'price' => 520.00,
-                    'order_count' => 6,
-                    'image' => 'https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=80&h=80&fit=crop'
-                ],
-                (object) [
-                    'name' => 'Caramel Macchiato',
-                    'price' => 650.00,
-                    'order_count' => 4,
-                    'image' => 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=80&h=80&fit=crop'
-                ],
-                (object) [
-                    'name' => 'Butter Croissant',
-                    'price' => 280.00,
-                    'order_count' => 5,
-                    'image' => 'https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=80&h=80&fit=crop'
-                ]
-            ]
+            'recent_orders' => $user->orders()->latest()->take(3)->get(),
+            'upcoming_reservations' => $user->reservations()->upcoming()->take(3)->get(),
+            'favorite_items' => $this->getFavoriteItems($user)
         ];
 
         return view('user.dashboard', $dashboardData);
@@ -89,7 +36,8 @@ class UserController extends Controller
 
     public function orders()
     {
-        return view('user.orders');
+        $orders = Auth::user()->orders()->latest()->paginate(10);
+        return view('user.orders', compact('orders'));
     }
 
     public function updateProfile(Request $request)
@@ -120,23 +68,7 @@ class UserController extends Controller
 
     public function getOrderHistory(Request $request)
     {
-        // Sample order history - in production, fetch from database
-        $orders = [
-            (object) [
-                'id' => 'CE2024004',
-                'items' => 'Frappuccino x1, Cookie x2',
-                'total' => 1080.00,
-                'status' => 'completed',
-                'date' => '2024-12-08 15:20:00'
-            ],
-            (object) [
-                'id' => 'CE2024005',
-                'items' => 'Espresso x2, Cake x1',
-                'total' => 890.00,
-                'status' => 'completed',
-                'date' => '2024-12-05 11:30:00'
-            ]
-        ];
+        $orders = Auth::user()->orders()->latest()->get();
 
         return response()->json([
             'success' => true,
@@ -146,15 +78,14 @@ class UserController extends Controller
 
     public function reorderLast()
     {
-        // Get user's last order and add items to cart
-        // In production, this would fetch the actual last order from database
+        $lastOrder = Auth::user()->orders()->latest()->first();
         
-        $lastOrder = [
-            'items' => [
-                ['name' => 'Cappuccino', 'quantity' => 2, 'price' => 480.00],
-                ['name' => 'Croissant', 'quantity' => 1, 'price' => 280.00]
-            ]
-        ];
+        if (!$lastOrder) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No previous orders found'
+            ]);
+        }
 
         return response()->json([
             'success' => true,
@@ -165,13 +96,17 @@ class UserController extends Controller
 
     public function getLoyaltyDetails()
     {
+        $user = Auth::user();
+        $totalPoints = $user->total_loyalty_points;
+        
         $loyaltyData = [
-            'current_points' => 1250,
-            'current_tier' => 'Gold',
-            'points_to_next_tier' => 250,
+            'current_points' => $totalPoints,
+            'current_tier' => $user->loyalty_tier,
+            'points_to_next_tier' => $this->getPointsToNextTier($totalPoints),
             'next_tier' => 'Platinum',
-            'lifetime_points' => 3450,
-            'points_earned_this_month' => 180,
+            'lifetime_points' => $user->loyaltyPoints()->earned()->sum('points'),
+            'points_earned_this_month' => $user->loyaltyPoints()->earned()
+                ->whereMonth('created_at', now()->month)->sum('points'),
             'available_rewards' => [
                 ['name' => 'Free Coffee', 'points_required' => 500],
                 ['name' => 'Free Pastry', 'points_required' => 300],
@@ -183,5 +118,47 @@ class UserController extends Controller
             'success' => true,
             'loyalty' => $loyaltyData
         ]);
+    }
+
+    private function getPointsToNextTier($currentPoints)
+    {
+        if ($currentPoints < 500) {
+            return 500 - $currentPoints; // To Gold
+        } elseif ($currentPoints < 1500) {
+            return 1500 - $currentPoints; // To Platinum
+        }
+        return 0; // Already at highest tier
+    }
+
+    private function getFavoriteItems($user)
+    {
+        // This would be calculated from order history
+        // For now, return sample data
+        return [
+            (object) [
+                'name' => 'Cappuccino',
+                'price' => 480.00,
+                'order_count' => 8,
+                'image' => 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=80&h=80&fit=crop'
+            ],
+            (object) [
+                'name' => 'Café Latte',
+                'price' => 520.00,
+                'order_count' => 6,
+                'image' => 'https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=80&h=80&fit=crop'
+            ],
+            (object) [
+                'name' => 'Caramel Macchiato',
+                'price' => 650.00,
+                'order_count' => 4,
+                'image' => 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=80&h=80&fit=crop'
+            ],
+            (object) [
+                'name' => 'Butter Croissant',
+                'price' => 280.00,
+                'order_count' => 5,
+                'image' => 'https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=80&h=80&fit=crop'
+            ]
+        ];
     }
 }

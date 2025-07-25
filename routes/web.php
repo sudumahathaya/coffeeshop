@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\MenuController;
 use Illuminate\Support\Facades\Route;
 
 // Home route (replaces Laravel welcome page)
@@ -13,6 +15,14 @@ Route::get('/reservation', [HomeController::class, 'reservation'])->name('reserv
 Route::get('/blog', [HomeController::class, 'blog'])->name('blog');
 Route::get('/features', [HomeController::class, 'features'])->name('features');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
+// API Routes for frontend
+Route::prefix('api')->group(function () {
+    Route::get('/menu', [MenuController::class, 'index']);
+    Route::get('/menu/{id}', [MenuController::class, 'show']);
+    Route::post('/orders', [OrderController::class, 'store']);
+    Route::get('/orders/{orderId}', [OrderController::class, 'show']);
+});
 
 Route::get('/dashboard', function () {
     return view('user.dashboard');
@@ -32,6 +42,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/user/orders/history', [App\Http\Controllers\UserController::class, 'getOrderHistory'])->name('user.orders.history');
     Route::post('/user/reorder-last', [App\Http\Controllers\UserController::class, 'reorderLast'])->name('user.reorder.last');
     Route::get('/user/loyalty/details', [App\Http\Controllers\UserController::class, 'getLoyaltyDetails'])->name('user.loyalty.details');
+    
+    // Order management for authenticated users
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{orderId}', [OrderController::class, 'show'])->name('orders.show');
 });
 
 require __DIR__.'/auth.php';
@@ -54,4 +68,13 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/menu-management', [App\Http\Controllers\AdminController::class, 'menuManagement'])->name('menu.management');
     Route::get('/analytics', [App\Http\Controllers\AdminController::class, 'analytics'])->name('analytics');
     Route::get('/settings', [App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
+    
+    // Admin menu management
+    Route::post('/menu', [MenuController::class, 'store'])->name('menu.store');
+    Route::put('/menu/{id}', [MenuController::class, 'update'])->name('menu.update');
+    Route::delete('/menu/{id}', [MenuController::class, 'destroy'])->name('menu.destroy');
+    Route::patch('/menu/{id}/toggle-status', [MenuController::class, 'toggleStatus'])->name('menu.toggle-status');
+    
+    // Admin order management
+    Route::patch('/orders/{orderId}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
 });

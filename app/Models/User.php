@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
     ];
 
     /**
@@ -44,5 +45,45 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function reservations()
+    {
+        return $this->hasMany(Reservation::class);
+    }
+
+    public function loyaltyPoints()
+    {
+        return $this->hasMany(LoyaltyPoint::class);
+    }
+
+    public function getTotalLoyaltyPointsAttribute()
+    {
+        return $this->loyaltyPoints()->where('type', 'earned')->sum('points') - 
+               $this->loyaltyPoints()->where('type', 'redeemed')->sum('points');
+    }
+
+    public function getLoyaltyTierAttribute()
+    {
+        $points = $this->total_loyalty_points;
+        
+        if ($points >= 1500) return 'Platinum';
+        if ($points >= 500) return 'Gold';
+        return 'Bronze';
+    }
+
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isCustomer()
+    {
+        return $this->role === 'customer';
     }
 }
