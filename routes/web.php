@@ -69,6 +69,17 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::get('/analytics', [App\Http\Controllers\AdminController::class, 'analytics'])->name('analytics');
     Route::get('/settings', [App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
     
+    // Real-time API endpoints
+    Route::get('/api/today-reservations', [App\Http\Controllers\AdminController::class, 'getTodayReservations'])->name('api.today-reservations');
+    Route::get('/api/reservation-stats', [App\Http\Controllers\AdminController::class, 'getReservationStats'])->name('api.reservation-stats');
+    Route::get('/api/reservations', [App\Http\Controllers\AdminController::class, 'getAllReservations'])->name('api.reservations');
+    
+    // Reservation management
+    Route::post('/reservations', [App\Http\Controllers\AdminController::class, 'storeReservation'])->name('reservations.store');
+    Route::get('/reservations/{id}', [App\Http\Controllers\AdminController::class, 'getReservation'])->name('reservations.show');
+    Route::patch('/reservations/{id}/status', [App\Http\Controllers\AdminController::class, 'updateReservationStatus'])->name('reservations.update-status');
+    Route::delete('/reservations/{id}', [App\Http\Controllers\AdminController::class, 'deleteReservation'])->name('reservations.delete');
+    
     // Admin menu management
     Route::post('/menu', [MenuController::class, 'store'])->name('menu.store');
     Route::put('/menu/{id}', [MenuController::class, 'update'])->name('menu.update');
