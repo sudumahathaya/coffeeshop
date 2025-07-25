@@ -348,10 +348,11 @@
                     <p class="lead text-muted mb-4">Get the latest coffee tips, brewing guides, and café updates delivered straight to your inbox. Join our community of coffee enthusiasts!</p>
 
                     <form class="newsletter-form" id="newsletterForm">
+                    <form class="newsletter-form" id="newsletterForm" novalidate>
                         <div class="row g-3 justify-content-center">
                             <div class="col-md-6">
                                 <input type="email" class="form-control form-control-lg"
-                                       placeholder="Enter your email address" required>
+                                       name="email" placeholder="Enter your email address" required>
                             </div>
                             <div class="col-md-4">
                                 <button type="submit" class="btn btn-coffee btn-lg w-100">
@@ -756,41 +757,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Newsletter form submission
-    const newsletterForm = document.getElementById('newsletterForm');
-    newsletterForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const email = this.querySelector('input[type="email"]').value;
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-
-        // Show loading state
-        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Subscribing...';
-        submitBtn.disabled = true;
-
-        // Simulate API call
-        setTimeout(() => {
-            // Success state
-            submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Subscribed!';
-            submitBtn.classList.remove('btn-coffee');
-            submitBtn.classList.add('btn-success');
-
-            // Show success notification
-            showNotification(`Thank you! You've been subscribed to our blog updates.`, 'success');
-
-            // Reset form
-            this.reset();
-
-            // Reset button after 3 seconds
-            setTimeout(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('btn-success');
-                submitBtn.classList.add('btn-coffee');
-            }, 3000);
-
-        }, 1500);
-    });
+    // Newsletter form submission is now handled by master layout
 
     // Load more functionality
     const loadMoreBtn = document.getElementById('loadMoreBtn');

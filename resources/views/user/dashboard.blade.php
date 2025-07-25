@@ -267,7 +267,11 @@
                                             <p class="text-muted mb-1">Rs. 480.00</p>
                                             <small class="text-success">Ordered 8 times</small>
                                         </div>
-                                        <button class="btn btn-coffee btn-sm">
+                                        <button class="btn btn-coffee btn-sm add-to-cart"
+                                                data-id="fav-1"
+                                                data-name="Cappuccino"
+                                                data-price="480"
+                                                data-image="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=80&h=80&fit=crop">
                                             <i class="bi bi-cart-plus"></i>
                                         </button>
                                     </div>
@@ -284,7 +288,11 @@
                                             <p class="text-muted mb-1">Rs. 520.00</p>
                                             <small class="text-success">Ordered 6 times</small>
                                         </div>
-                                        <button class="btn btn-coffee btn-sm">
+                                        <button class="btn btn-coffee btn-sm add-to-cart"
+                                                data-id="fav-2"
+                                                data-name="Café Latte"
+                                                data-price="520"
+                                                data-image="https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=80&h=80&fit=crop">
                                             <i class="bi bi-cart-plus"></i>
                                         </button>
                                     </div>
@@ -301,7 +309,11 @@
                                             <p class="text-muted mb-1">Rs. 650.00</p>
                                             <small class="text-success">Ordered 4 times</small>
                                         </div>
-                                        <button class="btn btn-coffee btn-sm">
+                                        <button class="btn btn-coffee btn-sm add-to-cart"
+                                                data-id="fav-3"
+                                                data-name="Caramel Macchiato"
+                                                data-price="650"
+                                                data-image="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=80&h=80&fit=crop">
                                             <i class="bi bi-cart-plus"></i>
                                         </button>
                                     </div>
@@ -318,7 +330,11 @@
                                             <p class="text-muted mb-1">Rs. 280.00</p>
                                             <small class="text-success">Ordered 5 times</small>
                                         </div>
-                                        <button class="btn btn-coffee btn-sm">
+                                        <button class="btn btn-coffee btn-sm add-to-cart"
+                                                data-id="fav-4"
+                                                data-name="Butter Croissant"
+                                                data-price="280"
+                                                data-image="https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=80&h=80&fit=crop">
                                             <i class="bi bi-cart-plus"></i>
                                         </button>
                                     </div>
@@ -846,35 +862,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 30);
     }
 
-    // Add to cart functionality for favorite items
-    document.querySelectorAll('.favorite-item .btn-coffee').forEach(button => {
-        button.addEventListener('click', function() {
-            const itemName = this.closest('.favorite-item').querySelector('h6').textContent;
-            const itemPrice = this.closest('.favorite-item').querySelector('.text-muted').textContent.replace('Rs. ', '').replace(',', '');
-
-            // Add loading state
-            const originalText = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-            this.disabled = true;
-
-            setTimeout(() => {
-                // Add to cart logic here
-                this.innerHTML = '<i class="bi bi-check-lg"></i>';
-                this.classList.remove('btn-coffee');
-                this.classList.add('btn-success');
-
-                showNotification(`${itemName} added to cart!`, 'success');
-
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                    this.classList.remove('btn-success');
-                    this.classList.add('btn-coffee');
-                }, 2000);
-            }, 800);
-        });
-    });
+    // Add to cart functionality is now handled by cart.js
 
     // Order item hover effects
     document.querySelectorAll('.order-item').forEach(item => {

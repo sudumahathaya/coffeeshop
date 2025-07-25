@@ -77,7 +77,7 @@
                 </div>
 
                 <div class="reservation-card" data-aos="fade-up" data-aos-delay="200">
-                    <form id="reservationForm" class="needs-validation" novalidate>
+                    <form id="reservationForm" class="needs-validation reservation-form" novalidate>
                         @csrf
                         <div class="row g-4">
                             <!-- Personal Information -->
@@ -284,7 +284,7 @@
                             <!-- Submit Button -->
                             <div class="col-12 mt-4">
                                 <div class="d-grid">
-                                    <button type="submit" class="btn btn-coffee btn-lg" id="submitReservation">
+                                    <button type="submit" class="btn btn-coffee btn-lg">
                                         <i class="bi bi-calendar-check me-2"></i>
                                         <span class="btn-text">Confirm Reservation</span>
                                         <span class="btn-loading d-none">
@@ -683,20 +683,14 @@ document.addEventListener('DOMContentLoaded', function() {
     maxDate.setDate(maxDate.getDate() + 30);
     dateInput.max = maxDate.toISOString().split('T')[0];
 
-    // Form validation and submission
+    // Form validation
     const reservationForm = document.getElementById('reservationForm');
-    const submitButton = document.getElementById('submitReservation');
-
     reservationForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (reservationForm.checkValidity()) {
-            handleReservationSubmission();
-        } else {
-            // Show validation errors
+        if (!reservationForm.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
             reservationForm.classList.add('was-validated');
-
+            
             // Scroll to first error
             const firstError = reservationForm.querySelector('.is-invalid, :invalid');
             if (firstError) {
@@ -705,57 +699,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
-
-    // Handle form submission
-    function handleReservationSubmission() {
-        // Show loading state
-        submitButton.classList.add('loading');
-        submitButton.disabled = true;
-
-        // Collect form data
-        const formData = new FormData(reservationForm);
-        const reservationData = {
-            firstName: formData.get('firstName'),
-            lastName: formData.get('lastName'),
-            email: formData.get('email'),
-            phone: formData.get('phone'),
-            date: formData.get('reservationDate'),
-            time: formData.get('reservationTime'),
-            guests: formData.get('guests'),
-            tableType: formData.get('tableType'),
-            occasion: formData.get('occasion'),
-            specialRequests: formData.get('specialRequests'),
-            emailUpdates: formData.get('emailUpdates') === 'on'
-        };
-
-        // Simulate API call
-        setTimeout(() => {
-            // Generate reservation ID
-            const reservationId = 'CE' + Date.now().toString().slice(-6);
-
-            // Store reservation in localStorage (for demo purposes)
-            const reservations = JSON.parse(localStorage.getItem('cafeElixirReservations')) || [];
-            reservations.push({
-                id: reservationId,
-                ...reservationData,
-                status: 'confirmed',
-                createdAt: new Date().toISOString()
-            });
-            localStorage.setItem('cafeElixirReservations', JSON.stringify(reservations));
-
-            // Show success message
-            showReservationSuccess(reservationId, reservationData);
-
-            // Reset form
-            reservationForm.reset();
-            reservationForm.classList.remove('was-validated');
-
-            // Reset button
-            submitButton.classList.remove('loading');
-            submitButton.disabled = false;
-
-        }, 2000);
-    }
 
     // Show success modal/message
     function showReservationSuccess(reservationId, data) {
@@ -987,68 +930,7 @@ document.addEventListener('DOMContentLoaded', function() {
     @endauth
 });
 
-// Notification function
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} position-fixed notification-toast`;
-    notification.style.cssText = `
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 350px;
-        border-radius: 15px;
-        animation: slideInRight 0.5s ease;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    `;
-    notification.innerHTML = `
-        <div class="d-flex align-items-center">
-            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'warning' ? 'exclamation-triangle-fill' : 'info-circle-fill'} me-2"></i>
-            <span class="flex-grow-1">${message}</span>
-            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
-    `;
-
-    document.body.appendChild(notification);
-
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.style.animation = 'slideOutRight 0.5s ease';
-            setTimeout(() => notification.remove(), 500);
-        }
-    }, 5000);
-}
-
-// CSS animations for notifications
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-
-    .notification-toast {
-        backdrop-filter: blur(10px);
-    }
-`;
-document.head.appendChild(style);
+// Reservation form submission is now handled by master layout
 </script>
 @endpush
 @endsection
