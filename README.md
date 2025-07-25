@@ -1,61 +1,180 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Café Elixir - Complete Coffee Shop Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A comprehensive coffee shop management system built with Laravel 11, featuring customer ordering, reservations, loyalty programs, and admin management.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+### Customer Features
+- **Menu Browsing**: View categorized menu with detailed item information
+- **Online Ordering**: Place orders with real-time cart management
+- **Table Reservations**: Book tables with date/time selection
+- **User Dashboard**: Track orders, reservations, and loyalty points
+- **Loyalty Program**: Earn points and unlock tier benefits
+- **Contact System**: Send inquiries with automated responses
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### Admin Features
+- **Dashboard Analytics**: Sales reports, user statistics, revenue tracking
+- **Order Management**: View, update, and track all orders
+- **Reservation Management**: Manage table bookings and availability
+- **Menu Management**: Add, edit, and manage menu items
+- **User Management**: View and manage customer accounts
+- **Contact Management**: Handle customer inquiries
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Technical Features
+- **Authentication System**: Secure login/registration with role-based access
+- **Database Design**: Optimized schema for coffee shop operations
+- **API Endpoints**: RESTful API for mobile app integration
+- **Responsive Design**: Mobile-first Bootstrap 5 interface
+- **Real-time Updates**: Dynamic content updates without page refresh
 
-## Learning Laravel
+## Installation & Setup
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Prerequisites
+- PHP 8.2 or higher
+- Composer
+- Node.js & NPM
+- SQLite (default) or MySQL
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Step 1: Clone and Install Dependencies
+```bash
+git clone <repository-url>
+cd cafe-elixir
+composer install
+npm install
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Step 2: Environment Setup
+```bash
+cp .env.example .env
+php artisan key:generate
+```
 
-## Laravel Sponsors
+### Step 3: Database Setup
+```bash
+# Create SQLite database
+touch database/database.sqlite
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+# Run migrations and seeders
+php artisan migrate
+php artisan db:seed
+```
 
-### Premium Partners
+### Step 4: Build Assets
+```bash
+npm run build
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### Step 5: Start Development Server
+```bash
+php artisan serve
+```
 
-## Contributing
+Visit `http://localhost:8000` to access the application.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Default Login Credentials
 
-## Code of Conduct
+### Admin Account
+- **Email**: admin@cafeelixir.lk
+- **Password**: admin123
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Test Customer Account
+- **Email**: customer@example.com
+- **Password**: password
 
-## Security Vulnerabilities
+## Database Schema
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### Core Tables
+- **users**: Customer and admin accounts with role-based access
+- **menu_items**: Coffee menu with categories, pricing, and nutritional info
+- **orders**: Customer orders with items, pricing, and status tracking
+- **reservations**: Table bookings with customer details and preferences
+- **loyalty_points**: Point earning/redemption system
+- **contact_messages**: Customer inquiries and support tickets
+- **newsletter_subscribers**: Email subscription management
+
+## API Documentation
+
+### Public Endpoints
+```
+GET /api/v1/menu - Get all menu items
+GET /api/v1/menu/{id} - Get specific menu item
+GET /api/v1/menu/category/{category} - Get items by category
+GET /api/v1/menu/featured - Get featured items
+POST /api/v1/orders - Place new order
+GET /api/v1/orders/{orderId} - Get order details
+```
+
+### Protected Endpoints (Requires Authentication)
+```
+GET /api/v1/user/orders - Get user's orders
+GET /api/v1/user/reservations - Get user's reservations
+GET /api/v1/user/loyalty - Get loyalty point details
+```
+
+## Business Logic
+
+### Loyalty Program
+- **Bronze Tier**: 0-499 points (5% discount)
+- **Gold Tier**: 500-1,499 points (15% discount)
+- **Platinum Tier**: 1,500+ points (25% discount)
+- **Point Earning**: 1 point per Rs. 10 spent
+- **Reservation Bonus**: 50 points per confirmed reservation
+
+### Order Management
+- **Order Statuses**: pending → confirmed → preparing → ready → completed
+- **Order Types**: dine_in, takeaway, delivery
+- **Tax Calculation**: 10% tax on subtotal
+- **Automatic Point Award**: Points credited on order completion
+
+### Reservation System
+- **Advance Booking**: Up to 30 days in advance
+- **Time Slots**: 30-minute intervals during business hours
+- **Guest Limits**: 1-20 people per reservation
+- **Status Tracking**: pending → confirmed → completed/cancelled
+
+## Development
+
+### Running Tests
+```bash
+php artisan test
+```
+
+### Code Style
+```bash
+./vendor/bin/pint
+```
+
+### Database Reset
+```bash
+php artisan migrate:fresh --seed
+```
+
+## Production Deployment
+
+### Environment Variables
+Update `.env` for production:
+```
+APP_ENV=production
+APP_DEBUG=false
+DB_CONNECTION=mysql
+MAIL_MAILER=smtp
+```
+
+### Optimization Commands
+```bash
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+composer install --optimize-autoloader --no-dev
+```
+
+## Support
+
+For technical support or business inquiries:
+- **Email**: info@cafeelixir.lk
+- **Phone**: +94 77 186 9132
+- **Address**: No.1, Mahamegawaththa Road, Maharagama
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is proprietary software developed for Café Elixir.
