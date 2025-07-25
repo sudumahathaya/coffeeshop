@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth');
-        // Add admin middleware later
-    }
+    // Constructor removed - middleware handled in routes
 
     public function dashboard()
     {

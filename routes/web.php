@@ -36,7 +36,7 @@ Route::post('/contact', [HomeController::class, 'storeContact'])->name('contact.
 Route::get('/business-status', [HomeController::class, 'getBusinessStatus'])->name('business.status');
 
 // Admin Routes
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/users', [App\Http\Controllers\AdminController::class, 'users'])->name('users');
     Route::get('/reservations', [App\Http\Controllers\AdminController::class, 'reservations'])->name('reservations');
