@@ -2,196 +2,255 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use App\Models\MenuItem;
-use App\Models\Order;
 use App\Models\Reservation;
 use App\Models\ContactMessage;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use App\Models\NewsletterSubscriber;
 
-class AdminController extends Controller
+class HomeController extends Controller
 {
-
-    public function dashboard()
+    public function index()
     {
-        // Dashboard statistics
-        $stats = [
-            'total_users' => User::count(),
-            'new_users_today' => User::whereDate('created_at', today())->count(),
-            'total_reservations' => Reservation::count(),
-            'pending_reservations' => Reservation::pending()->count(),
-            'revenue_today' => Order::today()->sum('total'),
-            'revenue_month' => Order::whereMonth('created_at', now()->month)->sum('total'),
-            'popular_items' => $this->getPopularMenuItems(),
-            'recent_users' => User::latest()->take(5)->get(),
-        ];
+        // Get featured menu items
+        $featuredProducts = MenuItem::active()
+            ->whereIn('category', ['Hot Coffee', 'Specialty', 'Tea & Others'])
+            ->inRandomOrder()
+            ->take(3)
+            ->get();
 
-        // Chart data
-        $chartData = [
-            'daily_sales' => $this->getDailySalesData(),
-            'user_registrations' => $this->getUserRegistrationData(),
-            'reservation_trends' => $this->getReservationTrends(),
-        ];
-
-        return view('admin.dashboard', compact('stats', 'chartData'));
+        return view('home', compact('featuredProducts'));
     }
 
-    public function users()
+    public function menu()
     {
-        $users = User::latest()->paginate(20);
-        return view('admin.users.index', compact('users'));
-    }
-
-    public function reservations()
-    {
-        $reservations = Reservation::with('user')->latest()->paginate(20);
-
-        return view('admin.reservations.index', compact('reservations'));
-    }
-
-    public function orders()
-    {
-        $orders = Order::with('user')->latest()->paginate(20);
-
-        return view('admin.orders.index', compact('orders'));
-    }
-
-    public function settings()
-    {
-        $settings = [
-            'cafe_name' => 'Café Elixir',
-            'opening_time' => '06:00',
-            'closing_time' => '22:00',
-            'max_reservation_guests' => 20,
-            'reservation_advance_days' => 30,
-            'contact_email' => 'info@cafeelixir.lk',
-            'contact_phone' => '+94 77 186 9132',
-        ];
-
-        return view('admin.settings', compact('settings'));
-    }
-
-    public function menuManagement()
-    {
-        $menuItems = MenuItem::latest()->get();
+        $menuItems = MenuItem::active()->get()->groupBy('category');
         $categories = MenuItem::select('category')->distinct()->pluck('category');
-
-        return view('admin.menu.index', compact('menuItems', 'categories'));
+        
+        return view('menu', compact('menuItems', 'categories'));
     }
 
-    public function analytics()
+    public function reservation()
     {
-        // Sample analytics data
-        $analyticsData = [
-            'overview' => [
-                'total_revenue' => 1250000.00,
-                'total_orders' => 3456,
-                'total_customers' => 892,
-                'avg_order_value' => 850.00,
-                'revenue_growth' => 12.5,
-                'order_growth' => 8.3,
-                'customer_growth' => 15.2
-            ],
-            'sales_by_period' => [
-                'daily' => [
-                    'labels' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    'data' => [35000, 42000, 38000, 51000, 49000, 62000, 58000]
-                ],
-                'monthly' => [
-                    'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-                    'data' => [120000, 135000, 128000, 145000, 152000, 168000, 175000, 162000, 158000, 172000, 185000, 195000]
-                ]
-            ],
-            'top_products' => [
-                ['name' => 'Cappuccino', 'sales' => 456, 'revenue' => 218880],
-                ['name' => 'Latte', 'sales' => 389, 'revenue' => 202280],
-                ['name' => 'Espresso', 'sales' => 312, 'revenue' => 99840],
-                ['name' => 'Caramel Macchiato', 'sales' => 278, 'revenue' => 180700],
-                ['name' => 'Iced Coffee', 'sales' => 234, 'revenue' => 135720]
-            ],
-            'customer_analytics' => [
-                'new_customers_monthly' => [
-                    'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    'data' => [45, 52, 48, 61, 58, 67]
-                ],
-                'customer_retention' => 78.5,
-                'avg_visits_per_customer' => 3.8,
-                'customer_lifetime_value' => 2850.00
-            ],
-            'peak_hours' => [
-                'labels' => ['6AM', '7AM', '8AM', '9AM', '10AM', '11AM', '12PM', '1PM', '2PM', '3PM', '4PM', '5PM', '6PM', '7PM', '8PM', '9PM'],
-                'data' => [12, 45, 89, 67, 34, 28, 56, 78, 45, 67, 89, 76, 65, 54, 43, 32]
-            ],
-            'payment_methods' => [
-                'labels' => ['Cash', 'Card', 'Mobile Payment', 'Gift Card'],
-                'data' => [35, 45, 15, 5]
+        return view('reservation');
+    }
+
+    public function blog()
+    {
+        // Sample blog posts data
+        $blogPosts = [
+            (object) [
+                'id' => 1,
+                'title' => 'The Art of Perfect Espresso',
+                'slug' => 'art-of-perfect-espresso',
+                'excerpt' => 'Master the fundamentals of espresso making with our comprehensive guide.',
+                'category' => 'brewing',
+                'author' => 'Tharaka Silva',
+                'published_at' => '2024-12-15',
+                'views' => 1250,
+                'likes' => 89,
+                'featured' => true
             ]
         ];
 
-        return view('admin.analytics.index', compact('analyticsData'));
-    }
-
-    // Helper methods for statistics
-    private function getPopularMenuItems()
-    {
-        // This would be calculated from actual order data
-        return MenuItem::active()->take(3)->get()->map(function ($item) {
-            return [
-                'name' => $item->name,
-                'orders' => rand(50, 100) // Simulated for now
-            ];
-        })->toArray();
-    }
-
-    private function getDailySalesData()
-    {
-        // Get last 7 days sales data
-        $salesData = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = now()->subDays($i);
-            $sales = Order::whereDate('created_at', $date)->sum('total');
-            $salesData[] = $sales ?: rand(30000, 60000); // Fallback to random data if no orders
-        }
-        
-        return [
-            'labels' => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            'data' => $salesData
+        $categories = [
+            'brewing' => 'Brewing Guides',
+            'culture' => 'Coffee Culture',
+            'recipes' => 'Recipes',
+            'news' => 'Café News',
+            'health' => 'Health & Wellness'
         ];
+
+        return view('blog', compact('blogPosts', 'categories'));
     }
 
-    private function getUserRegistrationData()
+    public function features()
     {
-        // Get last 6 months user registration data
-        $registrationData = [];
-        for ($i = 5; $i >= 0; $i--) {
-            $month = now()->subMonths($i);
-            $count = User::whereMonth('created_at', $month->month)
-                        ->whereYear('created_at', $month->year)
-                        ->count();
-            $registrationData[] = $count ?: rand(10, 30);
-        }
-        
-        return [
-            'labels' => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            'data' => $registrationData
-        ];
+        return view('features');
     }
 
-    private function getReservationTrends()
+    public function contact()
     {
-        // Get last 4 weeks reservation data
-        $reservationData = [];
-        for ($i = 3; $i >= 0; $i--) {
-            $weekStart = now()->subWeeks($i)->startOfWeek();
-            $weekEnd = now()->subWeeks($i)->endOfWeek();
-            $count = Reservation::whereBetween('created_at', [$weekStart, $weekEnd])->count();
-            $reservationData[] = $count ?: rand(40, 70);
-        }
-        
-        return [
-            'labels' => ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-            'data' => $reservationData
+        $contactInfo = (object) [
+            'address' => 'No.1, Mahamegawaththa Road, Maharagama',
+            'phone' => '+94 77 186 9132',
+            'whatsapp' => '+94 77 186 9132',
+            'email_general' => 'info@cafeelixir.lk',
+            'email_reservations' => 'reservations@cafeelixir.lk',
+            'email_events' => 'events@cafeelixir.lk',
+            'business_hours' => [
+                'monday' => '6:00 AM - 10:00 PM',
+                'tuesday' => '6:00 AM - 10:00 PM',
+                'wednesday' => '6:00 AM - 10:00 PM',
+                'thursday' => '6:00 AM - 10:00 PM',
+                'friday' => '6:00 AM - 10:00 PM',
+                'saturday' => '6:00 AM - 11:00 PM',
+                'sunday' => '7:00 AM - 10:00 PM'
+            ],
+            'social_media' => [
+                'facebook' => 'https://facebook.com/cafeelixir',
+                'instagram' => 'https://instagram.com/cafeelixir',
+                'twitter' => 'https://twitter.com/cafeelixir',
+                'youtube' => 'https://youtube.com/cafeelixir',
+                'tiktok' => 'https://tiktok.com/@cafeelixir'
+            ]
         ];
+
+        return view('contact', compact('contactInfo'));
+    }
+
+    // Handle contact form submission
+    public function storeContact(Request $request)
+    {
+        $validatedData = $request->validate([
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:20',
+            'subject' => 'required|string|in:general,reservation,catering,feedback,complaint,partnership,employment,media,other',
+            'message' => 'required|string|max:2000',
+            'contactMethod' => 'required|string|in:email,phone,whatsapp',
+            'bestTime' => 'nullable|string|in:morning,afternoon,evening',
+            'urgency' => 'required|string|in:normal,urgent,immediate',
+            'newsletter' => 'nullable|boolean'
+        ]);
+
+        // Generate message ID
+        $messageId = 'CM' . str_pad(ContactMessage::count() + 1, 6, '0', STR_PAD_LEFT);
+
+        $contactMessage = ContactMessage::create([
+            'message_id' => $messageId,
+            'first_name' => $validatedData['firstName'],
+            'last_name' => $validatedData['lastName'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'subject' => $validatedData['subject'],
+            'message' => $validatedData['message'],
+            'contact_method' => $validatedData['contactMethod'],
+            'best_time' => $validatedData['bestTime'],
+            'urgency' => $validatedData['urgency'],
+            'newsletter' => $validatedData['newsletter'] ?? false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Your message has been sent successfully!',
+            'message_id' => $messageId,
+            'data' => $contactMessage
+        ]);
+    }
+
+    // Handle newsletter subscription
+    public function subscribeNewsletter(Request $request)
+    {
+        $validatedData = $request->validate([
+            'email' => 'required|email|max:255'
+        ]);
+
+        NewsletterSubscriber::updateOrCreate(
+            ['email' => $validatedData['email']],
+            [
+                'subscribed_at' => now(),
+                'is_active' => true
+            ]
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Thank you for subscribing to our newsletter!'
+        ]);
+    }
+
+    // Handle reservation form submission
+    public function storeReservation(Request $request)
+    {
+        $validatedData = $request->validate([
+            'firstName' => 'required|string|max:255',
+            'lastName' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'reservationDate' => 'required|date|after:today',
+            'reservationTime' => 'required|string',
+            'guests' => 'required|integer|min:1|max:20',
+            'tableType' => 'nullable|string',
+            'occasion' => 'nullable|string',
+            'specialRequests' => 'nullable|string|max:1000',
+            'emailUpdates' => 'nullable|boolean'
+        ]);
+
+        $reservationId = 'CE' . str_pad(Reservation::count() + 1, 6, '0', STR_PAD_LEFT);
+
+        $reservation = Reservation::create([
+            'reservation_id' => $reservationId,
+            'first_name' => $validatedData['firstName'],
+            'last_name' => $validatedData['lastName'],
+            'email' => $validatedData['email'],
+            'phone' => $validatedData['phone'],
+            'reservation_date' => $validatedData['reservationDate'],
+            'reservation_time' => $validatedData['reservationTime'],
+            'guests' => $validatedData['guests'],
+            'table_type' => $validatedData['tableType'],
+            'occasion' => $validatedData['occasion'],
+            'special_requests' => $validatedData['specialRequests'],
+            'email_updates' => $validatedData['emailUpdates'] ?? false,
+            'user_id' => auth()->id(),
+            'status' => 'confirmed'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation confirmed successfully!',
+            'reservation_id' => $reservationId,
+            'data' => $reservation
+        ]);
+    }
+
+    // Get blog post by slug (for future single post view)
+    public function showBlogPost($slug)
+    {
+        // This would typically fetch from database
+        $post = (object) [
+            'title' => 'Sample Blog Post',
+            'content' => 'Full blog post content...',
+            'author' => 'Author Name',
+            'published_at' => now()
+        ];
+
+        return view('blog.single', compact('post'));
+    }
+
+    // Get business status (for API)
+    public function getBusinessStatus()
+    {
+        $now = now();
+        $currentDay = $now->dayOfWeek; // 0 = Sunday, 1 = Monday, etc.
+        $currentTime = $now->format('H:i');
+
+        $isOpen = false;
+        $message = 'Closed';
+
+        // Check if currently open based on business hours
+        if ($currentDay == 0) { // Sunday
+            $isOpen = $currentTime >= '07:00' && $currentTime < '22:00';
+        } elseif ($currentDay == 6) { // Saturday
+            $isOpen = $currentTime >= '06:00' && $currentTime < '23:00';
+        } else { // Monday to Friday
+            $isOpen = $currentTime >= '06:00' && $currentTime < '22:00';
+        }
+
+        if ($isOpen) {
+            // Check if closing soon (within 1 hour)
+            $closingTime = ($currentDay == 6) ? '23:00' : '22:00';
+            $closingSoon = $currentTime >= date('H:i', strtotime($closingTime . ' -1 hour'));
+
+            $message = $closingSoon ? 'Closing Soon' : 'Open Now';
+        }
+
+        return response()->json([
+            'is_open' => $isOpen,
+            'message' => $message,
+            'current_time' => $currentTime,
+            'day' => $now->format('l')
+        ]);
     }
 }
