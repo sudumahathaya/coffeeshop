@@ -94,7 +94,11 @@
                                 <span class="text-muted ms-2">(Single Shot)</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Classic Espresso" data-price="320">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="1"
+                                        data-name="Classic Espresso" 
+                                        data-price="320"
+                                        data-image="https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -124,7 +128,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 480.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Cappuccino" data-price="480">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="2"
+                                        data-name="Cappuccino" 
+                                        data-price="480"
+                                        data-image="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -154,7 +162,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 520.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Café Latte" data-price="520">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="3"
+                                        data-name="Café Latte" 
+                                        data-price="520"
+                                        data-image="https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -187,7 +199,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 650.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Caramel Macchiato" data-price="650">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="4"
+                                        data-name="Caramel Macchiato" 
+                                        data-price="650"
+                                        data-image="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -220,7 +236,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 580.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Iced Coffee" data-price="580">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="5"
+                                        data-name="Iced Coffee" 
+                                        data-price="580"
+                                        data-image="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -250,7 +270,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 720.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Vanilla Frappuccino" data-price="720">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="6"
+                                        data-name="Vanilla Frappuccino" 
+                                        data-price="720"
+                                        data-image="https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -285,7 +309,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 380.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Premium Ceylon Tea" data-price="380">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="7"
+                                        data-name="Premium Ceylon Tea" 
+                                        data-price="380"
+                                        data-image="https://images.unsplash.com/photo-1597318374671-96ee162414ca?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -315,7 +343,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 550.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Premium Hot Chocolate" data-price="550">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="8"
+                                        data-name="Premium Hot Chocolate" 
+                                        data-price="550"
+                                        data-image="https://images.unsplash.com/photo-1542990253-a781e04c0082?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -348,7 +380,11 @@
                                 <span class="h5 text-coffee mb-0">Rs. 280.00</span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" data-name="Butter Croissant" data-price="280">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="9"
+                                        data-name="Butter Croissant" 
+                                        data-price="280"
+                                        data-image="https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=400&h=300&fit=crop">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                                 <small class="text-muted">
@@ -635,7 +671,22 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Category filtering
+    // Initialize menu functionality
+    initializeMenuFilters();
+    initializeMenuSearch();
+
+    // Smooth scrolling for menu categories
+    document.querySelector('[href="#menu-categories"]')?.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('menu-categories').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    });
+});
+
+// Menu filtering functionality
+function initializeMenuFilters() {
     const categoryButtons = document.querySelectorAll('[data-category]');
     const menuItems = document.querySelectorAll('.menu-item');
 
@@ -673,68 +724,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Re-trigger AOS animation for visible items
             setTimeout(() => {
-                AOS.refresh();
+                if (typeof AOS !== 'undefined') {
+                    AOS.refresh();
+                }
             }, 400);
         });
     });
+}
 
-    // Add to cart functionality
-    const addToCartButtons = document.querySelectorAll('.add-to-cart');
-    let cart = JSON.parse(localStorage.getItem('cafeElixirCart')) || [];
-
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const name = this.getAttribute('data-name');
-            const price = parseFloat(this.getAttribute('data-price'));
-
-            // Add loading state
-            const originalText = this.innerHTML;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Adding...';
-            this.disabled = true;
-
-            // Simulate API call delay
-            setTimeout(() => {
-                // Add to cart array
-                const existingItem = cart.find(item => item.name === name);
-
-                if (existingItem) {
-                    existingItem.quantity += 1;
-                } else {
-                    cart.push({
-                        name: name,
-                        price: price,
-                        quantity: 1
-                    });
-                }
-
-                // Save to localStorage
-                localStorage.setItem('cafeElixirCart', JSON.stringify(cart));
-
-                // Success feedback
-                this.innerHTML = '<i class="bi bi-check-lg me-1"></i>Added!';
-                this.classList.remove('btn-coffee');
-                this.classList.add('btn-success');
-
-                // Show notification
-                showNotification(`${name} added to cart!`, 'success');
-
-                // Update cart counter if exists
-                updateCartCounter();
-
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                    this.classList.remove('btn-success');
-                    this.classList.add('btn-coffee');
-                }, 2000);
-
-            }, 800);
-        });
-    });
-
-    // Search functionality
+// Menu search functionality
+function initializeMenuSearch() {
     const searchInput = document.getElementById('menuSearch');
+    const menuItems = document.querySelectorAll('.menu-item');
+    
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
@@ -757,97 +759,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-
-    // Cart counter update function
-    function updateCartCounter() {
-        const cartCounter = document.getElementById('cartCounter');
-        if (cartCounter) {
-            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-            cartCounter.textContent = totalItems;
-
-            if (totalItems > 0) {
-                cartCounter.style.display = 'inline-block';
-            } else {
-                cartCounter.style.display = 'none';
-            }
-        }
-    }
-
-    // Notification function
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `alert alert-${type} position-fixed notification-toast`;
-        notification.style.cssText = `
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            min-width: 300px;
-            border-radius: 15px;
-            animation: slideInRight 0.5s ease;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        `;
-        notification.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'info-circle-fill'} me-2"></i>
-                <span class="flex-grow-1">${message}</span>
-                <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
-            </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        // Auto remove after 4 seconds
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.style.animation = 'slideOutRight 0.5s ease';
-                setTimeout(() => notification.remove(), 500);
-            }
-        }, 4000);
-    }
-
-    // Initialize cart counter on page load
-    updateCartCounter();
-
-    // Smooth scrolling for menu categories
-    document.querySelector('[href="#menu-categories"]')?.addEventListener('click', function(e) {
-        e.preventDefault();
-        document.getElementById('menu-categories').scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-        });
-    });
-});
-
-// CSS animations for notifications
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-
-    .notification-toast {
-        backdrop-filter: blur(10px);
-    }
-`;
-document.head.appendChild(style);
+}
 </script>
 @endpush
 @endsection

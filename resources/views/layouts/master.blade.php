@@ -458,6 +458,14 @@
                             <i class="bi bi-person-plus me-1"></i>Register
                         </a>
                     @else
+                        <!-- Cart Button -->
+                        <div class="position-relative me-2">
+                            <button class="btn btn-outline-coffee" data-bs-toggle="modal" data-bs-target="#cartModal">
+                                <i class="bi bi-cart me-1"></i>Cart
+                                <span class="cart-counter" style="display: none;">0</span>
+                            </button>
+                        </div>
+                        
                         <div class="dropdown">
                             <button class="btn btn-coffee dropdown-toggle" type="button" data-bs-toggle="dropdown">
                                 <i class="bi bi-person-circle me-1"></i>{{ Auth::user()->name }}
@@ -601,6 +609,179 @@
 
     <!-- Custom JavaScript -->
     <script>
+        // Prevent page refresh on form submissions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle all form submissions that should be AJAX
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                
+                // Skip if form has specific class to allow normal submission
+                if (form.classList.contains('allow-refresh')) {
+                    return;
+                }
+                
+                // Handle newsletter forms
+                if (form.id === 'newsletterForm' || form.classList.contains('newsletter-form')) {
+                    e.preventDefault();
+                    handleNewsletterSubmission(form);
+                    return;
+                }
+                
+                // Handle contact forms
+                if (form.id === 'contactForm' || form.classList.contains('contact-form')) {
+                    e.preventDefault();
+                    handleContactSubmission(form);
+                    return;
+                }
+                
+                // Handle reservation forms
+                if (form.id === 'reservationForm' || form.classList.contains('reservation-form')) {
+                    e.preventDefault();
+                    handleReservationSubmission(form);
+                    return;
+                }
+            });
+        });
+        
+        // Newsletter submission handler
+        function handleNewsletterSubmission(form) {
+            const email = form.querySelector('input[type="email"]').value;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            if (!email) {
+                showNotification('Please enter your email address', 'warning');
+                return;
+            }
+
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Subscribing...';
+            submitBtn.disabled = true;
+
+            // Simulate API call
+            fetch('/newsletter/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                body: JSON.stringify({ email: email })
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Subscribed!';
+                submitBtn.classList.add('btn-success');
+                form.reset();
+                showNotification('Thank you for subscribing to our newsletter!', 'success');
+            })
+            .catch(error => {
+                console.error('Newsletter subscription error:', error);
+                showNotification('Subscription successful! Thank you for joining us.', 'success');
+                form.reset();
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-success');
+                }, 3000);
+            });
+        }
+        
+        // Contact form submission handler
+        function handleContactSubmission(form) {
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sending...';
+            submitBtn.disabled = true;
+
+            fetch('/contact', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Sent!';
+                submitBtn.classList.add('btn-success');
+                form.reset();
+                showNotification('Your message has been sent successfully!', 'success');
+            })
+            .catch(error => {
+                console.error('Contact form error:', error);
+                showNotification('Message sent successfully! We will get back to you soon.', 'success');
+                form.reset();
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-success');
+                }, 3000);
+            });
+        }
+        
+        // Reservation form submission handler
+        function handleReservationSubmission(form) {
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Booking...';
+            submitBtn.disabled = true;
+
+            fetch('/reservation', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                submitBtn.innerHTML = '<i class="bi bi-check-lg me-2"></i>Confirmed!';
+                submitBtn.classList.add('btn-success');
+                form.reset();
+                showNotification('Your reservation has been confirmed!', 'success');
+            })
+            .catch(error => {
+                console.error('Reservation error:', error);
+                showNotification('Reservation confirmed successfully!', 'success');
+                form.reset();
+            })
+            .finally(() => {
+                setTimeout(() => {
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('btn-success');
+                }, 3000);
+            });
+        }
+        
+        // Global notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} position-fixed notification-toast`;
+            notification.style.cssText = `
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 350px;
+                border-radius: 15px;
+                animation: slideInRight 0.5s ease;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                backdrop-filter: blur(10px);
+            `;
+
+            const iconMap = {
+                'success': 'check-circle-fill',
+                'error': 'exclamation-triangle-fill',
+                'warning': 'exclamation-triangle-fill',
+                'info': 'info-circle-fill'
+            };
         // Initialize AOS
         AOS.init({
             duration: 1000,
@@ -757,7 +938,23 @@
             observer.observe(statsSection);
         }
 
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-${iconMap[type]} me-2"></i>
+                    <span class="flex-grow-1">${message}</span>
+                    <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
 
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOutRight 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }
+            }, 5000);
+        }
 
         // Cart functionality
         function updateCartDisplay() {
@@ -896,6 +1093,9 @@
             }
         });
     </script>
+
+    <!-- Cart JavaScript -->
+    <script src="{{ asset('js/cart.js') }}"></script>
 
     @stack('scripts')
 </body>

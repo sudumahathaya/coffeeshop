@@ -154,7 +154,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="h5 text-coffee mb-0">Rs. {{ number_format($product->price, 2) }}</span>
                             @auth
-                                <button class="btn btn-coffee btn-sm">
+                                <button class="btn btn-coffee btn-sm add-to-cart" 
+                                        data-id="{{ $product->id }}"
+                                        data-name="{{ $product->name }}" 
+                                        data-price="{{ $product->price }}"
+                                        data-image="{{ $product->image }}">
                                     <i class="bi bi-cart-plus me-1"></i>Add to Cart
                                 </button>
                             @else
@@ -463,5 +467,218 @@
         background-color: var(--coffee-primary) !important;
     }
 </style>
+@endpush
+
+@push('scripts')
+    <script>
+        // Typewriter effect for Sinhala text
+        const sinhalaTexts = [
+            "කෝපි ප්‍රේමීන්ගේ ස්වර්ගය",
+            "සෑම කෝපි කෝප්පයක්ම කතාවක්",
+            "ගුණාත්මක කෝපි අත්දැකීම"
+        ];
+
+        // Typewriter effect for English text
+        const englishTexts = [
+            "Paradise for Coffee Lovers",
+            "Every Cup Tells a Story",
+            "Premium Coffee Experience"
+        ];
+
+        let sinhalaIndex = 0;
+        let englishIndex = 0;
+        let sinhalaCharIndex = 0;
+        let englishCharIndex = 0;
+        let isDeleting = false;
+
+        function typewriterEffect() {
+            const sinhalaElement = document.getElementById('sinhalaTypewriter');
+            const englishElement = document.getElementById('englishTypewriter');
+
+            if (!sinhalaElement || !englishElement) return;
+
+            const currentSinhalaText = sinhalaTexts[sinhalaIndex];
+            const currentEnglishText = englishTexts[englishIndex];
+
+            if (!isDeleting) {
+                // Typing
+                if (sinhalaCharIndex < currentSinhalaText.length) {
+                    sinhalaElement.textContent = currentSinhalaText.substring(0, sinhalaCharIndex + 1);
+                    sinhalaCharIndex++;
+                }
+
+                if (englishCharIndex < currentEnglishText.length) {
+                    englishElement.textContent = currentEnglishText.substring(0, englishCharIndex + 1);
+                    englishCharIndex++;
+                }
+
+                if (sinhalaCharIndex === currentSinhalaText.length && englishCharIndex === currentEnglishText.length) {
+                    // Both texts are complete, wait then start deleting
+                    setTimeout(() => {
+                        isDeleting = true;
+                    }, 2000);
+                }
+            } else {
+                // Deleting
+                if (sinhalaCharIndex > 0) {
+                    sinhalaElement.textContent = currentSinhalaText.substring(0, sinhalaCharIndex - 1);
+                    sinhalaCharIndex--;
+                }
+
+                if (englishCharIndex > 0) {
+                    englishElement.textContent = currentEnglishText.substring(0, englishCharIndex - 1);
+                    englishCharIndex--;
+                }
+
+                if (sinhalaCharIndex === 0 && englishCharIndex === 0) {
+                    // Both texts are deleted, move to next texts
+                    isDeleting = false;
+                    sinhalaIndex = (sinhalaIndex + 1) % sinhalaTexts.length;
+                    englishIndex = (englishIndex + 1) % englishTexts.length;
+                }
+            }
+
+            setTimeout(typewriterEffect, isDeleting ? 50 : 100);
+        }
+
+        // Start typewriter effect when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(typewriterEffect, 1000);
+        });
+
+        // Stats counter animation
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 100;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current).toLocaleString();
+            }, 20);
+        }
+
+        // Initialize counters when they come into view
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const counters = entry.target.querySelectorAll('.stat-number');
+                    counters.forEach(counter => {
+                        const target = parseInt(counter.getAttribute('data-target'));
+                        animateCounter(counter, target);
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const statsSection = document.querySelector('.stats-counter');
+            if (statsSection) {
+                observer.observe(statsSection);
+            }
+        });
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            // Remove existing notifications
+            const existingNotifications = document.querySelectorAll('.custom-notification');
+            existingNotifications.forEach(notification => notification.remove());
+
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `custom-notification alert alert-${type === 'success' ? 'success' : type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'info'} alert-dismissible fade show`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                    <span>${message}</span>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification && notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Add to cart functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const addToCartButtons = document.querySelectorAll('.add-to-cart');
+
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-id');
+                    const productName = this.getAttribute('data-name');
+                    const productPrice = parseFloat(this.getAttribute('data-price'));
+                    const productImage = this.getAttribute('data-image');
+
+                    // Get existing cart from localStorage
+                    let cart = JSON.parse(localStorage.getItem('cafeElixirCart')) || [];
+
+                    // Check if item already exists in cart
+                    const existingItemIndex = cart.findIndex(item => item.id === productId);
+
+                    if (existingItemIndex !== -1) {
+                        // Item exists, increase quantity
+                        cart[existingItemIndex].quantity += 1;
+                        showNotification(`Increased ${productName} quantity in cart!`, 'info');
+                    } else {
+                        // New item, add to cart
+                        cart.push({
+                            id: productId,
+                            name: productName,
+                            price: productPrice,
+                            image: productImage,
+                            quantity: 1
+                        });
+                        showNotification(`${productName} added to cart!`, 'success');
+                    }
+
+                    // Save updated cart to localStorage
+                    localStorage.setItem('cafeElixirCart', JSON.stringify(cart));
+
+                    // Update cart display if the function exists
+                    if (typeof updateCartDisplay === 'function') {
+                        updateCartDisplay();
+                    }
+
+                    // Add visual feedback
+                    const originalText = this.innerHTML;
+                    this.innerHTML = '<i class="bi bi-check me-1"></i>Added!';
+                    this.disabled = true;
+
+                    setTimeout(() => {
+                        this.innerHTML = originalText;
+                        this.disabled = false;
+                    }, 1500);
+                });
+            });
+        });
+
+        // Cart functionality is now handled by cart.js
+    </script>
+
+    @stack('scripts')
 @endpush
 @endsection
