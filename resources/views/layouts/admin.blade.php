@@ -208,13 +208,15 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link {{ request()->routeIs('admin.menu*') ? 'active' : '' }}" 
+                   href="{{ route('admin.menu.management') }}">
                     <i class="bi bi-journal-text"></i>
                     Menu Management
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link {{ request()->routeIs('admin.analytics*') ? 'active' : '' }}" 
+                   href="{{ route('admin.analytics') }}">
                     <i class="bi bi-graph-up"></i>
                     Analytics
                 </a>
