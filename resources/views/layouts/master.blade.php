@@ -609,6 +609,58 @@
 
     <!-- Custom JavaScript -->
     <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            offset: 100,
+            once: true
+        });
+
+        // Loading overlay
+        window.addEventListener('load', function() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        });
+
+        // Global notification function
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type} position-fixed notification-toast`;
+            notification.style.cssText = `
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 350px;
+                border-radius: 15px;
+                animation: slideInRight 0.5s ease;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                backdrop-filter: blur(10px);
+            `;
+
+            const iconMap = {
+                'success': 'check-circle-fill',
+                'error': 'exclamation-triangle-fill',
+                'warning': 'exclamation-triangle-fill',
+                'info': 'info-circle-fill'
+            };
+
+            notification.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-${iconMap[type]} me-2"></i>
+                    <span class="flex-grow-1">${message}</span>
+                    <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.style.animation = 'slideOutRight 0.5s ease';
+                    setTimeout(() => notification.remove(), 500);
+                }
+            }, 5000);
+        }
+
         // Prevent page refresh on form submissions
         document.addEventListener('DOMContentLoaded', function() {
             // Handle all form submissions that should be AJAX
@@ -760,40 +812,6 @@
                 }, 3000);
             });
         }
-        
-        // Global notification function
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `alert alert-${type} position-fixed notification-toast`;
-            notification.style.cssText = `
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-                min-width: 350px;
-                border-radius: 15px;
-                animation: slideInRight 0.5s ease;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-                backdrop-filter: blur(10px);
-            `;
-
-            const iconMap = {
-                'success': 'check-circle-fill',
-                'error': 'exclamation-triangle-fill',
-                'warning': 'exclamation-triangle-fill',
-                'info': 'info-circle-fill'
-            };
-        // Initialize AOS
-        AOS.init({
-            duration: 1000,
-            offset: 100,
-            once: true
-        });
-
-        // Loading overlay
-        window.addEventListener('load', function() {
-            document.getElementById('loadingOverlay').classList.add('hidden');
-        });
-
 
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
@@ -817,6 +835,7 @@
                 typeWriter();
             }, 1500);
         });
+
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 const text = '"A home where souls who love the smell of coffee and the color brown gather"';
@@ -839,7 +858,6 @@
                 typeWriter();
             }, 1500);
         });
-
 
         // Navbar scroll effect
         window.addEventListener('scroll', function() {
@@ -936,24 +954,6 @@
         const statsSection = document.querySelector('.stats-counter');
         if (statsSection) {
             observer.observe(statsSection);
-        }
-
-            notification.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-${iconMap[type]} me-2"></i>
-                    <span class="flex-grow-1">${message}</span>
-                    <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
-            `;
-
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                if (notification.parentElement) {
-                    notification.style.animation = 'slideOutRight 0.5s ease';
-                    setTimeout(() => notification.remove(), 500);
-                }
-            }, 5000);
         }
 
         // Cart functionality
