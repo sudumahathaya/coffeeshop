@@ -241,6 +241,14 @@
                                 <small class="text-muted">Upload an image file or provide a URL</small>
                             </div>
                         </div>
+                        
+                        <!-- Preview Section -->
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Preview:</strong> Your menu item will appear in the customer menu once saved and activated.
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -666,6 +674,22 @@ function saveItem() {
     const formData = new FormData(form);
     const submitButton = event.target;
     
+    // Validate required fields
+    const name = form.querySelector('[name="name"]').value;
+    const description = form.querySelector('[name="description"]').value;
+    const category = form.querySelector('[name="category"]').value;
+    const price = form.querySelector('[name="price"]').value;
+    
+    if (!name || !description || !category || !price) {
+        showNotification('Please fill in all required fields', 'warning');
+        return;
+    }
+    
+    if (parseFloat(price) <= 0) {
+        showNotification('Price must be greater than 0', 'warning');
+        return;
+    }
+    
     const originalText = submitButton.innerHTML;
     submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
     submitButton.disabled = true;
@@ -680,7 +704,7 @@ function saveItem() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Menu item created successfully!', 'success');
+            showNotification(`${data.menu_item.name} has been added to the menu successfully!`, 'success');
             const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
             modal.hide();
             form.reset();
@@ -692,10 +716,26 @@ function saveItem() {
             if (typeof updateStatsAfterOperation === 'function') {
                 updateStatsAfterOperation();
             }
+            
+            // Show success details
+            setTimeout(() => {
+                showNotification(`Item ID: ${data.menu_item.id} | Category: ${data.menu_item.category}`, 'info');
+            }, 1000);
         } else {
             showNotification(data.message || 'Failed to create menu item', 'error');
             if (data.errors) {
                 console.error('Validation errors:', data.errors);
+                // Show specific validation errors
+                Object.keys(data.errors).forEach(field => {
+                    const fieldElement = form.querySelector(`[name="${field}"]`);
+                    if (fieldElement) {
+                        fieldElement.classList.add('is-invalid');
+                        // Remove invalid class after 3 seconds
+                        setTimeout(() => {
+                            fieldElement.classList.remove('is-invalid');
+                        }, 3000);
+                    }
+                });
             }
         }
     })

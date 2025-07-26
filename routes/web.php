@@ -102,6 +102,10 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::delete('/admin/menu/{id}', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
 });
 
+// Public menu API routes (for customer access)
+Route::get('/api/menu', [MenuController::class, 'index'])->name('api.menu.index');
+Route::get('/api/menu/{id}', [MenuController::class, 'show'])->name('api.menu.show');
+
 // Menu stats API route
 Route::get('/admin/api/menu-stats', function() {
     $categories = \App\Models\MenuItem::select('category')->distinct()->pluck('category');
@@ -114,6 +118,8 @@ Route::get('/admin/api/menu-stats', function() {
         'average_price' => \App\Models\MenuItem::avg('price') ?? 0,
         'highest_price' => \App\Models\MenuItem::max('price') ?? 0,
         'lowest_price' => \App\Models\MenuItem::min('price') ?? 0,
+        'recent_items' => \App\Models\MenuItem::recent()->take(5)->get(['id', 'name', 'created_at']),
+        'last_updated' => now()->toISOString()
     ];
     
     return response()->json([

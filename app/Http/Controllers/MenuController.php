@@ -68,6 +68,14 @@ class MenuController extends Controller
                 'status' => 'required|in:active,inactive',
             ]);
 
+            // Log the creation attempt
+            \Log::info('Creating new menu item', [
+                'name' => $validatedData['name'],
+                'category' => $validatedData['category'],
+                'price' => $validatedData['price'],
+                'user_id' => auth()->id()
+            ]);
+
             // Handle image upload
             if ($request->hasFile('image')) {
                 $imagePath = $request->file('image')->store('menu-items', 'public');
@@ -92,7 +100,19 @@ class MenuController extends Controller
                 }
             }
 
+            // Ensure status is set
+            if (!isset($validatedData['status'])) {
+                $validatedData['status'] = 'active';
+            }
+
             $menuItem = MenuItem::create($validatedData);
+
+            // Log successful creation
+            \Log::info('Menu item created successfully', [
+                'id' => $menuItem->id,
+                'name' => $menuItem->name,
+                'category' => $menuItem->category
+            ]);
 
             // Broadcast real-time stats update
             $this->broadcastStatsUpdate();
@@ -100,16 +120,27 @@ class MenuController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item created successfully',
-                'menu_item' => $menuItem
+                'menu_item' => $menuItem,
+                'data' => $menuItem
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning('Menu item validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
+            \Log::error('Menu item creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create menu item: ' . $e->getMessage()

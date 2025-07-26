@@ -23,7 +23,13 @@ return new class extends Migration
             $table->json('allergens')->nullable();
             $table->integer('calories')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->timestamps();
+            $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
+            
+            // Add indexes for better performance
+            $table->index(['category', 'status']);
+            $table->index(['status', 'created_at']);
+            $table->index('price');
         });
     }
 
