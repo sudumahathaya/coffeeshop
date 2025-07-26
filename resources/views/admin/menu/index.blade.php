@@ -129,7 +129,7 @@
                             <div class="col-6">
                                 <small class="text-muted">Calories:</small>
                                 <div class="fw-bold">{{ $item->calories }}</div>
-                            </div>
+                        <h4 class="mb-0" id="activeItemsCount">{{ $stats['active_items'] }}</h4>
                             <div class="col-6">
                                 <small class="text-muted">Allergens:</small>
                                 <div class="fw-bold">{{ empty($item->allergens) ? 'None' : implode(', ', $item->allergens) }}</div>
@@ -140,7 +140,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-primary" onclick="editItem({{ $item->id }})">
-                                <i class="bi bi-pencil"></i>
+                        <h4 class="mb-0" id="categoriesCount">{{ $stats['total_categories'] }}</h4>
                             </button>
                             <button class="btn btn-outline-{{ $item->status === 'active' ? 'warning' : 'success' }}" 
                                     onclick="toggleStatus({{ $item->id }}, '{{ $item->status }}')">
@@ -151,7 +151,7 @@
                             </button>
                         </div>
                         <button class="btn btn-coffee btn-sm" onclick="viewDetails({{ $item->id }})">
-                            <i class="bi bi-eye me-1"></i>Details
+                        <h4 class="mb-0" id="avgPriceDisplay">Rs. {{ number_format($stats['average_price'], 0) }}</h4>
                         </button>
                     </div>
                 </div>
@@ -348,6 +348,9 @@
 let currentItemId = null;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Start real-time stats updates
+    startRealTimeStatsUpdates();
+    
     // Search functionality
     const searchInput = document.getElementById('menuSearch');
     const categoryFilter = document.getElementById('categoryFilter');
@@ -380,6 +383,62 @@ document.addEventListener('DOMContentLoaded', function() {
     categoryFilter.addEventListener('change', filterItems);
     statusFilter.addEventListener('change', filterItems);
 });
+
+function startRealTimeStatsUpdates() {
+    // Update stats every 30 seconds
+    setInterval(updateMenuStats, 30000);
+    
+    // Also update stats immediately after any menu operation
+    window.updateStatsAfterOperation = function() {
+        setTimeout(updateMenuStats, 500);
+    };
+}
+
+function updateMenuStats() {
+    fetch('/admin/api/menu-stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const stats = data.stats;
+                
+                // Update the stat displays with animation
+                animateStatUpdate('totalItemsCount', stats.total_items);
+                animateStatUpdate('activeItemsCount', stats.active_items);
+                animateStatUpdate('categoriesCount', stats.total_categories);
+                animateStatUpdate('avgPriceDisplay', 'Rs. ' + Math.round(stats.average_price).toLocaleString());
+                
+                // Add visual feedback
+                document.querySelectorAll('.stat-icon').forEach(icon => {
+                    icon.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        icon.style.transform = 'scale(1)';
+                    }, 200);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error updating menu stats:', error);
+        });
+}
+
+function animateStatUpdate(elementId, newValue) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    const currentValue = element.textContent;
+    if (currentValue !== newValue.toString()) {
+        // Add update animation
+        element.style.transform = 'scale(1.2)';
+        element.style.color = '#28a745';
+        element.style.transition = 'all 0.3s ease';
+        
+        setTimeout(() => {
+            element.textContent = newValue;
+            element.style.transform = 'scale(1)';
+            element.style.color = '';
+        }, 150);
+    }
+}
 
 function editItem(itemId) {
     fetch(`/admin/menu/${itemId}`)
@@ -431,6 +490,10 @@ function toggleStatus(itemId, currentStatus) {
     .then(data => {
         if (data.success) {
             showNotification('Item status updated successfully!', 'success');
+            // Update stats after operation
+            if (typeof updateStatsAfterOperation === 'function') {
+                updateStatsAfterOperation();
+            }
             location.reload();
         } else {
             showNotification('Failed to update item status', 'error');
@@ -454,6 +517,10 @@ function deleteItem(itemId) {
         .then(data => {
             if (data.success) {
                 showNotification('Item deleted successfully!', 'success');
+                // Update stats after operation
+                if (typeof updateStatsAfterOperation === 'function') {
+                    updateStatsAfterOperation();
+                }
                 location.reload();
             } else {
                 showNotification('Failed to delete item', 'error');
@@ -549,6 +616,10 @@ function saveItem() {
             const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
             modal.hide();
             form.reset();
+            // Update stats after operation
+            if (typeof updateStatsAfterOperation === 'function') {
+                updateStatsAfterOperation();
+            }
             location.reload();
         } else {
             showNotification(data.message || 'Failed to create menu item', 'error');
@@ -593,6 +664,10 @@ function updateItem() {
             showNotification('Menu item updated successfully!', 'success');
             const modal = bootstrap.Modal.getInstance(document.getElementById('editItemModal'));
             modal.hide();
+            // Update stats after operation
+            if (typeof updateStatsAfterOperation === 'function') {
+                updateStatsAfterOperation();
+            }
             location.reload();
         } else {
             showNotification(data.message || 'Failed to update menu item', 'error');
@@ -660,6 +735,24 @@ style.textContent = `
     
     .notification-toast {
         backdrop-filter: blur(10px);
+    }
+    
+    .stat-icon {
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover .stat-icon {
+        transform: scale(1.1);
+    }
+    
+    .stats-updated {
+        animation: statsGlow 0.5s ease;
+    }
+    
+    @keyframes statsGlow {
+        0% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
+        50% { box-shadow: 0 0 20px rgba(40, 167, 69, 0.8); }
+        100% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
     }
 `;
 document.head.appendChild(style);

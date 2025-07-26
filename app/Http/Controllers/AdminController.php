@@ -185,7 +185,19 @@ class AdminController extends Controller
     {
         $menuItems = MenuItem::all();
         $categories = MenuItem::select('category')->distinct()->pluck('category');
-        return view('admin.menu.index', compact('menuItems', 'categories'));
+        
+        // Calculate real-time statistics
+        $stats = [
+            'total_items' => MenuItem::count(),
+            'active_items' => MenuItem::where('status', 'active')->count(),
+            'inactive_items' => MenuItem::where('status', 'inactive')->count(),
+            'total_categories' => $categories->count(),
+            'average_price' => MenuItem::avg('price') ?? 0,
+            'highest_price' => MenuItem::max('price') ?? 0,
+            'lowest_price' => MenuItem::min('price') ?? 0,
+        ];
+        
+        return view('admin.menu.index', compact('menuItems', 'categories', 'stats'));
     }
 
     public function analytics()

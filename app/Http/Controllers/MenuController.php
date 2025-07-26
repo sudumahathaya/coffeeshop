@@ -75,6 +75,9 @@ class MenuController extends Controller
 
             $menuItem = MenuItem::create($validatedData);
 
+            // Broadcast real-time stats update
+            $this->broadcastStatsUpdate();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item created successfully',
@@ -148,6 +151,9 @@ class MenuController extends Controller
 
             $menuItem->update($validatedData);
 
+            // Broadcast real-time stats update
+            $this->broadcastStatsUpdate();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item updated successfully',
@@ -182,6 +188,9 @@ class MenuController extends Controller
                 'status' => $menuItem->status === 'active' ? 'inactive' : 'active'
             ]);
 
+            // Broadcast real-time stats update
+            $this->broadcastStatsUpdate();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item status updated successfully',
@@ -213,6 +222,9 @@ class MenuController extends Controller
             
             $menuItem->delete();
 
+            // Broadcast real-time stats update
+            $this->broadcastStatsUpdate();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item deleted successfully'
@@ -228,5 +240,27 @@ class MenuController extends Controller
                 'message' => 'Failed to delete menu item: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Broadcast real-time statistics update
+     */
+    private function broadcastStatsUpdate()
+    {
+        $categories = MenuItem::select('category')->distinct()->pluck('category');
+        
+        $stats = [
+            'total_items' => MenuItem::count(),
+            'active_items' => MenuItem::where('status', 'active')->count(),
+            'inactive_items' => MenuItem::where('status', 'inactive')->count(),
+            'total_categories' => $categories->count(),
+            'average_price' => MenuItem::avg('price') ?? 0,
+            'highest_price' => MenuItem::max('price') ?? 0,
+            'lowest_price' => MenuItem::min('price') ?? 0,
+        ];
+
+        // In a real application, you would broadcast this via WebSockets
+        // For now, we'll store it in session for the next request
+        session(['menu_stats_updated' => $stats]);
     }
 }

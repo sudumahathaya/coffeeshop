@@ -100,6 +100,26 @@ Route::put('/admin/menu/{id}', [MenuController::class, 'update'])->name('admin.m
 Route::patch('/admin/menu/{id}/toggle-status', [MenuController::class, 'toggleStatus'])->name('admin.menu.toggle-status');
 Route::delete('/admin/menu/{id}', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
 
+// Menu stats API route
+Route::get('/admin/api/menu-stats', function() {
+    $categories = \App\Models\MenuItem::select('category')->distinct()->pluck('category');
+    
+    $stats = [
+        'total_items' => \App\Models\MenuItem::count(),
+        'active_items' => \App\Models\MenuItem::where('status', 'active')->count(),
+        'inactive_items' => \App\Models\MenuItem::where('status', 'inactive')->count(),
+        'total_categories' => $categories->count(),
+        'average_price' => \App\Models\MenuItem::avg('price') ?? 0,
+        'highest_price' => \App\Models\MenuItem::max('price') ?? 0,
+        'lowest_price' => \App\Models\MenuItem::min('price') ?? 0,
+    ];
+    
+    return response()->json([
+        'success' => true,
+        'stats' => $stats
+    ]);
+})->middleware(['auth', 'admin'])->name('admin.api.menu-stats');
+
 // Order routes
 Route::post('/api/orders', [OrderController::class, 'store'])->name('api.orders.store');
 Route::get('/api/orders/{orderId}', [OrderController::class, 'show'])->name('api.orders.show');
