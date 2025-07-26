@@ -48,21 +48,23 @@
                     <button class="btn btn-coffee active" data-category="all">
                         <i class="bi bi-grid me-2"></i>All Items
                     </button>
-                    <button class="btn btn-outline-coffee" data-category="hot-coffee">
-                        <i class="bi bi-cup-hot me-2"></i>Hot Coffee
-                    </button>
-                    <button class="btn btn-outline-coffee" data-category="cold-coffee">
-                        <i class="bi bi-snow me-2"></i>Cold Coffee
-                    </button>
-                    <button class="btn btn-outline-coffee" data-category="specialty">
-                        <i class="bi bi-star me-2"></i>Specialty
-                    </button>
-                    <button class="btn btn-outline-coffee" data-category="tea">
-                        <i class="bi bi-cup me-2"></i>Tea & Others
-                    </button>
-                    <button class="btn btn-outline-coffee" data-category="food">
-                        <i class="bi bi-cookie me-2"></i>Food & Snacks
-                    </button>
+                    @foreach($categories as $category)
+                        @php
+                            $categoryMap = [
+                                'Hot Coffee' => ['hot-coffee', 'bi-cup-hot'],
+                                'Cold Coffee' => ['cold-coffee', 'bi-snow'],
+                                'Specialty' => ['specialty', 'bi-star'],
+                                'Tea & Others' => ['tea', 'bi-cup'],
+                                'Food & Snacks' => ['food', 'bi-cookie']
+                            ];
+                            $categoryData = $categoryMap[$category] ?? ['other', 'bi-circle'];
+                            $categoryClass = $categoryData[0];
+                            $categoryIcon = $categoryData[1];
+                        @endphp
+                        <button class="btn btn-outline-coffee" data-category="{{ $categoryClass }}">
+                            <i class="bi {{ $categoryIcon }} me-2"></i>{{ $category }}
+                        </button>
+                    @endforeach
                 </div>
             </div>
         </div>
@@ -71,329 +73,89 @@
         <div class="menu-items">
             <!-- Hot Coffee Section -->
             <div class="row g-4" id="menu-grid">
-                <!-- Espresso -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="hot-coffee" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Espresso">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.9
-                                </span>
+                @foreach($menuItems as $index => $item)
+                    @php
+                        $categoryMap = [
+                            'Hot Coffee' => 'hot-coffee',
+                            'Cold Coffee' => 'cold-coffee',
+                            'Specialty' => 'specialty',
+                            'Tea & Others' => 'tea',
+                            'Food & Snacks' => 'food'
+                        ];
+                        $categoryClass = $categoryMap[$item->category] ?? 'other';
+                        
+                        // Generate random rating between 4.5 and 5.0
+                        $rating = number_format(4.5 + (rand(0, 50) / 100), 1);
+                        
+                        // Determine badge based on category or special properties
+                        $badge = '';
+                        $badgeClass = '';
+                        if ($item->category === 'Specialty') {
+                            $badge = 'Signature';
+                            $badgeClass = 'bg-info';
+                        } elseif ($item->category === 'Cold Coffee') {
+                            $badge = 'Refreshing';
+                            $badgeClass = 'bg-primary';
+                        } elseif ($item->category === 'Tea & Others' && str_contains($item->name, 'Ceylon')) {
+                            $badge = 'Ceylon';
+                            $badgeClass = 'bg-success';
+                        } elseif ($item->category === 'Food & Snacks') {
+                            $badge = 'Fresh Baked';
+                            $badgeClass = 'bg-warning';
+                        } elseif ($index < 3) {
+                            $badge = 'Popular';
+                            $badgeClass = 'bg-success';
+                        }
+                    @endphp
+                    
+                    <div class="col-lg-4 col-md-6 menu-item" data-category="{{ $categoryClass }}" data-aos="fade-up" data-aos-delay="{{ (($index % 3) + 1) * 100 }}">
+                        <div class="card menu-card h-100">
+                            <div class="position-relative overflow-hidden">
+                                <img src="{{ $item->image }}" class="card-img-top" alt="{{ $item->name }}">
+                                <div class="position-absolute top-0 end-0 m-3">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="bi bi-star-fill"></i> {{ $rating }}
+                                    </span>
+                                </div>
+                                @if($badge)
+                                    <div class="position-absolute top-0 start-0 m-3">
+                                        <span class="badge {{ $badgeClass }}">
+                                            @if($badge === 'Ceylon')
+                                                <i class="bi bi-geo-alt"></i> 
+                                            @endif
+                                            {{ $badge }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
-                            <div class="position-absolute top-0 start-0 m-3">
-                                <span class="badge bg-success">Popular</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Classic Espresso</h5>
-                            <p class="card-text text-muted">Rich, bold espresso shot with perfect crema. The foundation of all great coffee drinks.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 320.00</span>
-                                <span class="text-muted ms-2">(Single Shot)</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="1"
-                                        data-name="Classic Espresso" 
-                                        data-price="320"
-                                        data-image="https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>2-3 min
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Cappuccino -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="hot-coffee" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Cappuccino">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.8
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Cappuccino</h5>
-                            <p class="card-text text-muted">Perfect balance of espresso, steamed milk, and foam. Traditional Italian favorite.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 480.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="2"
-                                        data-name="Cappuccino" 
-                                        data-price="480"
-                                        data-image="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>3-4 min
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Latte -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="hot-coffee" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Latte">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.7
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Café Latte</h5>
-                            <p class="card-text text-muted">Smooth espresso with steamed milk and delicate foam art. Creamy and comforting.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 520.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="3"
-                                        data-name="Café Latte" 
-                                        data-price="520"
-                                        data-image="https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>4-5 min
-                                </small>
+                            <div class="card-body">
+                                <h5 class="card-title text-coffee">{{ $item->name }}</h5>
+                                <p class="card-text text-muted">{{ $item->description }}</p>
+                                <div class="price-section mb-3">
+                                    <span class="h5 text-coffee mb-0">Rs. {{ number_format($item->price, 2) }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    @auth
+                                        <button class="btn btn-coffee btn-sm add-to-cart" 
+                                                data-id="{{ $item->id }}"
+                                                data-name="{{ $item->name }}" 
+                                                data-price="{{ $item->price }}"
+                                                data-image="{{ $item->image }}">
+                                            <i class="bi bi-cart-plus me-1"></i>Add to Cart
+                                        </button>
+                                    @else
+                                        <a href="{{ route('login') }}" class="btn btn-outline-coffee btn-sm">
+                                            <i class="bi bi-box-arrow-in-right me-1"></i>Login to Order
+                                        </a>
+                                    @endauth
+                                    <small class="text-muted">
+                                        <i class="bi bi-clock me-1"></i>{{ $item->preparation_time ?? 'Ready soon' }}
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Caramel Macchiato -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="specialty" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Caramel Macchiato">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.9
-                                </span>
-                            </div>
-                            <div class="position-absolute top-0 start-0 m-3">
-                                <span class="badge bg-info">Signature</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Caramel Macchiato</h5>
-                            <p class="card-text text-muted">Rich espresso with vanilla syrup, steamed milk, and caramel drizzle. Sweet perfection.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 650.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="4"
-                                        data-name="Caramel Macchiato" 
-                                        data-price="650"
-                                        data-image="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>5-6 min
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Iced Coffee -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="cold-coffee" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Iced Coffee">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.6
-                                </span>
-                            </div>
-                            <div class="position-absolute top-0 start-0 m-3">
-                                <span class="badge bg-primary">Refreshing</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Iced Coffee</h5>
-                            <p class="card-text text-muted">Cold brew coffee served over ice with your choice of milk. Perfect for hot days.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 580.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="5"
-                                        data-name="Iced Coffee" 
-                                        data-price="580"
-                                        data-image="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>3-4 min
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Frappuccino -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="cold-coffee" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Frappuccino">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.8
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Vanilla Frappuccino</h5>
-                            <p class="card-text text-muted">Blended ice coffee with vanilla flavor and whipped cream. A delightful treat.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 720.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="6"
-                                        data-name="Vanilla Frappuccino" 
-                                        data-price="720"
-                                        data-image="https://images.unsplash.com/photo-1506976785307-8732e854ad03?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>4-5 min
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ceylon Tea -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="tea" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1597318374671-96ee162414ca?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Ceylon Tea">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.7
-                                </span>
-                            </div>
-                            <div class="position-absolute top-0 start-0 m-3">
-                                <span class="badge bg-success">
-                                    <i class="bi bi-geo-alt"></i> Ceylon
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Premium Ceylon Tea</h5>
-                            <p class="card-text text-muted">Authentic Sri Lankan black tea with rich flavor and golden color. A local favorite.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 380.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="7"
-                                        data-name="Premium Ceylon Tea" 
-                                        data-price="380"
-                                        data-image="https://images.unsplash.com/photo-1597318374671-96ee162414ca?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>3-4 min
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Hot Chocolate -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="tea" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1542990253-a781e04c0082?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Hot Chocolate">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.5
-                                </span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Premium Hot Chocolate</h5>
-                            <p class="card-text text-muted">Rich, creamy hot chocolate made with premium cocoa and topped with marshmallows.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 550.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="8"
-                                        data-name="Premium Hot Chocolate" 
-                                        data-price="550"
-                                        data-image="https://images.unsplash.com/photo-1542990253-a781e04c0082?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>4-5 min
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Croissant -->
-                <div class="col-lg-4 col-md-6 menu-item" data-category="food" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card menu-card h-100">
-                        <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=400&h=300&fit=crop"
-                                 class="card-img-top" alt="Croissant">
-                            <div class="position-absolute top-0 end-0 m-3">
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-star-fill"></i> 4.6
-                                </span>
-                            </div>
-                            <div class="position-absolute top-0 start-0 m-3">
-                                <span class="badge bg-warning">Fresh Baked</span>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <h5 class="card-title text-coffee">Butter Croissant</h5>
-                            <p class="card-text text-muted">Flaky, buttery croissant baked fresh daily. Perfect with your morning coffee.</p>
-                            <div class="price-section mb-3">
-                                <span class="h5 text-coffee mb-0">Rs. 280.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center">
-                                <button class="btn btn-coffee btn-sm add-to-cart" 
-                                        data-id="9"
-                                        data-name="Butter Croissant" 
-                                        data-price="280"
-                                        data-image="https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=400&h=300&fit=crop">
-                                    <i class="bi bi-cart-plus me-1"></i>Add to Cart
-                                </button>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>Ready now
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
     </div>

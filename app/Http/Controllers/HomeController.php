@@ -13,18 +13,14 @@ class HomeController extends Controller
     public function index()
     {
         // Get featured menu items
-        $featuredProducts = MenuItem::active()
-            ->whereIn('category', ['Hot Coffee', 'Specialty', 'Tea & Others'])
-            ->inRandomOrder()
-            ->take(3)
-            ->get();
+        $featuredProducts = MenuItem::active()->inRandomOrder()->take(3)->get();
 
         return view('home', compact('featuredProducts'));
     }
 
     public function menu()
     {
-        $menuItems = MenuItem::active()->get()->groupBy('category');
+        $menuItems = MenuItem::active()->get();
         $categories = MenuItem::select('category')->distinct()->pluck('category');
         
         return view('menu', compact('menuItems', 'categories'));

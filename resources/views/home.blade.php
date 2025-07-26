@@ -144,7 +144,7 @@
                         <img src="{{ $product->image }}" class="card-img-top" alt="{{ $product->name }}">
                         <div class="position-absolute top-0 end-0 m-3">
                             <span class="badge bg-warning text-dark">
-                                <i class="bi bi-star-fill"></i> {{ $product->rating }}
+                                <i class="bi bi-star-fill"></i> {{ number_format(4.5 + (rand(0, 50) / 100), 1) }}
                             </span>
                         </div>
                     </div>
