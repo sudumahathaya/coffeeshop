@@ -93,12 +93,14 @@ Route::middleware('auth')->group(function () {
 });
 
 // Menu API routes
-Route::get('/admin/menu', [MenuController::class, 'index'])->name('admin.menu.index');
-Route::post('/admin/menu', [MenuController::class, 'store'])->name('admin.menu.store');
-Route::get('/admin/menu/{id}', [MenuController::class, 'show'])->name('admin.menu.show');
-Route::put('/admin/menu/{id}', [MenuController::class, 'update'])->name('admin.menu.update');
-Route::patch('/admin/menu/{id}/toggle-status', [MenuController::class, 'toggleStatus'])->name('admin.menu.toggle-status');
-Route::delete('/admin/menu/{id}', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/admin/menu', [MenuController::class, 'index'])->name('admin.menu.index');
+    Route::post('/admin/menu', [MenuController::class, 'store'])->name('admin.menu.store');
+    Route::get('/admin/menu/{id}', [MenuController::class, 'show'])->name('admin.menu.show');
+    Route::put('/admin/menu/{id}', [MenuController::class, 'update'])->name('admin.menu.update');
+    Route::patch('/admin/menu/{id}/toggle-status', [MenuController::class, 'toggleStatus'])->name('admin.menu.toggle-status');
+    Route::delete('/admin/menu/{id}', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
+});
 
 // Menu stats API route
 Route::get('/admin/api/menu-stats', function() {

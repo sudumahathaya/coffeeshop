@@ -404,10 +404,18 @@ class AdminController extends Controller
         ]);
 
         $reservation = Reservation::findOrFail($id);
+        
+        if ($reservation->status === 'confirmed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This reservation is already confirmed.'
+            ], 400);
+        }
+        
         $reservation->update([
             'status' => 'confirmed',
             'admin_notes' => $validatedData['admin_notes'] ?? null,
-            'approved_by' => Auth::id(),
+            'approved_by' => auth()->id(),
             'approved_at' => now()
         ]);
         
@@ -439,11 +447,19 @@ class AdminController extends Controller
         ]);
 
         $reservation = Reservation::findOrFail($id);
+        
+        if ($reservation->status === 'rejected') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This reservation is already rejected.'
+            ], 400);
+        }
+        
         $reservation->update([
             'status' => 'rejected',
             'rejection_reason' => $validatedData['rejection_reason'],
             'admin_notes' => $validatedData['admin_notes'] ?? null,
-            'approved_by' => Auth::id(),
+            'approved_by' => auth()->id(),
             'approved_at' => now()
         ]);
         

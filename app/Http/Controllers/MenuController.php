@@ -11,25 +11,44 @@ class MenuController extends Controller
 {
     public function index()
     {
-        $menuItems = MenuItem::all();
-        $categories = MenuItem::select('category')->distinct()->pluck('category');
-        
-        return response()->json([
-            'success' => true,
-            'menu_items' => $menuItems,
-            'categories' => $categories
-        ]);
+        try {
+            $menuItems = MenuItem::all();
+            $categories = MenuItem::select('category')->distinct()->pluck('category');
+            
+            return response()->json([
+                'success' => true,
+                'menu_items' => $menuItems,
+                'categories' => $categories
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch menu items: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function show($id)
     {
-        $menuItem = MenuItem::findOrFail($id);
-        
-        return response()->json([
-            'success' => true,
-            'menu_item' => $menuItem,
-            'data' => $menuItem
-        ]);
+        try {
+            $menuItem = MenuItem::findOrFail($id);
+            
+            return response()->json([
+                'success' => true,
+                'menu_item' => $menuItem,
+                'data' => $menuItem
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Menu item not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch menu item: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function store(Request $request)
@@ -247,20 +266,25 @@ class MenuController extends Controller
      */
     private function broadcastStatsUpdate()
     {
-        $categories = MenuItem::select('category')->distinct()->pluck('category');
-        
-        $stats = [
-            'total_items' => MenuItem::count(),
-            'active_items' => MenuItem::where('status', 'active')->count(),
-            'inactive_items' => MenuItem::where('status', 'inactive')->count(),
-            'total_categories' => $categories->count(),
-            'average_price' => MenuItem::avg('price') ?? 0,
-            'highest_price' => MenuItem::max('price') ?? 0,
-            'lowest_price' => MenuItem::min('price') ?? 0,
-        ];
+        try {
+            $categories = MenuItem::select('category')->distinct()->pluck('category');
+            
+            $stats = [
+                'total_items' => MenuItem::count(),
+                'active_items' => MenuItem::where('status', 'active')->count(),
+                'inactive_items' => MenuItem::where('status', 'inactive')->count(),
+                'total_categories' => $categories->count(),
+                'average_price' => MenuItem::avg('price') ?? 0,
+                'highest_price' => MenuItem::max('price') ?? 0,
+                'lowest_price' => MenuItem::min('price') ?? 0,
+            ];
 
-        // In a real application, you would broadcast this via WebSockets
-        // For now, we'll store it in session for the next request
-        session(['menu_stats_updated' => $stats]);
+            // In a real application, you would broadcast this via WebSockets
+            // For now, we'll store it in session for the next request
+            session(['menu_stats_updated' => $stats]);
+        } catch (\Exception $e) {
+            // Log error but don't fail the main operation
+            \Log::error('Failed to broadcast stats update: ' . $e->getMessage());
+        }
     }
 }

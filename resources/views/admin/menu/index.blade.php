@@ -128,7 +128,7 @@
                             </div>
                             <div class="col-6">
                                 <small class="text-muted">Calories:</small>
-                        <h4 class="mb-0" id="activeItemsCount">{{ $stats['active_items'] }}</h4>
+                             <div class="fw-bold">{{ $item->calories ?? 'Not specified' }}</div>
                             <div class="col-6">
                                 <small class="text-muted">Allergens:</small>
                                 <div class="fw-bold">{{ empty($item->allergens) ? 'None' : implode(', ', $item->allergens) }}</div>
@@ -139,7 +139,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-primary" onclick="editItem({{ $item->id }})">
-                            <i class="bi bi-pencil"></i>
+                                <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-{{ $item->status === 'active' ? 'warning' : 'success' }}" 
                                     onclick="toggleStatus({{ $item->id }}, '{{ $item->status }}')">
@@ -150,7 +150,7 @@
                             </button>
                         </div>
                         <button class="btn btn-coffee btn-sm" onclick="viewDetails({{ $item->id }})">
-                        <i class="bi bi-eye"></i> View
+                            <i class="bi bi-eye"></i> View
                         </button>
                     </div>
                 </div>
@@ -197,6 +197,9 @@
                         <div class="col-md-6">
                             <label class="form-label">Calories</label>
                             <input type="number" class="form-control" name="calories">
+                            <div class="form-text">
+                                <small class="text-muted">Optional: Enter calorie count per serving</small>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Status</label>
@@ -215,10 +218,16 @@
                         <div class="col-12">
                             <label class="form-label">Ingredients (comma separated)</label>
                             <input type="text" class="form-control" name="ingredients" placeholder="e.g., Espresso, Steamed milk, Foam">
+                            <div class="form-text">
+                                <small class="text-muted">Separate ingredients with commas</small>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Allergens (comma separated)</label>
                             <input type="text" class="form-control" name="allergens" placeholder="e.g., Dairy, Nuts">
+                            <div class="form-text">
+                                <small class="text-muted">List any allergens separated by commas</small>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Image</label>
@@ -227,6 +236,9 @@
                                 <small class="text-muted">Or provide image URL below</small>
                             </div>
                             <input type="url" class="form-control" name="image_url" placeholder="https://...">
+                            <div class="form-text">
+                                <small class="text-muted">Upload an image file or provide a URL</small>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -275,6 +287,9 @@
                         <div class="col-md-6">
                             <label class="form-label">Calories</label>
                             <input type="number" class="form-control" id="editItemCalories" name="calories">
+                            <div class="form-text">
+                                <small class="text-muted">Optional: Enter calorie count per serving</small>
+                            </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Status</label>
@@ -293,10 +308,16 @@
                         <div class="col-12">
                             <label class="form-label">Ingredients (comma separated)</label>
                             <input type="text" class="form-control" id="editItemIngredients" name="ingredients">
+                            <div class="form-text">
+                                <small class="text-muted">Separate ingredients with commas</small>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Allergens (comma separated)</label>
                             <input type="text" class="form-control" id="editItemAllergens" name="allergens">
+                            <div class="form-text">
+                                <small class="text-muted">List any allergens separated by commas</small>
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Image</label>
@@ -308,6 +329,9 @@
                                 <small class="text-muted">Or provide image URL below</small>
                             </div>
                             <input type="url" class="form-control" id="editItemImageUrl" name="image_url">
+                            <div class="form-text">
+                                <small class="text-muted">Upload a new image file or provide a URL</small>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -478,6 +502,12 @@ function editItem(itemId) {
 }
 
 function toggleStatus(itemId, currentStatus) {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    button.disabled = true;
+
     fetch(`/admin/menu/${itemId}/toggle-status`, {
         method: 'PATCH',
         headers: {
@@ -489,23 +519,47 @@ function toggleStatus(itemId, currentStatus) {
     .then(data => {
         if (data.success) {
             showNotification('Item status updated successfully!', 'success');
+            
+            // Update the button and badge in the UI
+            const card = button.closest('.menu-item-card');
+            const statusBadge = card.querySelector('.badge');
+            const newStatus = data.menu_item.status;
+            
+            // Update status badge
+            statusBadge.className = `badge bg-${newStatus === 'active' ? 'success' : 'secondary'}`;
+            statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+            
+            // Update button
+            button.className = `btn btn-outline-${newStatus === 'active' ? 'warning' : 'success'} btn-sm`;
+            button.innerHTML = `<i class="bi bi-${newStatus === 'active' ? 'pause' : 'play'}"></i>`;
+            
             // Update stats after operation
             if (typeof updateStatsAfterOperation === 'function') {
                 updateStatsAfterOperation();
             }
-            location.reload();
         } else {
             showNotification('Failed to update item status', 'error');
+            button.innerHTML = originalText;
         }
     })
     .catch(error => {
         console.error('Error:', error);
         showNotification('An error occurred', 'error');
+        button.innerHTML = originalText;
+    })
+    .finally(() => {
+        button.disabled = false;
     });
 }
 
 function deleteItem(itemId) {
     if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        button.disabled = true;
+
         fetch(`/admin/menu/${itemId}`, {
             method: 'DELETE',
             headers: {
@@ -516,18 +570,32 @@ function deleteItem(itemId) {
         .then(data => {
             if (data.success) {
                 showNotification('Item deleted successfully!', 'success');
+                
+                // Remove the item card from the UI
+                const card = button.closest('.menu-item-card');
+                card.style.transition = 'all 0.3s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    card.remove();
+                }, 300);
+                
                 // Update stats after operation
                 if (typeof updateStatsAfterOperation === 'function') {
                     updateStatsAfterOperation();
                 }
-                location.reload();
             } else {
                 showNotification('Failed to delete item', 'error');
+                button.innerHTML = originalText;
+                button.disabled = false;
             }
         })
         .catch(error => {
             console.error('Error:', error);
             showNotification('An error occurred', 'error');
+            button.innerHTML = originalText;
+            button.disabled = false;
         });
     }
 }
@@ -615,11 +683,14 @@ function saveItem() {
             const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
             modal.hide();
             form.reset();
+            
+            // Add new item to the grid instead of reloading
+            addItemToGrid(data.menu_item);
+            
             // Update stats after operation
             if (typeof updateStatsAfterOperation === 'function') {
                 updateStatsAfterOperation();
             }
-            location.reload();
         } else {
             showNotification(data.message || 'Failed to create menu item', 'error');
             if (data.errors) {
@@ -663,11 +734,14 @@ function updateItem() {
             showNotification('Menu item updated successfully!', 'success');
             const modal = bootstrap.Modal.getInstance(document.getElementById('editItemModal'));
             modal.hide();
+            
+            // Update the item in the grid instead of reloading
+            updateItemInGrid(data.menu_item);
+            
             // Update stats after operation
             if (typeof updateStatsAfterOperation === 'function') {
                 updateStatsAfterOperation();
             }
-            location.reload();
         } else {
             showNotification(data.message || 'Failed to update menu item', 'error');
             if (data.errors) {
@@ -683,6 +757,101 @@ function updateItem() {
         submitButton.innerHTML = originalText;
         submitButton.disabled = false;
     });
+}
+
+function addItemToGrid(item) {
+    const menuGrid = document.getElementById('menuItemsGrid');
+    if (!menuGrid) return;
+    
+    const itemCard = createItemCard(item);
+    menuGrid.insertAdjacentHTML('beforeend', itemCard);
+    
+    // Animate the new item
+    const newCard = menuGrid.lastElementChild;
+    newCard.style.opacity = '0';
+    newCard.style.transform = 'scale(0.8)';
+    
+    setTimeout(() => {
+        newCard.style.transition = 'all 0.3s ease';
+        newCard.style.opacity = '1';
+        newCard.style.transform = 'scale(1)';
+    }, 100);
+}
+
+function updateItemInGrid(item) {
+    const existingCard = document.querySelector(`[data-item-id="${item.id}"]`);
+    if (!existingCard) return;
+    
+    const newCard = createItemCard(item);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = newCard;
+    
+    existingCard.outerHTML = tempDiv.firstElementChild.outerHTML;
+}
+
+function createItemCard(item) {
+    const allergens = Array.isArray(item.allergens) ? item.allergens.join(', ') : (item.allergens || 'None');
+    
+    return `
+        <div class="col-lg-4 col-md-6 menu-item-card" data-category="${item.category}" data-status="${item.status}" data-item-id="${item.id}">
+            <div class="card menu-item border-0 shadow-sm h-100">
+                <div class="position-relative">
+                    <img src="${item.image}" class="card-img-top" alt="${item.name}" style="height: 200px; object-fit: cover;">
+                    <div class="position-absolute top-0 end-0 m-3">
+                        <span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">
+                            ${item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                        </span>
+                    </div>
+                    <div class="position-absolute top-0 start-0 m-3">
+                        <span class="badge bg-primary">${item.category}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title text-coffee">${item.name}</h5>
+                    <p class="card-text text-muted">${item.description}</p>
+                    
+                    <div class="item-details mb-3">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <small class="text-muted">Price:</small>
+                                <div class="fw-bold text-coffee">Rs. ${parseFloat(item.price).toFixed(2)}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Prep Time:</small>
+                                <div class="fw-bold">${item.preparation_time || 'Not specified'}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Calories:</small>
+                                <div class="fw-bold">${item.calories || 'Not specified'}</div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">Allergens:</small>
+                                <div class="fw-bold">${allergens}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary" onclick="editItem(${item.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-outline-${item.status === 'active' ? 'warning' : 'success'}" 
+                                    onclick="toggleStatus(${item.id}, '${item.status}')">
+                                <i class="bi bi-${item.status === 'active' ? 'pause' : 'play'}"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteItem(${item.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <button class="btn btn-coffee btn-sm" onclick="viewDetails(${item.id})">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 function showNotification(message, type = 'info') {
@@ -740,7 +909,7 @@ style.textContent = `
         transition: all 0.3s ease;
     }
     
-    .card:hover .stat-icon {
+    .menu-item:hover .stat-icon {
         transform: scale(1.1);
     }
     
@@ -752,6 +921,21 @@ style.textContent = `
         0% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
         50% { box-shadow: 0 0 20px rgba(40, 167, 69, 0.8); }
         100% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
+    }
+    
+    .menu-item-card {
+        transition: all 0.3s ease;
+    }
+    
+    .menu-item-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .item-details {
+        background: linear-gradient(45deg, rgba(139, 69, 19, 0.02), rgba(210, 105, 30, 0.02));
+        border-radius: 8px;
+        padding: 1rem;
+        border: 1px solid rgba(139, 69, 19, 0.05);
     }
 `;
 document.head.appendChild(style);
