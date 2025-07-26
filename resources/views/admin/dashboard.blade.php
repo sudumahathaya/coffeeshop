@@ -29,9 +29,9 @@
                         </div>
                         <div class="ms-3">
                             <div class="text-muted small">Total Users</div>
-                            <div class="h4 mb-0">{{ number_format($stats['total_users']) }}</div>
+                            <div class="h4 mb-0" data-stat="total_users">{{ number_format($stats['total_users']) }}</div>
                             <div class="text-success small">
-                                <i class="bi bi-arrow-up"></i> +{{ $stats['new_users_today'] }} today
+                                <i class="bi bi-arrow-up"></i> +<span data-stat="new_users_today">{{ $stats['new_users_today'] }}</span> today
                             </div>
                         </div>
                     </div>
@@ -48,9 +48,9 @@
                         </div>
                         <div class="ms-3">
                             <div class="text-muted small">Reservations</div>
-                            <div class="h4 mb-0">{{ number_format($stats['total_reservations']) }}</div>
+                            <div class="h4 mb-0" data-stat="total_reservations">{{ number_format($stats['total_reservations']) }}</div>
                             <div class="text-warning small">
-                                <i class="bi bi-clock"></i> {{ $stats['pending_reservations'] }} pending
+                                <i class="bi bi-clock"></i> <span data-stat="pending_reservations">{{ $stats['pending_reservations'] }}</span> pending
                             </div>
                         </div>
                     </div>
@@ -67,7 +67,7 @@
                         </div>
                         <div class="ms-3">
                             <div class="text-muted small">Today's Revenue</div>
-                            <div class="h4 mb-0">Rs. {{ number_format($stats['revenue_today'], 2) }}</div>
+                            <div class="h4 mb-0" data-stat="revenue_today">Rs. {{ number_format($stats['revenue_today'], 2) }}</div>
                             <div class="text-success small">
                                 <i class="bi bi-trending-up"></i> +12.5%
                             </div>
@@ -86,7 +86,7 @@
                         </div>
                         <div class="ms-3">
                             <div class="text-muted small">Monthly Revenue</div>
-                            <div class="h4 mb-0">Rs. {{ number_format($stats['revenue_month'], 2) }}</div>
+                            <div class="h4 mb-0" data-stat="revenue_month">Rs. {{ number_format($stats['revenue_month'], 2) }}</div>
                             <div class="text-success small">
                                 <i class="bi bi-arrow-up"></i> +8.2%
                             </div>

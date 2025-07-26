@@ -609,6 +609,11 @@
 
     <!-- Custom JavaScript -->
     <script>
+        // Add payment gateway script
+        const stripeScript = document.createElement('script');
+        stripeScript.src = 'https://js.stripe.com/v3/';
+        document.head.appendChild(stripeScript);
+        
         // Initialize AOS
         AOS.init({
             duration: 1000,
@@ -1096,6 +1101,9 @@
 
     <!-- Cart JavaScript -->
     <script src="{{ asset('js/cart.js') }}"></script>
+    
+    <!-- Payment JavaScript -->
+    <script src="{{ asset('js/payment.js') }}"></script>
 
     @stack('scripts')
 </body>

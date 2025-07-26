@@ -825,6 +825,9 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Start real-time updates for user dashboard
+    startUserDashboardUpdates();
+    
     // Initialize loyalty circle progress
     const circleProgress = document.querySelector('.circle-progress');
     if (circleProgress) {
@@ -886,6 +889,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Real-time updates for user dashboard
+function startUserDashboardUpdates() {
+    updateUserDashboard();
+    
+    // Update every 60 seconds
+    setInterval(updateUserDashboard, 60000);
+}
+
+function updateUserDashboard() {
+    // Check for reservation status updates
+    fetch('/api/user/reservations/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.updates.length > 0) {
+                data.updates.forEach(update => {
+                    if (update.status === 'confirmed') {
+                        showNotification(`Your reservation #${update.reservation_id} has been confirmed!`, 'success');
+                        updateReservationStatus(update.reservation_id, 'confirmed');
+                    } else if (update.status === 'cancelled') {
+                        showNotification(`Your reservation #${update.reservation_id} has been cancelled.`, 'warning');
+                        updateReservationStatus(update.reservation_id, 'cancelled');
+                    }
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Failed to check reservation updates:', error);
+        });
+}
+
+function updateReservationStatus(reservationId, status) {
+    const reservationElement = document.querySelector(`[data-reservation-id="${reservationId}"]`);
+    if (reservationElement) {
+        const statusBadge = reservationElement.querySelector('.badge');
+        if (statusBadge) {
+            statusBadge.className = `badge bg-${status === 'confirmed' ? 'success' : status === 'cancelled' ? 'danger' : 'warning'}`;
+            statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+    }
+}
 
 // Quick action functions
 function reorderLast() {

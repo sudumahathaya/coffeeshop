@@ -88,4 +88,36 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Admin order management
     Route::patch('/orders/{orderId}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+    
+    // User management
+    Route::get('/users/create', [App\Http\Controllers\AdminController::class, 'createUser'])->name('users.create');
+    Route::post('/users', [App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
+    Route::get('/users/{id}/edit', [App\Http\Controllers\AdminController::class, 'editUser'])->name('users.edit');
+    Route::put('/users/{id}', [App\Http\Controllers\AdminController::class, 'updateUser'])->name('users.update');
+    Route::delete('/users/{id}', [App\Http\Controllers\AdminController::class, 'deleteUser'])->name('users.delete');
+    Route::get('/users/{id}/stats', [App\Http\Controllers\AdminController::class, 'getUserStats'])->name('users.stats');
+    
+    // Real-time dashboard data
+    Route::get('/api/dashboard-data', [App\Http\Controllers\AdminController::class, 'getDashboardData'])->name('api.dashboard-data');
+    
+    // Menu item details
+    Route::get('/menu/{id}', [MenuController::class, 'show'])->name('menu.show');
+});
+
+// Payment API routes
+Route::prefix('api/payment')->middleware('auth')->group(function () {
+    Route::post('/create-intent', function (Illuminate\Http\Request $request) {
+        $paymentService = new App\Services\PaymentService();
+        $result = $paymentService->createPaymentIntent($request->amount);
+        return response()->json($result);
+    });
+    
+    Route::post('/mobile', function (Illuminate\Http\Request $request) {
+        // Simulate mobile payment processing
+        return response()->json([
+            'success' => true,
+            'transaction_id' => 'MOB' . time(),
+            'message' => 'Mobile payment initiated'
+        ]);
+    });
 });

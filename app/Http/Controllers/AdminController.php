@@ -9,7 +9,9 @@ use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
 use App\Models\User;
 use App\Models\Order;
+use App\Models\LoyaltyPoint;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Hash;
 
 class AdminController extends Controller
 {
@@ -65,6 +67,107 @@ class AdminController extends Controller
         ];
 
         return view('admin.reservations.index', compact('reservations', 'stats'));
+    }
+
+    public function createUser()
+    {
+        return view('admin.users.create');
+    }
+
+    public function storeUser(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:customer,admin',
+            'phone' => 'nullable|string|max:20',
+            'birthday' => 'nullable|date',
+        ]);
+
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
+            'role' => $validatedData['role'],
+            'email_verified_at' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User created successfully',
+            'user' => $user
+        ], 201);
+    }
+
+    public function editUser($id)
+    {
+        $user = User::findOrFail($id);
+        return response()->json([
+            'success' => true,
+            'user' => $user
+        ]);
+    }
+
+    public function updateUser(Request $request, $id)
+    {
+        $user = User::findOrFail($id);
+        
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'role' => 'required|in:customer,admin',
+            'phone' => 'nullable|string|max:20',
+            'birthday' => 'nullable|date',
+        ]);
+
+        $user->update($validatedData);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User updated successfully',
+            'user' => $user
+        ]);
+    }
+
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        
+        if ($user->id === auth()->id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot delete your own account'
+            ], 403);
+        }
+        
+        $user->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'User deleted successfully'
+        ]);
+    }
+
+    public function getUserStats($id)
+    {
+        $user = User::with(['orders', 'reservations', 'loyaltyPoints'])->findOrFail($id);
+        
+        $stats = [
+            'total_orders' => $user->orders->count(),
+            'total_spent' => $user->orders->sum('total'),
+            'total_reservations' => $user->reservations->count(),
+            'loyalty_points' => $user->total_loyalty_points,
+            'loyalty_tier' => $user->loyalty_tier,
+            'recent_orders' => $user->orders()->latest()->take(5)->get(),
+            'recent_reservations' => $user->reservations()->latest()->take(3)->get(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'user' => $user,
+            'stats' => $stats
+        ]);
     }
 
     public function orders()
@@ -304,6 +407,34 @@ class AdminController extends Controller
         return response()->json([
             'success' => true,
             'reservation' => $reservation
+        ]);
+    }
+
+    // Real-time dashboard data
+    public function getDashboardData()
+    {
+        $stats = [
+            'total_users' => User::count(),
+            'new_users_today' => User::whereDate('created_at', today())->count(),
+            'total_reservations' => Reservation::count(),
+            'pending_reservations' => Reservation::where('status', 'pending')->count(),
+            'revenue_today' => Order::whereDate('created_at', today())->sum('total'),
+            'revenue_month' => Order::whereMonth('created_at', now()->month)->sum('total'),
+            'active_orders' => Order::whereIn('status', ['pending', 'confirmed', 'preparing'])->count(),
+            'completed_orders_today' => Order::where('status', 'completed')->whereDate('created_at', today())->count(),
+        ];
+
+        $recentActivity = [
+            'recent_orders' => Order::with('user')->latest()->take(5)->get(),
+            'recent_reservations' => Reservation::with('user')->latest()->take(5)->get(),
+            'recent_users' => User::latest()->take(5)->get(),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'stats' => $stats,
+            'activity' => $recentActivity,
+            'timestamp' => now()->toISOString()
         ]);
     }
 }

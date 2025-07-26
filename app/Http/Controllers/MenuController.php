@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class MenuController extends Controller
 {
@@ -36,7 +38,8 @@ class MenuController extends Controller
             'description' => 'required|string',
             'category' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|url',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'nullable|url',
             'preparation_time' => 'nullable|string|max:255',
             'ingredients' => 'nullable|array',
             'allergens' => 'nullable|array',
@@ -44,13 +47,29 @@ class MenuController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store('menu-items', 'public');
+            $validatedData['image'] = Storage::url($imagePath);
+        } elseif ($request->image_url) {
+            $validatedData['image'] = $request->image_url;
+        }
+
+        // Convert arrays to JSON
+        if (isset($validatedData['ingredients']) && is_array($validatedData['ingredients'])) {
+            $validatedData['ingredients'] = $validatedData['ingredients'];
+        }
+        if (isset($validatedData['allergens']) && is_array($validatedData['allergens'])) {
+            $validatedData['allergens'] = $validatedData['allergens'];
+        }
+
         $menuItem = MenuItem::create($validatedData);
 
         return response()->json([
             'success' => true,
             'message' => 'Menu item created successfully',
             'menu_item' => $menuItem
-        ]);
+        ], 201);
     }
 
     public function update(Request $request, $id)
@@ -62,13 +81,28 @@ class MenuController extends Controller
             'description' => 'required|string',
             'category' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|url',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image_url' => 'nullable|url',
             'preparation_time' => 'nullable|string|max:255',
             'ingredients' => 'nullable|array',
             'allergens' => 'nullable|array',
             'calories' => 'nullable|integer|min:0',
             'status' => 'required|in:active,inactive',
         ]);
+
+        // Handle image upload
+        if ($request->hasFile('image')) {
+            // Delete old image if exists
+            if ($menuItem->image && str_contains($menuItem->image, 'storage/menu-items/')) {
+                $oldImagePath = str_replace('/storage/', '', $menuItem->image);
+                Storage::disk('public')->delete($oldImagePath);
+            }
+            
+            $imagePath = $request->file('image')->store('menu-items', 'public');
+            $validatedData['image'] = Storage::url($imagePath);
+        } elseif ($request->image_url) {
+            $validatedData['image'] = $request->image_url;
+        }
 
         $menuItem->update($validatedData);
 
@@ -82,6 +116,13 @@ class MenuController extends Controller
     public function destroy($id)
     {
         $menuItem = MenuItem::findOrFail($id);
+        
+        // Delete image if exists
+        if ($menuItem->image && str_contains($menuItem->image, 'storage/menu-items/')) {
+            $oldImagePath = str_replace('/storage/', '', $menuItem->image);
+            Storage::disk('public')->delete($oldImagePath);
+        }
+        
         $menuItem->delete();
 
         return response()->json([

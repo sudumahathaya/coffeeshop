@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\MenuItem;
 use App\Models\LoyaltyPoint;
+use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,8 @@ class OrderController extends Controller
             'customer_phone' => 'nullable|string|max:20',
             'order_type' => 'required|in:dine_in,takeaway,delivery',
             'special_instructions' => 'nullable|string|max:1000',
+            'payment_method' => 'required|in:cash,card,online',
+            'payment_token' => 'nullable|string', // For online payments
         ]);
 
         DB::beginTransaction();
@@ -51,6 +54,19 @@ class OrderController extends Controller
             // Generate order ID
             $orderId = 'ORD' . str_pad(Order::count() + 1, 6, '0', STR_PAD_LEFT);
 
+            // Process payment if online
+            $paymentStatus = 'pending';
+            if ($validatedData['payment_method'] === 'online' && $validatedData['payment_token']) {
+                $paymentService = new PaymentService();
+                $paymentResult = $paymentService->processPayment($validatedData['payment_token'], $total);
+                
+                if ($paymentResult['success']) {
+                    $paymentStatus = 'completed';
+                } else {
+                    throw new \Exception('Payment failed: ' . $paymentResult['message']);
+                }
+            }
+
             // Create order
             $order = Order::create([
                 'order_id' => $orderId,
@@ -64,6 +80,8 @@ class OrderController extends Controller
                 'total' => $total,
                 'order_type' => $validatedData['order_type'],
                 'special_instructions' => $validatedData['special_instructions'],
+                'payment_method' => $validatedData['payment_method'],
+                'payment_status' => $paymentStatus,
                 'status' => 'confirmed'
             ]);
 
@@ -87,6 +105,7 @@ class OrderController extends Controller
                 'message' => 'Order placed successfully!',
                 'order_id' => $orderId,
                 'order' => $order
+                'payment_status' => $paymentStatus
             ]);
 
         } catch (\Exception $e) {
@@ -94,7 +113,7 @@ class OrderController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to place order. Please try again.'
+                'message' => 'Failed to place order: ' . $e->getMessage()
             ], 500);
         }
     }

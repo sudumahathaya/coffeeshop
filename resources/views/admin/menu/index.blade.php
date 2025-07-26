@@ -178,12 +178,14 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Category *</label>
-                            <select class="form-select" name="category" required>
-                                <option value="">Select Category</option>
-                                @foreach($categories as $category)
-                                    <option value="{{ $category }}">{{ $category }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" class="form-control" name="category" list="categoryList" required>
+                            <datalist id="categoryList">
+                                <option value="Hot Coffee">
+                                <option value="Cold Coffee">
+                                <option value="Specialty">
+                                <option value="Tea & Others">
+                                <option value="Food & Snacks">
+                            </datalist>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Price (Rs.) *</label>
@@ -191,7 +193,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Preparation Time</label>
-                            <input type="text" class="form-control" name="prep_time" placeholder="e.g., 3-4 min">
+                            <input type="text" class="form-control" name="preparation_time" placeholder="e.g., 3-4 min">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Calories</label>
@@ -217,8 +219,12 @@
                             <input type="text" class="form-control" name="allergens" placeholder="e.g., Dairy, Nuts">
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Image URL</label>
-                            <input type="url" class="form-control" name="image" placeholder="https://...">
+                            <label class="form-label">Image</label>
+                            <div class="mb-2">
+                                <input type="file" class="form-control" name="image" accept="image/*">
+                                <small class="text-muted">Or provide image URL below</small>
+                            </div>
+                            <input type="url" class="form-control" name="image_url" placeholder="https://...">
                         </div>
                     </div>
                 </form>
@@ -227,6 +233,84 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-coffee" onclick="saveItem()">
                     <i class="bi bi-check-lg me-2"></i>Save Item
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Item Modal -->
+<div class="modal fade" id="editItemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil me-2"></i>Edit Menu Item
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editItemForm">
+                    @csrf
+                    <input type="hidden" id="editItemId" name="item_id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Item Name *</label>
+                            <input type="text" class="form-control" id="editItemName" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Category *</label>
+                            <input type="text" class="form-control" id="editItemCategory" name="category" list="categoryList" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Price (Rs.) *</label>
+                            <input type="number" class="form-control" id="editItemPrice" name="price" step="0.01" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Preparation Time</label>
+                            <input type="text" class="form-control" id="editItemPrepTime" name="preparation_time">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Calories</label>
+                            <input type="number" class="form-control" id="editItemCalories" name="calories">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="editItemStatus" name="status">
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Description</label>
+                            <textarea class="form-control" id="editItemDescription" name="description" rows="3"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Ingredients (comma separated)</label>
+                            <input type="text" class="form-control" id="editItemIngredients" name="ingredients">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Allergens (comma separated)</label>
+                            <input type="text" class="form-control" id="editItemAllergens" name="allergens">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Image</label>
+                            <div class="mb-2">
+                                <img id="currentImage" src="" alt="Current Image" class="img-thumbnail" style="max-width: 200px; display: none;">
+                            </div>
+                            <div class="mb-2">
+                                <input type="file" class="form-control" name="image" accept="image/*">
+                                <small class="text-muted">Or provide image URL below</small>
+                            </div>
+                            <input type="url" class="form-control" id="editItemImageUrl" name="image_url">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="updateItem()">
+                    <i class="bi bi-check-lg me-2"></i>Update Item
                 </button>
             </div>
         </div>
@@ -246,7 +330,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-coffee">Edit Item</button>
+                <button type="button" class="btn btn-coffee" onclick="editItemFromDetails()">Edit Item</button>
             </div>
         </div>
     </div>
@@ -255,6 +339,8 @@
 
 @push('scripts')
 <script>
+let currentItemId = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // Search functionality
     const searchInput = document.getElementById('menuSearch');
@@ -290,72 +376,332 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function editItem(itemId) {
-    alert('Edit item functionality would be implemented here for item ID: ' + itemId);
+    fetch(`/admin/menu/${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const item = data.menu_item;
+                
+                document.getElementById('editItemId').value = item.id;
+                document.getElementById('editItemName').value = item.name;
+                document.getElementById('editItemCategory').value = item.category;
+                document.getElementById('editItemPrice').value = item.price;
+                document.getElementById('editItemPrepTime').value = item.preparation_time || '';
+                document.getElementById('editItemCalories').value = item.calories || '';
+                document.getElementById('editItemStatus').value = item.status;
+                document.getElementById('editItemDescription').value = item.description || '';
+                document.getElementById('editItemIngredients').value = item.ingredients ? item.ingredients.join(', ') : '';
+                document.getElementById('editItemAllergens').value = item.allergens ? item.allergens.join(', ') : '';
+                document.getElementById('editItemImageUrl').value = item.image || '';
+                
+                // Show current image
+                const currentImage = document.getElementById('currentImage');
+                if (item.image) {
+                    currentImage.src = item.image;
+                    currentImage.style.display = 'block';
+                } else {
+                    currentImage.style.display = 'none';
+                }
+                
+                const modal = new bootstrap.Modal(document.getElementById('editItemModal'));
+                modal.show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load item data', 'error');
+        });
 }
 
 function toggleStatus(itemId, currentStatus) {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    if (confirm(`Are you sure you want to ${newStatus === 'active' ? 'activate' : 'deactivate'} this item?`)) {
-        alert(`Item ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
-        location.reload();
-    }
+    fetch(`/admin/menu/${itemId}/toggle-status`, {
+        method: 'PATCH',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Item status updated successfully!', 'success');
+            location.reload();
+        } else {
+            showNotification('Failed to update item status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred', 'error');
+    });
 }
 
 function deleteItem(itemId) {
     if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
-        alert('Item deleted successfully!');
-        location.reload();
+        fetch(`/admin/menu/${itemId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Item deleted successfully!', 'success');
+                location.reload();
+            } else {
+                showNotification('Failed to delete item', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred', 'error');
+        });
     }
 }
 
 function viewDetails(itemId) {
-    const modalBody = document.getElementById('itemDetailsBody');
-    modalBody.innerHTML = `
-        <div class="row">
-            <div class="col-md-4">
-                <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=300&h=200&fit=crop" 
-                     class="img-fluid rounded" alt="Item">
-            </div>
-            <div class="col-md-8">
-                <h6>Cappuccino</h6>
-                <p class="text-muted">Perfect balance of espresso, steamed milk, and foam. Traditional Italian favorite.</p>
-                
-                <table class="table table-sm">
-                    <tr><td><strong>Category:</strong></td><td>Hot Coffee</td></tr>
-                    <tr><td><strong>Price:</strong></td><td>Rs. 480.00</td></tr>
-                    <tr><td><strong>Preparation Time:</strong></td><td>3-4 minutes</td></tr>
-                    <tr><td><strong>Calories:</strong></td><td>120</td></tr>
-                    <tr><td><strong>Status:</strong></td><td><span class="badge bg-success">Active</span></td></tr>
-                </table>
-
-                <h6 class="mt-3">Ingredients</h6>
-                <p class="small">Espresso, Steamed milk, Milk foam</p>
-
-                <h6 class="mt-3">Allergens</h6>
-                <p class="small">Dairy</p>
-            </div>
-        </div>
-    `;
+    currentItemId = itemId;
     
-    const modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
-    modal.show();
+    fetch(`/admin/menu/${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const item = data.menu_item;
+                
+                const modalBody = document.getElementById('itemDetailsBody');
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img src="${item.image || 'https://via.placeholder.com/300x200'}" 
+                                 class="img-fluid rounded" alt="${item.name}">
+                        </div>
+                        <div class="col-md-8">
+                            <h6>${item.name}</h6>
+                            <p class="text-muted">${item.description || 'No description available'}</p>
+                            
+                            <table class="table table-sm">
+                                <tr><td><strong>Category:</strong></td><td>${item.category}</td></tr>
+                                <tr><td><strong>Price:</strong></td><td>Rs. ${parseFloat(item.price).toFixed(2)}</td></tr>
+                                <tr><td><strong>Preparation Time:</strong></td><td>${item.preparation_time || 'Not specified'}</td></tr>
+                                <tr><td><strong>Calories:</strong></td><td>${item.calories || 'Not specified'}</td></tr>
+                                <tr><td><strong>Status:</strong></td><td><span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td></tr>
+                            </table>
+
+                            ${item.ingredients && item.ingredients.length > 0 ? `
+                                <h6 class="mt-3">Ingredients</h6>
+                                <p class="small">${item.ingredients.join(', ')}</p>
+                            ` : ''}
+
+                            ${item.allergens && item.allergens.length > 0 ? `
+                                <h6 class="mt-3">Allergens</h6>
+                                <p class="small">${item.allergens.join(', ')}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
+                modal.show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load item details', 'error');
+        });
 }
 
+function editItemFromDetails() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('itemDetailsModal'));
+    modal.hide();
+    
+    setTimeout(() => {
+        editItem(currentItemId);
+    }, 300);
+}
+    
 function saveItem() {
     const form = document.getElementById('addItemForm');
     const formData = new FormData(form);
+    const submitButton = event.target;
     
-    // Simulate saving
-    alert('Menu item added successfully!');
+    // Convert comma-separated strings to arrays
+    const ingredients = formData.get('ingredients');
+    const allergens = formData.get('allergens');
     
-    const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
-    modal.hide();
-    form.reset();
+    if (ingredients) {
+        formData.delete('ingredients');
+        ingredients.split(',').forEach((ingredient, index) => {
+            formData.append(`ingredients[${index}]`, ingredient.trim());
+        });
+    }
+    
+    if (allergens) {
+        formData.delete('allergens');
+        allergens.split(',').forEach((allergen, index) => {
+            formData.append(`allergens[${index}]`, allergen.trim());
+        });
+    }
+    
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    submitButton.disabled = true;
+
+    fetch('/admin/menu', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Menu item created successfully!', 'success');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
+            modal.hide();
+            form.reset();
+            location.reload();
+        } else {
+            showNotification('Failed to create menu item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred', 'error');
+    })
+    .finally(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+function updateItem() {
+    const form = document.getElementById('editItemForm');
+    const formData = new FormData(form);
+    const itemId = document.getElementById('editItemId').value;
+    const submitButton = event.target;
+    
+    // Convert comma-separated strings to arrays
+    const ingredients = formData.get('ingredients');
+    const allergens = formData.get('allergens');
+    
+    if (ingredients) {
+        formData.delete('ingredients');
+        ingredients.split(',').forEach((ingredient, index) => {
+            formData.append(`ingredients[${index}]`, ingredient.trim());
+        });
+    }
+    
+    if (allergens) {
+        formData.delete('allergens');
+        allergens.split(',').forEach((allergen, index) => {
+            formData.append(`allergens[${index}]`, allergen.trim());
+        });
+    }
+    
+    // Add method override for PUT request
+    formData.append('_method', 'PUT');
+    
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+    submitButton.disabled = true;
+
+    fetch(`/admin/menu/${itemId}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Menu item updated successfully!', 'success');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editItemModal'));
+            modal.hide();
+            location.reload();
+        } else {
+            showNotification('Failed to update menu item', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred', 'error');
+    })
+    .finally(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} position-fixed notification-toast`;
+    notification.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 350px;
+        border-radius: 15px;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    `;
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'error' ? 'exclamation-triangle-fill' : 'info-circle-fill'} me-2"></i>
+            <span class="flex-grow-1">${message}</span>
+            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.5s ease';
+            setTimeout(() => notification.remove(), 500);
+        }
+    }, 5000);
 }
 
 function exportMenu() {
-    alert('Exporting menu data...');
-    // In a real application, this would generate and download a CSV/Excel file
+    showNotification('Exporting menu data...', 'info');
+    
+    fetch('/admin/menu/export')
+        .then(response => response.blob())
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'menu-items.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showNotification('Menu exported successfully!', 'success');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Export failed', 'error');
+        });
 }
+
+// CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .notification-toast {
+        backdrop-filter: blur(10px);
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endpush
