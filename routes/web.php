@@ -62,6 +62,20 @@ Route::middleware('auth')->group(function () {
     Route::post('/reservation-change-requests/{reservationId}', [ReservationChangeController::class, 'store'])->name('reservation-change-requests.store');
     Route::get('/reservation-change-requests/{reservationId}/status', [ReservationChangeController::class, 'getReservationPendingRequest'])->name('reservation-change-requests.status');
     Route::delete('/reservation-change-requests/{id}', [ReservationChangeController::class, 'cancelRequest'])->name('reservation-change-requests.cancel');
+    
+    // Direct reservation management for users
+    Route::delete('/reservations/{id}', function($id) {
+        $reservation = \App\Models\Reservation::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+        
+        $reservation->update(['status' => 'cancelled']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation cancelled successfully'
+        ]);
+    })->name('user.reservations.cancel');
 });
 
 // Menu API routes

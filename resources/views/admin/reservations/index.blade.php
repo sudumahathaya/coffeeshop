@@ -136,8 +136,8 @@
                             </td>
                             <td>
                                 <div>
-                                    <span class="fw-medium">{{ $reservation->reservation_date->format('M d, Y') }}</span><br>
-                                    <small class="text-muted">{{ $reservation->reservation_time->format('g:i A') }}</small>
+                                    <span class="fw-medium">{{ \Carbon\Carbon::parse($reservation->reservation_date)->format('M d, Y') }}</span><br>
+                                    <small class="text-muted">{{ \Carbon\Carbon::parse($reservation->reservation_time)->format('g:i A') }}</small>
                                 </div>
                             </td>
                             <td>
