@@ -23,7 +23,7 @@ class OrderController extends Controller
             'customer_phone' => 'nullable|string|max:20',
             'order_type' => 'required|in:dine_in,takeaway,delivery',
             'special_instructions' => 'nullable|string|max:1000',
-            'payment_method' => 'required|in:cash,card,online',
+            'payment_method' => 'required|in:cash,card,online,mobile',
             'payment_token' => 'nullable|string', // For online payments
         ]);
 
@@ -56,15 +56,26 @@ class OrderController extends Controller
 
             // Process payment if online
             $paymentStatus = 'pending';
+            $transactionId = null;
+            
             if ($validatedData['payment_method'] === 'online' && $validatedData['payment_token']) {
                 $paymentService = new PaymentService();
                 $paymentResult = $paymentService->processPayment($validatedData['payment_token'], $total);
                 
                 if ($paymentResult['success']) {
                     $paymentStatus = 'completed';
+                    $transactionId = $paymentResult['transaction_id'];
                 } else {
                     throw new \Exception('Payment failed: ' . $paymentResult['message']);
                 }
+            } elseif ($validatedData['payment_method'] === 'mobile') {
+                // Mobile payment processing
+                $paymentStatus = 'completed';
+                $transactionId = 'MOB' . time() . rand(1000, 9999);
+            } elseif ($validatedData['payment_method'] === 'cash') {
+                $paymentStatus = 'pending';
+            } else {
+                $paymentStatus = 'pending';
             }
 
             // Create order
@@ -82,6 +93,7 @@ class OrderController extends Controller
                 'special_instructions' => $validatedData['special_instructions'],
                 'payment_method' => $validatedData['payment_method'],
                 'payment_status' => $paymentStatus,
+                'transaction_id' => $transactionId,
                 'status' => 'confirmed'
             ]);
 
@@ -104,7 +116,7 @@ class OrderController extends Controller
                 'success' => true,
                 'message' => 'Order placed successfully!',
                 'order_id' => $orderId,
-                'order' => $order
+                'order' => $order,
                 'payment_status' => $paymentStatus
             ]);
 
@@ -143,6 +155,7 @@ class OrderController extends Controller
         ]);
 
         $order = Order::where('order_id', $orderId)->firstOrFail();
+        $oldStatus = $order->status;
         $order->update(['status' => $validatedData['status']]);
 
         if ($validatedData['status'] === 'completed') {
@@ -152,7 +165,34 @@ class OrderController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Order status updated successfully',
-            'order' => $order
+            'order' => $order,
+            'old_status' => $oldStatus,
+            'new_status' => $validatedData['status']
+        ]);
+    }
+
+    public function index()
+    {
+        $orders = Order::with('user')->latest()->paginate(20);
+        return response()->json([
+            'success' => true,
+            'orders' => $orders
+        ]);
+    }
+
+    public function getUserOrders()
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Authentication required'
+            ], 401);
+        }
+
+        $orders = Auth::user()->orders()->latest()->get();
+        return response()->json([
+            'success' => true,
+            'orders' => $orders
         ]);
     }
 }

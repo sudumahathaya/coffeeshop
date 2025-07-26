@@ -57,10 +57,10 @@ class MenuController extends Controller
 
         // Convert arrays to JSON
         if (isset($validatedData['ingredients']) && is_array($validatedData['ingredients'])) {
-            $validatedData['ingredients'] = $validatedData['ingredients'];
+            // Keep ingredients as array for JSON casting
         }
         if (isset($validatedData['allergens']) && is_array($validatedData['allergens'])) {
-            $validatedData['allergens'] = $validatedData['allergens'];
+            // Keep allergens as array for JSON casting
         }
 
         $menuItem = MenuItem::create($validatedData);

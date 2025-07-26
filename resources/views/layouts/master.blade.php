@@ -5,6 +5,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @auth
+        <meta name="user-name" content="{{ Auth::user()->name }}">
+        <meta name="user-email" content="{{ Auth::user()->email }}">
+    @endauth
 
     <title>@yield('title', 'Coffee Paradise - Premium Coffee Experience')</title>
     <meta name="description" content="@yield('description', 'Experience the finest coffee at Coffee Paradise. Premium beans, expert baristas, and cozy atmosphere.')">
@@ -1104,6 +1108,9 @@
     
     <!-- Payment JavaScript -->
     <script src="{{ asset('js/payment.js') }}"></script>
+    
+    <!-- Coming Soon Features JavaScript -->
+    <script src="{{ asset('js/coming-soon.js') }}"></script>
 
     @stack('scripts')
 </body>

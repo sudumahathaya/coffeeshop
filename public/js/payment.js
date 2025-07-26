@@ -1,4 +1,4 @@
-// Payment Gateway Integration
+// Enhanced Payment Gateway Integration
 class PaymentGateway {
     constructor() {
         this.stripe = null;
@@ -9,24 +9,26 @@ class PaymentGateway {
 
     async init() {
         // Initialize Stripe (replace with your publishable key)
-        this.stripe = Stripe('pk_test_your_stripe_publishable_key_here');
-        this.elements = this.stripe.elements();
-        
-        // Create card element
-        this.card = this.elements.create('card', {
-            style: {
-                base: {
-                    fontSize: '16px',
-                    color: '#424770',
-                    '::placeholder': {
-                        color: '#aab7c4',
+        if (typeof Stripe !== 'undefined') {
+            this.stripe = Stripe('pk_test_your_stripe_publishable_key_here');
+            this.elements = this.stripe.elements();
+            
+            // Create card element
+            this.card = this.elements.create('card', {
+                style: {
+                    base: {
+                        fontSize: '16px',
+                        color: '#424770',
+                        '::placeholder': {
+                            color: '#aab7c4',
+                        },
+                    },
+                    invalid: {
+                        color: '#9e2146',
                     },
                 },
-                invalid: {
-                    color: '#9e2146',
-                },
-            },
-        });
+            });
+        }
     }
 
     mountCard(elementId) {
@@ -66,6 +68,13 @@ class PaymentGateway {
     }
 
     async processPayment(clientSecret, orderData) {
+        if (!this.stripe || !this.card) {
+            return {
+                success: false,
+                message: 'Payment system not initialized'
+            };
+        }
+
         try {
             const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
                 payment_method: {
@@ -147,7 +156,17 @@ class PaymentGateway {
                                     `).join('')}
                                     <hr>
                                     <div class="d-flex justify-content-between">
-                                        <strong>Total: Rs. ${orderData.total.toFixed(2)}</strong>
+                                        <strong>Subtotal:</strong>
+                                        <strong>Rs. ${orderData.subtotal.toFixed(2)}</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Tax (10%):</span>
+                                        <span>Rs. ${orderData.tax.toFixed(2)}</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total:</strong>
+                                        <strong class="text-coffee">Rs. ${orderData.total.toFixed(2)}</strong>
                                     </div>
                                 </div>
                             </div>
@@ -177,18 +196,26 @@ class PaymentGateway {
                                 <div class="tab-content">
                                     <!-- Card Payment -->
                                     <div class="tab-pane fade show active" id="card-payment">
-                                        <div id="card-element" class="form-control mb-3" style="padding: 12px;"></div>
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <strong>Coming Soon!</strong> Credit card payments will be available soon.
+                                        </div>
+                                        <div id="card-element" class="form-control mb-3" style="padding: 12px; display: none;"></div>
                                         <div id="card-errors" class="alert alert-danger" style="display: none;"></div>
-                                        <button class="btn btn-coffee w-100" onclick="processCardPayment()">
-                                            <i class="bi bi-lock me-2"></i>Pay Securely
+                                        <button class="btn btn-secondary w-100" disabled>
+                                            <i class="bi bi-lock me-2"></i>Card Payment Coming Soon
                                         </button>
                                     </div>
 
                                     <!-- Mobile Payment -->
                                     <div class="tab-pane fade" id="mobile-payment">
+                                        <div class="alert alert-info">
+                                            <i class="bi bi-info-circle me-2"></i>
+                                            <strong>Coming Soon!</strong> Mobile payments (Dialog, Mobitel, Hutch) will be available soon.
+                                        </div>
                                         <div class="mb-3">
                                             <label class="form-label">Mobile Provider</label>
-                                            <select class="form-select" id="mobileProvider">
+                                            <select class="form-select" id="mobileProvider" disabled>
                                                 <option value="dialog">Dialog</option>
                                                 <option value="mobitel">Mobitel</option>
                                                 <option value="hutch">Hutch</option>
@@ -196,21 +223,30 @@ class PaymentGateway {
                                         </div>
                                         <div class="mb-3">
                                             <label class="form-label">Mobile Number</label>
-                                            <input type="tel" class="form-control" id="mobileNumber" placeholder="07X XXX XXXX">
+                                            <input type="tel" class="form-control" id="mobileNumber" placeholder="07X XXX XXXX" disabled>
                                         </div>
-                                        <button class="btn btn-coffee w-100" onclick="processMobilePayment()">
-                                            <i class="bi bi-phone me-2"></i>Pay via Mobile
+                                        <button class="btn btn-secondary w-100" disabled>
+                                            <i class="bi bi-phone me-2"></i>Mobile Payment Coming Soon
                                         </button>
                                     </div>
 
                                     <!-- Cash Payment -->
                                     <div class="tab-pane fade" id="cash-payment">
-                                        <div class="alert alert-info">
+                                        <div class="alert alert-success">
                                             <i class="bi bi-info-circle me-2"></i>
                                             You can pay with cash when you collect your order or at your table.
                                         </div>
+                                        <div class="payment-instructions mb-3">
+                                            <h6>Payment Instructions:</h6>
+                                            <ul class="list-unstyled">
+                                                <li><i class="bi bi-check text-success me-2"></i>Order will be confirmed immediately</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>Pay when you arrive at the café</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>Show your order ID to our staff</li>
+                                                <li><i class="bi bi-check text-success me-2"></i>Exact change appreciated</li>
+                                            </ul>
+                                        </div>
                                         <button class="btn btn-coffee w-100" onclick="processCashPayment()">
-                                            <i class="bi bi-cash me-2"></i>Order with Cash Payment
+                                            <i class="bi bi-cash me-2"></i>Confirm Order (Pay at Café)
                                         </button>
                                     </div>
                                 </div>
@@ -225,9 +261,11 @@ class PaymentGateway {
         const bootstrapModal = new bootstrap.Modal(modal);
         bootstrapModal.show();
 
-        // Mount card element after modal is shown
+        // Mount card element after modal is shown (when available)
         modal.addEventListener('shown.bs.modal', () => {
-            this.mountCard('#card-element');
+            if (this.card) {
+                this.mountCard('#card-element');
+            }
         });
 
         // Clean up when modal is hidden
@@ -242,82 +280,11 @@ class PaymentGateway {
 
 // Payment processing functions
 async function processCardPayment() {
-    const orderData = window.currentOrderData;
-    const paymentGateway = window.paymentGateway;
-    
-    if (!orderData || !paymentGateway) {
-        showNotification('Payment system error', 'error');
-        return;
-    }
-
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-    button.disabled = true;
-
-    try {
-        // Create payment intent
-        const intentResult = await paymentGateway.createPaymentIntent(orderData.total);
-        
-        if (!intentResult.success) {
-            throw new Error(intentResult.message);
-        }
-
-        // Process payment
-        const paymentResult = await paymentGateway.processPayment(intentResult.client_secret, orderData);
-        
-        if (paymentResult.success) {
-            // Submit order with payment token
-            orderData.payment_method = 'online';
-            orderData.payment_token = paymentResult.payment_intent.id;
-            
-            await submitOrder(orderData);
-        } else {
-            throw new Error(paymentResult.message);
-        }
-    } catch (error) {
-        console.error('Payment error:', error);
-        showNotification('Payment failed: ' + error.message, 'error');
-    } finally {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    }
+    showNotification('Card payments coming soon! Please use cash payment for now.', 'info');
 }
 
 async function processMobilePayment() {
-    const orderData = window.currentOrderData;
-    const provider = document.getElementById('mobileProvider').value;
-    const phone = document.getElementById('mobileNumber').value;
-    
-    if (!phone) {
-        showNotification('Please enter your mobile number', 'warning');
-        return;
-    }
-
-    const button = event.target;
-    const originalText = button.innerHTML;
-    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
-    button.disabled = true;
-
-    try {
-        const paymentGateway = window.paymentGateway;
-        const result = await paymentGateway.processMobilePayment(provider, orderData.total, phone);
-        
-        if (result.success) {
-            orderData.payment_method = 'mobile';
-            orderData.payment_token = result.transaction_id;
-            
-            await submitOrder(orderData);
-        } else {
-            throw new Error(result.message);
-        }
-    } catch (error) {
-        console.error('Mobile payment error:', error);
-        showNotification('Mobile payment failed: ' + error.message, 'error');
-    } finally {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    }
+    showNotification('Mobile payments coming soon! Please use cash payment for now.', 'info');
 }
 
 async function processCashPayment() {
@@ -343,7 +310,9 @@ async function submitOrder(orderData) {
         if (result.success) {
             // Close payment modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
-            modal.hide();
+            if (modal) {
+                modal.hide();
+            }
             
             // Clear cart
             localStorage.removeItem('cafeElixirCart');
@@ -410,7 +379,8 @@ function showOrderSuccess(orderId, orderData) {
                         <strong>What's Next?</strong><br>
                         • You'll receive updates about your order status<br>
                         • Estimated preparation time: 10-15 minutes<br>
-                        • You can track your order in your dashboard
+                        • ${orderData.payment_method === 'cash' ? 'Pay when you arrive at the café' : 'Payment processed successfully'}<br>
+                        • Show this order ID to our staff: <strong>${orderId}</strong>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -456,10 +426,12 @@ function proceedToCheckout() {
     const orderData = {
         items: cart.map(item => ({
             id: item.id,
-            quantity: item.quantity
+            quantity: item.quantity,
+            name: item.name,
+            price: item.price
         })),
-        customer_name: '{{ Auth::user()->name ?? "Guest" }}',
-        customer_email: '{{ Auth::user()->email ?? "" }}',
+        customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
+        customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
         order_type: 'dine_in',
         subtotal: subtotal,
         tax: tax,
@@ -469,3 +441,66 @@ function proceedToCheckout() {
     // Show payment modal
     window.paymentGateway.showPaymentModal(orderData);
 }
+
+// Notification function
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} position-fixed notification-toast`;
+    notification.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 350px;
+        border-radius: 15px;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+    `;
+
+    const iconMap = {
+        'success': 'check-circle-fill',
+        'error': 'exclamation-triangle-fill',
+        'warning': 'exclamation-triangle-fill',
+        'info': 'info-circle-fill'
+    };
+
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${iconMap[type]} me-2"></i>
+            <span class="flex-grow-1">${message}</span>
+            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.5s ease';
+            setTimeout(() => notification.remove(), 500);
+        }
+    }, 5000);
+}
+
+// CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .notification-toast {
+        backdrop-filter: blur(10px);
+    }
+    
+    .bg-coffee {
+        background: linear-gradient(45deg, #8B4513, #D2691E) !important;
+    }
+`;
+document.head.appendChild(style);

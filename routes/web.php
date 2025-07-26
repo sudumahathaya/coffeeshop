@@ -89,6 +89,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Admin order management
     Route::patch('/orders/{orderId}/status', [OrderController::class, 'updateStatus'])->name('orders.update-status');
+    Route::get('/api/orders', [OrderController::class, 'index'])->name('api.orders');
     
     // User management
     Route::get('/users/create', [App\Http\Controllers\AdminController::class, 'createUser'])->name('users.create');

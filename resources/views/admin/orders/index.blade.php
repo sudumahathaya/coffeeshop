@@ -140,6 +140,13 @@
                                         <button class="btn btn-primary btn-sm" onclick="markCompleted('{{ $order->id }}')">
                                             <i class="bi bi-check-all"></i> Complete
                                         </button>
+                                    @elseif($order->status == 'pending')
+                                        <button class="btn btn-warning btn-sm" onclick="confirmOrder('{{ $order->id }}')">
+                                            <i class="bi bi-check-circle"></i> Confirm
+                                        </button>
+                                        <button class="btn btn-danger btn-sm" onclick="cancelOrder('{{ $order->id }}')">
+                                            <i class="bi bi-x-circle"></i> Cancel
+                                        </button>
                                     @endif
                                     <button class="btn btn-outline-secondary btn-sm" onclick="viewOrder('{{ $order->id }}')">
                                         <i class="bi bi-eye"></i>
@@ -180,17 +187,153 @@
 
 @push('scripts')
 <script>
+function confirmOrder(orderId) {
+    if (confirm('Confirm this order?')) {
+        updateOrderStatus(orderId, 'confirmed');
+    }
+}
+
+function cancelOrder(orderId) {
+    if (confirm('Cancel this order? This action cannot be undone.')) {
+        updateOrderStatus(orderId, 'cancelled');
+    }
+}
+
 function markReady(orderId) {
-    if (confirm('Mark this order as ready?')) {
-        alert('Order marked as ready!');
-        location.reload();
+    if (confirm('Mark this order as ready for pickup?')) {
+        updateOrderStatus(orderId, 'ready');
     }
 }
 
 function markCompleted(orderId) {
     if (confirm('Mark this order as completed?')) {
-        alert('Order completed successfully!');
-        location.reload();
+        updateOrderStatus(orderId, 'completed');
+    }
+}
+
+function updateOrderStatus(orderId, status) {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+    button.disabled = true;
+
+    fetch(`/admin/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Order status updated to ${status}!`, 'success');
+            
+            // Update the status badge in the table
+            const row = button.closest('tr');
+            const statusBadge = row.querySelector('.badge');
+            if (statusBadge) {
+                statusBadge.className = `badge bg-${getStatusColor(status)}`;
+                statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+            }
+            
+            // Update action buttons
+            updateActionButtons(row, status);
+        } else {
+            showNotification('Failed to update order status', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while updating the order', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'pending': 'secondary',
+        'confirmed': 'info',
+        'preparing': 'warning',
+        'ready': 'primary',
+        'completed': 'success',
+        'cancelled': 'danger'
+    };
+    return colors[status] || 'secondary';
+}
+
+function updateActionButtons(row, status) {
+    const actionsCell = row.querySelector('.btn-group');
+    let buttonsHtml = '';
+    
+    const orderId = row.querySelector('.fw-bold').textContent.replace('#', '');
+    
+    if (status === 'confirmed') {
+        buttonsHtml = `
+            <button class="btn btn-warning btn-sm" onclick="updateOrderStatus('${orderId}', 'preparing')">
+                <i class="bi bi-clock"></i> Start Preparing
+            </button>
+        `;
+    } else if (status === 'preparing') {
+        buttonsHtml = `
+            <button class="btn btn-success btn-sm" onclick="markReady('${orderId}')">
+                <i class="bi bi-check"></i> Ready
+            </button>
+        `;
+    } else if (status === 'ready') {
+        buttonsHtml = `
+            <button class="btn btn-primary btn-sm" onclick="markCompleted('${orderId}')">
+                <i class="bi bi-check-all"></i> Complete
+            </button>
+        `;
+    }
+    
+    // Always add view and print buttons
+    buttonsHtml += `
+        <button class="btn btn-outline-secondary btn-sm" onclick="viewOrder('${orderId}')">
+            <i class="bi bi-eye"></i>
+        </button>
+        <button class="btn btn-outline-primary btn-sm" onclick="printReceipt('${orderId}')">
+            <i class="bi bi-printer"></i>
+        </button>
+    `;
+    
+    actionsCell.innerHTML = buttonsHtml;
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} position-fixed notification-toast`;
+    notification.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 350px;
+        border-radius: 15px;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    `;
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'error' ? 'exclamation-triangle-fill' : 'info-circle-fill'} me-2"></i>
+            <span class="flex-grow-1">${message}</span>
+            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.5s ease';
+            setTimeout(() => notification.remove(), 500);
+        }
+    }, 5000);
     }
 }
 
@@ -229,13 +372,45 @@ function viewOrder(orderId) {
 }
 
 function printReceipt(orderId) {
-    alert('Printing receipt for order #' + orderId);
+    showNotification('Receipt printing functionality coming soon!', 'info');
 }
 
 // Auto-refresh orders every 30 seconds
 setInterval(function() {
-    // In a real app, this would fetch new orders via AJAX
-    console.log('Refreshing orders...');
+    refreshOrdersTable();
 }, 30000);
+
+function refreshOrdersTable() {
+    fetch('/admin/api/orders')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update orders table with new data
+                console.log('Orders refreshed');
+            }
+        })
+        .catch(error => {
+            console.error('Failed to refresh orders:', error);
+        });
+}
+
+// CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .notification-toast {
+        backdrop-filter: blur(10px);
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endpush
