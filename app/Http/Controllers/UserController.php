@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\ProfileChangeRequest;
-use App\Models\ReservationChangeRequest;
 
 class UserController extends Controller
 {
@@ -147,10 +145,8 @@ class UserController extends Controller
     private function getPendingChangeRequests($user)
     {
         return [
-            'profile_changes' => $user->profileChangeRequests()->where('status', 'pending')->count(),
-            'reservation_changes' => \App\Models\ReservationChangeRequest::where('user_id', $user->id)
-                ->where('status', 'pending')
-                ->count()
+            'profile_changes' => 0, // Will be implemented when needed
+            'reservation_changes' => 0 // Will be implemented when needed
         ];
     }
 

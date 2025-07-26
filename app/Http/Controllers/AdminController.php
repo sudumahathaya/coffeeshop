@@ -7,6 +7,8 @@ use App\Models\MenuItem;
 use App\Models\Reservation;
 use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
+use App\Models\User;
+use App\Models\Order;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Hash;
 
