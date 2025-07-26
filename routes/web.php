@@ -146,8 +146,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     
     // Reservation management
     Route::post('/reservations', [AdminController::class, 'storeReservation'])->name('reservations.store');
+    Route::get('/reservations/{id}/edit', [AdminController::class, 'editReservation'])->name('reservations.edit');
+    Route::put('/reservations/{id}', [AdminController::class, 'updateReservation'])->name('reservations.update');
     Route::patch('/reservations/{id}/status', [AdminController::class, 'updateReservationStatus'])->name('reservations.update-status');
+    Route::post('/reservations/{id}/approve', [AdminController::class, 'approveReservation'])->name('reservations.approve');
     Route::patch('/reservations/{id}/reject', [AdminController::class, 'rejectReservation'])->name('reservations.reject');
+    Route::post('/reservations/{id}/reject', [AdminController::class, 'rejectReservation'])->name('reservations.reject.post');
     Route::delete('/reservations/{id}', [AdminController::class, 'deleteReservation'])->name('reservations.destroy');
     Route::get('/reservations/{id}', [AdminController::class, 'getReservation'])->name('reservations.show');
     

@@ -397,24 +397,62 @@ class AdminController extends Controller
         ]);
     }
     
+    public function approveReservation(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'admin_notes' => 'nullable|string|max:1000'
+        ]);
+
+        $reservation = Reservation::findOrFail($id);
+        $reservation->update([
+            'status' => 'confirmed',
+            'admin_notes' => $validatedData['admin_notes'] ?? null,
+            'approved_by' => Auth::id(),
+            'approved_at' => now()
+        ]);
+        
+        // Award loyalty points to user
+        if ($reservation->user_id) {
+            \App\Models\LoyaltyPoint::create([
+                'user_id' => $reservation->user_id,
+                'points' => 50,
+                'type' => 'earned',
+                'description' => "Bonus points for confirmed reservation #{$reservation->reservation_id}"
+            ]);
+        }
+        
+        // Broadcast real-time update
+        broadcast(new \App\Events\ReservationUpdated($reservation))->toOthers();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation approved successfully! Customer has been notified and earned 50 loyalty points.',
+            'reservation' => $reservation
+        ]);
+    }
+    
     public function rejectReservation(Request $request, $id)
     {
         $validatedData = $request->validate([
-            'status' => 'required|in:rejected',
-            'rejection_reason' => 'required|string|max:1000'
+            'rejection_reason' => 'required|string|max:1000',
+            'admin_notes' => 'nullable|string|max:1000'
         ]);
 
         $reservation = Reservation::findOrFail($id);
         $reservation->update([
             'status' => 'rejected',
             'rejection_reason' => $validatedData['rejection_reason'],
+            'admin_notes' => $validatedData['admin_notes'] ?? null,
             'approved_by' => Auth::id(),
             'approved_at' => now()
         ]);
         
+        // Broadcast real-time update
+        broadcast(new \App\Events\ReservationUpdated($reservation))->toOthers();
+        
         return response()->json([
             'success' => true,
-            'message' => 'Reservation rejected successfully',
+            'message' => 'Reservation rejected successfully. Customer has been notified.',
             'reservation' => $reservation
         ]);
     }

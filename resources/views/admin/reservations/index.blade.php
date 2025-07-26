@@ -323,6 +323,84 @@
         </div>
     </div>
 </div>
+
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-x-circle me-2"></i>Reject Reservation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please provide a reason for rejecting this reservation:</p>
+                <form id="rejectionForm">
+                    <input type="hidden" id="rejectionReservationId">
+                    <div class="mb-3">
+                        <label for="rejectionReason" class="form-label">Rejection Reason *</label>
+                        <select class="form-select" id="rejectionReason" required>
+                            <option value="">Select a reason</option>
+                            <option value="fully_booked">Fully booked for that time</option>
+                            <option value="invalid_time">Invalid time slot</option>
+                            <option value="large_group">Group too large for available tables</option>
+                            <option value="maintenance">Maintenance scheduled</option>
+                            <option value="holiday_closure">Holiday closure</option>
+                            <option value="other">Other reason</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rejectionNotes" class="form-label">Additional Notes</label>
+                        <textarea class="form-control" id="rejectionNotes" rows="3" 
+                                  placeholder="Provide additional details or alternative suggestions..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmRejection()">
+                    <i class="bi bi-x-lg me-2"></i>Reject Reservation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approval Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-check-circle me-2"></i>Approve Reservation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to approve this reservation?</p>
+                <form id="approvalForm">
+                    <input type="hidden" id="approvalReservationId">
+                    <div class="mb-3">
+                        <label for="approvalNotes" class="form-label">Admin Notes (Optional)</label>
+                        <textarea class="form-control" id="approvalNotes" rows="3" 
+                                  placeholder="Add any notes about this approval..."></textarea>
+                    </div>
+                </form>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Note:</strong> Customer will be notified via email and will earn 50 loyalty points.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmApproval()">
+                    <i class="bi bi-check-lg me-2"></i>Approve Reservation
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -616,14 +694,70 @@ function updateStatus(reservationId, status) {
     });
 }
 
+function approveReservation(reservationId) {
+    document.getElementById('approvalReservationId').value = reservationId;
+    const modal = new bootstrap.Modal(document.getElementById('approvalModal'));
+    modal.show();
+}
+
 function rejectReservation(reservationId) {
     document.getElementById('rejectionReservationId').value = reservationId;
     const modal = new bootstrap.Modal(document.getElementById('rejectionModal'));
     modal.show();
 }
 
+function confirmApproval() {
+    const notes = document.getElementById('approvalNotes').value;
+    const reservationId = document.getElementById('approvalReservationId').value;
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Approving...';
+    button.disabled = true;
+
+    fetch(`/admin/reservations/${reservationId}/approve`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ 
+            admin_notes: notes
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Reservation approved successfully! Customer has been notified and earned 50 loyalty points.', 'success');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('approvalModal'));
+            modal.hide();
+            
+            // Clear form
+            document.getElementById('approvalNotes').value = '';
+            
+            // Refresh data
+            refreshReservations();
+            updateStats();
+        } else {
+            showNotification('Failed to approve reservation', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while approving the reservation', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
 function confirmRejection() {
     const reason = document.getElementById('rejectionReason').value;
+    const notes = document.getElementById('rejectionNotes').value;
     const reservationId = document.getElementById('rejectionReservationId').value;
     
     if (!reason.trim()) {
@@ -644,8 +778,8 @@ function confirmRejection() {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
         body: JSON.stringify({ 
-            status: 'rejected',
-            rejection_reason: reason
+            rejection_reason: reason,
+            admin_notes: notes
         })
     })
     .then(response => response.json())
@@ -659,6 +793,7 @@ function confirmRejection() {
             
             // Clear form
             document.getElementById('rejectionReason').value = '';
+            document.getElementById('rejectionNotes').value = '';
             
             // Refresh data
             refreshReservations();

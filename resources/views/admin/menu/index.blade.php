@@ -128,7 +128,6 @@
                             </div>
                             <div class="col-6">
                                 <small class="text-muted">Calories:</small>
-                                <div class="fw-bold">{{ $item->calories }}</div>
                         <h4 class="mb-0" id="activeItemsCount">{{ $stats['active_items'] }}</h4>
                             <div class="col-6">
                                 <small class="text-muted">Allergens:</small>
@@ -140,7 +139,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-primary" onclick="editItem({{ $item->id }})">
-                        <h4 class="mb-0" id="categoriesCount">{{ $stats['total_categories'] }}</h4>
+                            <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-{{ $item->status === 'active' ? 'warning' : 'success' }}" 
                                     onclick="toggleStatus({{ $item->id }}, '{{ $item->status }}')">
@@ -151,7 +150,7 @@
                             </button>
                         </div>
                         <button class="btn btn-coffee btn-sm" onclick="viewDetails({{ $item->id }})">
-                        <h4 class="mb-0" id="avgPriceDisplay">Rs. {{ number_format($stats['average_price'], 0) }}</h4>
+                        <i class="bi bi-eye"></i> View
                         </button>
                     </div>
                 </div>
