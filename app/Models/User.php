@@ -62,6 +62,11 @@ class User extends Authenticatable
         return $this->hasMany(LoyaltyPoint::class);
     }
 
+    public function profileChangeRequests()
+    {
+        return $this->hasMany(ProfileChangeRequest::class);
+    }
+
     public function getTotalLoyaltyPointsAttribute()
     {
         return $this->loyaltyPoints()->where('type', 'earned')->sum('points') - 
