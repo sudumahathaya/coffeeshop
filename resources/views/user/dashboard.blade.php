@@ -472,16 +472,10 @@
     .reservation-item {
         padding: 1.5rem 0;
         border-bottom: 1px solid rgba(139, 69, 19, 0.05);
-        transition: all 0.5s ease;
     }
 
     .reservation-item:last-child {
         border-bottom: none;
-    }
-
-    .reservation-item.cancelling {
-        opacity: 0.5;
-        pointer-events: none;
     }
 
     .reservation-date {
@@ -661,6 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check for pending reservation change requests
     checkReservationStatus();
+    checkAllReservationStatuses();
 });
 
 function editReservation(reservationId) {
@@ -818,8 +813,10 @@ function submitReservationEdit() {
 }
 
 function checkReservationStatus() {
+    // Check for pending reservation change requests for all user reservations
     // Check if there's a pending reservation change request
     const reservations = document.querySelectorAll('.reservation-item');
+    
     if (reservations.length > 0) {
         const firstReservationId = 1; // You might need to get this dynamically
         
@@ -836,15 +833,176 @@ function checkReservationStatus() {
     }
 }
 
-function showReservationStatus(status, message) {
-    const statusDiv = document.getElementById('reservationStatus');
-    const statusMessage = document.getElementById('statusMessage');
+function checkAllReservationStatuses() {
+    // Check status for all reservations
+    const reservationItems = document.querySelectorAll('.reservation-item');
     
-    if (statusDiv && statusMessage) {
+    reservationItems.forEach((item, index) => {
+        const editButton = item.querySelector('.btn-outline-primary');
+        if (editButton && editButton.onclick) {
+            const onclickStr = editButton.getAttribute('onclick');
+            const reservationId = onclickStr.match(/editReservation\((\d+)\)/)?.[1];
+            
+            if (reservationId) {
+                // Check if this reservation has a pending change request
+                setTimeout(() => {
+                    // This would typically make an API call to check status
+                    // For now, we'll just ensure the UI is ready
+                }, index * 100);
+            }
+        }
+    });
+}
+
+function showReservationStatus(reservationId, status, message) {
+    const statusDiv = document.getElementById(`reservationStatus-${reservationId}`);
+    
+    if (statusDiv) {
         statusDiv.className = `alert alert-${status === 'pending' ? 'warning' : status === 'approved' ? 'success' : 'danger'}`;
-        statusMessage.textContent = message;
+        statusDiv.textContent = message;
         statusDiv.style.display = 'block';
     }
+}
+
+function showCancelConfirmation(reservationId) {
+    // Create custom confirmation modal
+    const confirmModal = document.createElement('div');
+    confirmModal.id = `cancelModal-${reservationId}`;
+    confirmModal.className = 'modal fade';
+    confirmModal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Cancel Reservation
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <i class="bi bi-calendar-x text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="text-center mb-3">Are you sure you want to cancel this reservation?</h6>
+                    <p class="text-muted text-center mb-3">This action cannot be undone.</p>
+                    
+                    <div class="mb-3">
+                        <label for="cancellationReason" class="form-label">Reason for cancellation (optional)</label>
+                        <textarea class="form-control" id="cancellationReason" rows="3" 
+                                  placeholder="Please let us know why you're cancelling..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Reservation</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmCancellation(${reservationId})">
+                        <i class="bi bi-trash me-2"></i>Yes, Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(confirmModal);
+    const modal = new bootstrap.Modal(confirmModal);
+    modal.show();
+    
+    // Store reservation ID for the confirmation function
+    window.currentCancelReservationId = reservationId;
+
+    // Remove modal from DOM when closed
+    confirmModal.addEventListener('hidden.bs.modal', function() {
+        document.body.removeChild(confirmModal);
+    });
+}
+
+function confirmCancellation(reservationId) {
+    const reason = document.getElementById('cancellationReason').value;
+    const modal = document.getElementById(`cancelModal-${reservationId}`);
+    
+    // Find the cancel button for this reservation
+    const cancelButton = document.querySelector(`button[onclick="cancelReservation(${reservationId})"]`);
+    if (!cancelButton) return;
+    
+    const originalText = cancelButton.innerHTML;
+    cancelButton.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Cancelling...';
+    cancelButton.disabled = true;
+    
+    // Add visual feedback to the reservation item
+    const reservationItem = cancelButton.closest('.reservation-item');
+    if (reservationItem) {
+        reservationItem.classList.add('cancelling');
+    }
+
+    fetch(`/reservations/${reservationId}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Reservation cancelled successfully!', 'success');
+            
+            // Close the confirmation modal
+            const bootstrapModal = bootstrap.Modal.getInstance(document.getElementById(`cancelModal-${reservationId}`));
+            if (bootstrapModal) {
+                bootstrapModal.hide();
+            }
+            
+            // Remove the reservation item from the UI with animation
+            const reservationItem = cancelButton.closest('.reservation-item');
+            if (reservationItem) {
+                reservationItem.classList.remove('cancelling');
+                reservationItem.style.transition = 'all 0.5s ease';
+                reservationItem.style.opacity = '0';
+                reservationItem.style.transform = 'translateX(-100%) scale(0.8)';
+                
+                setTimeout(() => {
+                    reservationItem.remove();
+                    
+                    // Check if no reservations left
+                    const remainingReservations = document.querySelectorAll('.reservation-item');
+                    if (remainingReservations.length === 0) {
+                        const sectionBody = reservationItem.closest('.dashboard-section').querySelector('.section-body');
+                        sectionBody.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
+                                <p class="text-muted mt-2">No upcoming reservations</p>
+                                <a href="/reservation" class="btn btn-coffee">
+                                    <i class="bi bi-calendar-plus me-2"></i>Make Reservation
+                                </a>
+                            </div>
+                        `;
+                    }
+                }, 500);
+            }
+        } else {
+            showNotification(data.message || 'Failed to cancel reservation', 'error');
+            // Remove cancelling state on error
+            if (reservationItem) {
+                reservationItem.classList.remove('cancelling');
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while cancelling the reservation', 'error');
+    })
+    .finally(() => {
+        cancelButton.innerHTML = originalText;
+        cancelButton.disabled = false;
+        // Close the modal if it still exists
+        if (modal) {
+            const bootstrapModal = bootstrap.Modal.getInstance(modal);
+            if (bootstrapModal) {
+                bootstrapModal.hide();
+            }
+        }
+    });
 }
 
 function reorderLast() {
