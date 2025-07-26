@@ -36,7 +36,7 @@
                     <div class="stat-icon bg-success mx-auto mb-3">
                         <i class="bi bi-check-circle"></i>
                     </div>
-                    <h4 class="mb-0">{{ count(array_filter($menuItems, fn($item) => $item->status === 'active')) }}</h4>
+                    <h4 class="mb-0">{{ $menuItems->where('status', 'active')->count() }}</h4>
                     <small class="text-muted">Active Items</small>
                 </div>
             </div>
