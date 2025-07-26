@@ -120,6 +120,30 @@ class UserController extends Controller
         ]);
     }
 
+    public function getReservationUpdates()
+    {
+        $user = Auth::user();
+        
+        // Get reservations that have been updated in the last 5 minutes
+        $recentUpdates = $user->reservations()
+            ->where('updated_at', '>', now()->subMinutes(5))
+            ->where('created_at', '<', now()->subMinutes(1)) // Exclude just created ones
+            ->get(['id', 'reservation_id', 'status', 'updated_at']);
+
+        $updates = $recentUpdates->map(function ($reservation) {
+            return [
+                'reservation_id' => $reservation->reservation_id,
+                'status' => $reservation->status,
+                'updated_at' => $reservation->updated_at->toISOString()
+            ];
+        });
+
+        return response()->json([
+            'success' => true,
+            'updates' => $updates
+        ]);
+    }
+
     private function getPointsToNextTier($currentPoints)
     {
         if ($currentPoints < 500) {

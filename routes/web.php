@@ -42,6 +42,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/user/orders/history', [App\Http\Controllers\UserController::class, 'getOrderHistory'])->name('user.orders.history');
     Route::post('/user/reorder-last', [App\Http\Controllers\UserController::class, 'reorderLast'])->name('user.reorder.last');
     Route::get('/user/loyalty/details', [App\Http\Controllers\UserController::class, 'getLoyaltyDetails'])->name('user.loyalty.details');
+    Route::get('/api/user/reservations/status', [App\Http\Controllers\UserController::class, 'getReservationUpdates'])->name('user.reservations.updates');
     
     // Order management for authenticated users
     Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
