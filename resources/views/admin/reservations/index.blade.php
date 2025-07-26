@@ -161,10 +161,10 @@
                                 <div class="btn-group btn-group-sm">
                                     @if($reservation->status == 'pending')
                                         <button class="btn btn-success btn-sm" onclick="updateStatus({{ $reservation->id }}, 'confirmed')">
-                                            <i class="bi bi-check"></i>
+                                            <i class="bi bi-check"></i> Approve
                                         </button>
                                         <button class="btn btn-danger btn-sm" onclick="updateStatus({{ $reservation->id }}, 'cancelled')">
-                                            <i class="bi bi-x"></i>
+                                            <i class="bi bi-x"></i> Reject
                                         </button>
                                     @endif
                                     <button class="btn btn-outline-secondary btn-sm" onclick="viewReservation({{ $reservation->id }})">
@@ -173,9 +173,11 @@
                                     <button class="btn btn-outline-primary btn-sm" onclick="editReservation({{ $reservation->id }})">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteReservation({{ $reservation->id }})">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
+                                    @if($reservation->status !== 'completed')
+                                        <button class="btn btn-outline-danger btn-sm" onclick="deleteReservation({{ $reservation->id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -569,9 +571,9 @@ function saveReservation() {
 }
 
 function updateStatus(reservationId, status) {
-    const confirmMessage = status === 'confirmed' ? 'confirm' : 'cancel';
+    const confirmMessage = status === 'confirmed' ? 'approve and confirm' : 'reject and cancel';
     
-    if (!confirm(`Are you sure you want to ${confirmMessage} this reservation?`)) {
+    if (!confirm(`Are you sure you want to ${confirmMessage} this reservation? ${status === 'confirmed' ? 'The customer will be notified and earn 50 loyalty points.' : 'The customer will be notified of the cancellation.'}`)) {
         return;
     }
 
@@ -586,7 +588,10 @@ function updateStatus(reservationId, status) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(`Reservation ${status} successfully!`, 'success');
+            const message = status === 'confirmed' ? 
+                'Reservation approved and confirmed! Customer has been notified and earned 50 loyalty points.' : 
+                'Reservation rejected and cancelled. Customer has been notified.';
+            showNotification(message, status === 'confirmed' ? 'success' : 'warning');
             refreshReservations();
             updateStats();
         } else {

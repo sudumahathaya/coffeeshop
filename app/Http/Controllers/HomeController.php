@@ -190,12 +190,12 @@ class HomeController extends Controller
             'special_requests' => $validatedData['specialRequests'],
             'email_updates' => $validatedData['emailUpdates'] ?? false,
             'user_id' => auth()->id(),
-            'status' => 'pending'
+            'status' => 'pending' // Requires admin approval
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Reservation submitted successfully! Please wait for admin approval.',
+            'message' => 'Reservation submitted successfully! You will receive confirmation once approved by our team.',
             'reservation_id' => $reservationId,
             'data' => $reservation
         ]);

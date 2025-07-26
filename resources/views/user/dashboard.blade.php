@@ -196,11 +196,20 @@
                                         <span class="badge bg-{{ $reservation->status === 'confirmed' ? 'success' : ($reservation->status === 'pending' ? 'warning' : 'secondary') }}">
                                             {{ ucfirst($reservation->status) }}
                                         </span>
+                                        @if($reservation->status === 'pending')
+                                            <div class="mt-1">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock me-1"></i>Awaiting approval
+                                                </small>
+                                            </div>
+                                        @endif
                                         <div class="mt-2">
                                             <div class="btn-group btn-group-sm">
-                                                <button class="btn btn-outline-primary" onclick="editReservation({{ $reservation->id }})">
-                                                    <i class="bi bi-pencil"></i> Edit
-                                                </button>
+                                                @if($reservation->status !== 'cancelled' && $reservation->status !== 'completed')
+                                                    <button class="btn btn-outline-primary" onclick="editReservation({{ $reservation->id }})">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </button>
+                                                @endif
                                                 <button class="btn btn-outline-danger" onclick="cancelReservation({{ $reservation->id }})">
                                                     <i class="bi bi-x"></i> Cancel
                                                 </button>
@@ -472,6 +481,21 @@
     .reservation-item {
         padding: 1.5rem 0;
         border-bottom: 1px solid rgba(139, 69, 19, 0.05);
+        transition: all 0.3s ease;
+    }
+
+    .reservation-item.cancelling {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+
+    .pending-change {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.7; }
     }
 
     .reservation-item:last-child {
@@ -697,65 +721,7 @@ function editReservation(reservationId) {
 }
 
 function cancelReservation(reservationId) {
-    if (!confirm('Are you sure you want to cancel this reservation? This action cannot be undone.')) {
-        return;
-    }
-
-    const button = event.target;
-    const originalText = button.innerHTML;
-    
-    button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Cancelling...';
-    button.disabled = true;
-
-    fetch(`/admin/reservations/${reservationId}`, {
-        method: 'DELETE',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification('Reservation cancelled successfully!', 'success');
-            
-            // Remove the reservation item from the UI
-            const reservationItem = button.closest('.reservation-item');
-            if (reservationItem) {
-                reservationItem.style.transition = 'all 0.3s ease';
-                reservationItem.style.opacity = '0';
-                reservationItem.style.transform = 'translateX(-100%)';
-                
-                setTimeout(() => {
-                    reservationItem.remove();
-                    
-                    // Check if no reservations left
-                    const remainingReservations = document.querySelectorAll('.reservation-item');
-                    if (remainingReservations.length === 0) {
-                        const sectionBody = document.querySelector('.dashboard-section .section-body');
-                        sectionBody.innerHTML = `
-                            <div class="text-center py-4">
-                                <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
-                                <p class="text-muted mt-2">No upcoming reservations</p>
-                                <a href="{{ route('reservation') }}" class="btn btn-coffee">
-                                    <i class="bi bi-calendar-plus me-2"></i>Make Reservation
-                                </a>
-                            </div>
-                        `;
-                    }
-                }, 300);
-            }
-        } else {
-            showNotification(data.message || 'Failed to cancel reservation', 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('An error occurred while cancelling the reservation', 'error');
-    })
-    .finally(() => {
-        button.innerHTML = originalText;
-        button.disabled = false;
-    });
+    showCancelConfirmation(reservationId);
 }
 
 function submitReservationEdit() {
@@ -787,14 +753,31 @@ function submitReservationEdit() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Reservation change request submitted successfully!', 'success');
+            showNotification('Reservation change request submitted! Awaiting admin approval.', 'success');
             
             // Close modal
             const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
             modal.hide();
             
-            // Show status message
-            showReservationStatus('pending', 'Your reservation change request is pending admin approval.');
+            // Update the reservation status in the UI
+            const reservationItem = document.querySelector(`[onclick="editReservation(${reservationId})"]`).closest('.reservation-item');
+            if (reservationItem) {
+                const statusBadge = reservationItem.querySelector('.badge');
+                if (statusBadge) {
+                    statusBadge.className = 'badge bg-info';
+                    statusBadge.textContent = 'Change Pending';
+                }
+                
+                // Add pending change indicator
+                const statusDiv = reservationItem.querySelector('.text-md-end');
+                const existingPending = statusDiv.querySelector('.pending-change');
+                if (!existingPending) {
+                    const pendingDiv = document.createElement('div');
+                    pendingDiv.className = 'mt-1 pending-change';
+                    pendingDiv.innerHTML = '<small class="text-info"><i class="bi bi-clock me-1"></i>Change request pending</small>';
+                    statusDiv.insertBefore(pendingDiv, statusDiv.querySelector('.mt-2'));
+                }
+            }
             
             // Reset form
             form.reset();
@@ -932,7 +915,7 @@ function confirmCancellation(reservationId) {
         reservationItem.classList.add('cancelling');
     }
 
-    fetch(`/reservations/${reservationId}`, {
+    fetch(`/user/reservations/${reservationId}/cancel`, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
@@ -972,7 +955,7 @@ function confirmCancellation(reservationId) {
                             <div class="text-center py-4">
                                 <i class="bi bi-calendar-x text-muted" style="font-size: 3rem;"></i>
                                 <p class="text-muted mt-2">No upcoming reservations</p>
-                                <a href="/reservation" class="btn btn-coffee">
+                                <a href="{{ route('reservation') }}" class="btn btn-coffee">
                                     <i class="bi bi-calendar-plus me-2"></i>Make Reservation
                                 </a>
                             </div>
@@ -1132,6 +1115,11 @@ document.head.appendChild(style);
                                 <i class="bi bi-calendar3 me-2"></i>Date *
                             </label>
                             <input type="date" class="form-control form-control-lg" id="editReservationDate" name="reservation_date" required>
+                            <div class="form-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>Changes require admin approval
+                                </small>
+                            </div>
                         </div>
                         
                         <div class="col-md-6">
@@ -1206,7 +1194,7 @@ document.head.appendChild(style);
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-warning" onclick="submitReservationEdit()">
-                    <i class="bi bi-send me-2"></i>Submit Request
+                    <i class="bi bi-send me-2"></i>Submit Change Request
                 </button>
             </div>
         </div>

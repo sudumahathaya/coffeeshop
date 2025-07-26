@@ -13,7 +13,7 @@
         <div>
             <span class="badge bg-warning fs-6" id="pendingCount">
                 <i class="bi bi-clock me-1"></i>
-                {{ $requests->where('status', 'pending')->count() }} Pending
+                {{ $requests->where('status', 'pending')->count() ?? 0 }} Pending
             </span>
         </div>
     </div>
@@ -26,7 +26,7 @@
                     <div class="stat-icon bg-warning mx-auto mb-3">
                         <i class="bi bi-clock-history"></i>
                     </div>
-                    <h4 class="mb-0">{{ $requests->where('status', 'pending')->count() }}</h4>
+                    <h4 class="mb-0">{{ $requests->where('status', 'pending')->count() ?? 0 }}</h4>
                     <small class="text-muted">Pending Requests</small>
                 </div>
             </div>
@@ -37,7 +37,7 @@
                     <div class="stat-icon bg-success mx-auto mb-3">
                         <i class="bi bi-check-circle"></i>
                     </div>
-                    <h4 class="mb-0">{{ $requests->where('status', 'approved')->count() }}</h4>
+                    <h4 class="mb-0">{{ $requests->where('status', 'approved')->count() ?? 0 }}</h4>
                     <small class="text-muted">Approved</small>
                 </div>
             </div>
@@ -48,7 +48,7 @@
                     <div class="stat-icon bg-danger mx-auto mb-3">
                         <i class="bi bi-x-circle"></i>
                     </div>
-                    <h4 class="mb-0">{{ $requests->where('status', 'rejected')->count() }}</h4>
+                    <h4 class="mb-0">{{ $requests->where('status', 'rejected')->count() ?? 0 }}</h4>
                     <small class="text-muted">Rejected</small>
                 </div>
             </div>
@@ -59,7 +59,7 @@
                     <div class="stat-icon bg-info mx-auto mb-3">
                         <i class="bi bi-list-ul"></i>
                     </div>
-                    <h4 class="mb-0">{{ $requests->total() }}</h4>
+                    <h4 class="mb-0">{{ $requests->total() ?? 0 }}</h4>
                     <small class="text-muted">Total Requests</small>
                 </div>
             </div>

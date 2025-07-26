@@ -324,8 +324,18 @@ class AdminController extends Controller
         ]);
 
         $reservation = Reservation::findOrFail($id);
+        $oldStatus = $reservation->status;
         $reservation->update(['status' => $validatedData['status']]);
 
+        // If reservation is confirmed, award loyalty points to user
+        if ($validatedData['status'] === 'confirmed' && $oldStatus !== 'confirmed' && $reservation->user_id) {
+            \App\Models\LoyaltyPoint::create([
+                'user_id' => $reservation->user_id,
+                'points' => 50,
+                'type' => 'earned',
+                'description' => "Bonus points for confirmed reservation #{$reservation->reservation_id}"
+            ]);
+        }
         return response()->json([
             'success' => true,
             'message' => 'Reservation status updated successfully',

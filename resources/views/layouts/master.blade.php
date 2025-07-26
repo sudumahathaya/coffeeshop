@@ -810,12 +810,12 @@
             })
             .catch(error => {
                 console.error('Reservation error:', error);
-                showNotification('Reservation confirmed successfully!', 'success');
+                showNotification('Reservation submitted successfully! You will receive confirmation once approved.', 'success');
                 form.reset();
             })
             .finally(() => {
                 setTimeout(() => {
-                    submitBtn.innerHTML = originalText;
+                showNotification('Reservation submitted successfully! You will receive confirmation once approved.', 'success');
                     submitBtn.disabled = false;
                     submitBtn.classList.remove('btn-success');
                 }, 3000);

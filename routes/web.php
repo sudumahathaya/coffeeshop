@@ -64,7 +64,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/reservation-change-requests/{id}', [ReservationChangeController::class, 'cancelRequest'])->name('reservation-change-requests.cancel');
     
     // Direct reservation management for users
-    Route::delete('/reservations/{id}', function($id) {
+    Route::delete('/user/reservations/{id}/cancel', function($id) {
         $reservation = \App\Models\Reservation::where('id', $id)
             ->where('user_id', Auth::id())
             ->first();
