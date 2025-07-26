@@ -142,17 +142,20 @@
                                         </button>
                                     @elseif($order->status == 'pending')
                                         <button class="btn btn-warning btn-sm" onclick="confirmOrder('{{ $order->id }}')">
-                                            <i class="bi bi-check-circle"></i> Confirm
+                                            <i class="bi bi-check"></i>
                                         </button>
                                         <button class="btn btn-danger btn-sm" onclick="cancelOrder('{{ $order->id }}')">
-                                            <i class="bi bi-x-circle"></i> Cancel
+                                            <i class="bi bi-check-all"></i>
                                         </button>
                                     @endif
                                     <button class="btn btn-outline-secondary btn-sm" onclick="viewOrder('{{ $order->id }}')">
-                                        <i class="bi bi-eye"></i>
+                                            <i class="bi bi-check"></i>
                                     </button>
                                     <button class="btn btn-outline-primary btn-sm" onclick="printReceipt('{{ $order->id }}')">
-                                        <i class="bi bi-printer"></i>
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" onclick="deleteOrder('{{ $order->id }}')">
+                                        <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
                             </td>
@@ -373,6 +376,36 @@ function viewOrder(orderId) {
 
 function printReceipt(orderId) {
     showNotification('Receipt printing functionality coming soon!', 'info');
+}
+
+function deleteOrder(orderId) {
+    if (!confirm('Are you sure you want to delete this order? This action cannot be undone.')) {
+        return;
+    }
+
+    fetch(`/admin/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Order deleted successfully!', 'success');
+            // Remove the row from table
+            const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+            if (row) {
+                row.remove();
+            }
+        } else {
+            showNotification('Failed to delete order', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while deleting the order', 'error');
+    });
 }
 
 // Auto-refresh orders every 30 seconds

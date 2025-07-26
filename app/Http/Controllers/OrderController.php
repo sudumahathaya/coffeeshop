@@ -162,6 +162,9 @@ class OrderController extends Controller
             $order->update(['completed_at' => now()]);
         }
 
+        // Broadcast real-time update
+        broadcast(new \App\Events\OrderUpdated($order))->toOthers();
+
         return response()->json([
             'success' => true,
             'message' => 'Order status updated successfully',
@@ -194,5 +197,37 @@ class OrderController extends Controller
             'success' => true,
             'orders' => $orders
         ]);
+    }
+
+    public function destroy($orderId)
+    {
+        try {
+            $order = Order::where('order_id', $orderId)->firstOrFail();
+            
+            // Only allow deletion of cancelled orders or pending orders
+            if (!in_array($order->status, ['cancelled', 'pending'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Only cancelled or pending orders can be deleted'
+                ], 400);
+            }
+            
+            $order->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete order: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

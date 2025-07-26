@@ -161,10 +161,10 @@
                                 <div class="btn-group btn-group-sm">
                                     @if($reservation->status == 'pending')
                                         <button class="btn btn-success btn-sm" onclick="updateStatus({{ $reservation->id }}, 'confirmed')">
-                                            <i class="bi bi-check"></i> Approve
+                                            <i class="bi bi-check"></i>
                                         </button>
                                         <button class="btn btn-danger btn-sm" onclick="updateStatus({{ $reservation->id }}, 'cancelled')">
-                                            <i class="bi bi-x"></i> Reject
+                                            <i class="bi bi-x"></i>
                                         </button>
                                     @endif
                                     <button class="btn btn-outline-secondary btn-sm" onclick="viewReservation({{ $reservation->id }})">

@@ -105,6 +105,7 @@ Route::post('/api/orders', [OrderController::class, 'store'])->name('api.orders.
 Route::get('/api/orders/{orderId}', [OrderController::class, 'show'])->name('api.orders.show');
 Route::get('/admin/api/orders', [OrderController::class, 'index'])->name('admin.api.orders');
 Route::patch('/admin/orders/{orderId}/status', [OrderController::class, 'updateStatus'])->name('admin.orders.update-status');
+Route::delete('/admin/orders/{orderId}', [OrderController::class, 'destroy'])->name('admin.orders.destroy');
 
 // Admin routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {

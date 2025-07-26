@@ -336,6 +336,10 @@ class AdminController extends Controller
                 'description' => "Bonus points for confirmed reservation #{$reservation->reservation_id}"
             ]);
         }
+        
+        // Broadcast real-time update
+        broadcast(new \App\Events\ReservationUpdated($reservation))->toOthers();
+        
         return response()->json([
             'success' => true,
             'message' => 'Reservation status updated successfully',
