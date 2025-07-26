@@ -207,8 +207,11 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" name="description" rows="3"></textarea>
+                            <label class="form-label">Description *</label>
+                            <textarea class="form-control" name="description" rows="3" required placeholder="Enter a detailed description of the menu item..."></textarea>
+                            <div class="invalid-feedback">
+                                Please provide a description for the menu item.
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Ingredients (comma separated)</label>
@@ -282,8 +285,11 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control" id="editItemDescription" name="description" rows="3"></textarea>
+                            <label class="form-label">Description *</label>
+                            <textarea class="form-control" id="editItemDescription" name="description" rows="3" required placeholder="Enter a detailed description of the menu item..."></textarea>
+                            <div class="invalid-feedback">
+                                Please provide a description for the menu item.
+                            </div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Ingredients (comma separated)</label>
