@@ -1051,6 +1051,49 @@ function reorderLast() {
     });
 }
 
+function showRejectionReason(reason) {
+    const modal = document.createElement('div');
+    modal.className = 'modal fade';
+    modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Reservation Rejection Reason
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Reason for rejection:</strong>
+                    </div>
+                    <p class="mb-3">${reason}</p>
+                    <div class="alert alert-info">
+                        <i class="bi bi-telephone-fill me-2"></i>
+                        <strong>Need help?</strong> Contact us at +94 77 186 9132 or visit our contact page for assistance.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="{{ route('contact') }}" class="btn btn-coffee">
+                        <i class="bi bi-headset me-2"></i>Contact Support
+                    </a>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    const bootstrapModal = new bootstrap.Modal(modal);
+    bootstrapModal.show();
+    
+    // Remove modal from DOM when closed
+    modal.addEventListener('hidden.bs.modal', function() {
+        document.body.removeChild(modal);
+    });
+}
+
 // Notification function
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');

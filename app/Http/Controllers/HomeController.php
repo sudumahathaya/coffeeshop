@@ -195,7 +195,7 @@ class HomeController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Reservation submitted successfully! You will receive confirmation once approved by our team.',
+            'message' => 'Reservation submitted successfully! Our team will review and confirm your booking within 2 hours.',
             'reservation_id' => $reservationId,
             'data' => $reservation
         ]);

@@ -293,6 +293,12 @@
                                         </span>
                                     </button>
                                 </div>
+                                <div class="text-center mt-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Your reservation will be reviewed and confirmed by our team within 2 hours.
+                                    </small>
+                                </div>
                             </div>
                         </div>
                     </form>

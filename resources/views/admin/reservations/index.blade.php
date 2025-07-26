@@ -616,6 +616,67 @@ function updateStatus(reservationId, status) {
     });
 }
 
+function rejectReservation(reservationId) {
+    document.getElementById('rejectionReservationId').value = reservationId;
+    const modal = new bootstrap.Modal(document.getElementById('rejectionModal'));
+    modal.show();
+}
+
+function confirmRejection() {
+    const reason = document.getElementById('rejectionReason').value;
+    const reservationId = document.getElementById('rejectionReservationId').value;
+    
+    if (!reason.trim()) {
+        showNotification('Please provide a reason for rejection', 'warning');
+        return;
+    }
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Rejecting...';
+    button.disabled = true;
+
+    fetch(`/admin/reservations/${reservationId}/reject`, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ 
+            status: 'rejected',
+            rejection_reason: reason
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Reservation rejected successfully. Customer has been notified.', 'warning');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('rejectionModal'));
+            modal.hide();
+            
+            // Clear form
+            document.getElementById('rejectionReason').value = '';
+            
+            // Refresh data
+            refreshReservations();
+            updateStats();
+        } else {
+            showNotification('Failed to reject reservation', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while rejecting the reservation', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
 function deleteReservation(reservationId) {
     if (!confirm('Are you sure you want to delete this reservation? This action cannot be undone.')) {
         return;

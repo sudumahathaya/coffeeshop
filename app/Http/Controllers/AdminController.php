@@ -342,6 +342,28 @@ class AdminController extends Controller
             'reservation' => $reservation
         ]);
     }
+    
+    public function rejectReservation(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'status' => 'required|in:rejected',
+            'rejection_reason' => 'required|string|max:1000'
+        ]);
+
+        $reservation = Reservation::findOrFail($id);
+        $reservation->update([
+            'status' => 'rejected',
+            'rejection_reason' => $validatedData['rejection_reason'],
+            'approved_by' => Auth::id(),
+            'approved_at' => now()
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation rejected successfully',
+            'reservation' => $reservation
+        ]);
+    }
 
     public function deleteReservation($id)
     {

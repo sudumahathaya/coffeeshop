@@ -126,6 +126,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Reservation management
     Route::post('/reservations', [AdminController::class, 'storeReservation'])->name('reservations.store');
     Route::patch('/reservations/{id}/status', [AdminController::class, 'updateReservationStatus'])->name('reservations.update-status');
+    Route::patch('/reservations/{id}/reject', [AdminController::class, 'rejectReservation'])->name('reservations.reject');
     Route::delete('/reservations/{id}', [AdminController::class, 'deleteReservation'])->name('reservations.destroy');
     Route::get('/reservations/{id}', [AdminController::class, 'getReservation'])->name('reservations.show');
     
