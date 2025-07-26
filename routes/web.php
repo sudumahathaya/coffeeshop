@@ -67,7 +67,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/reservations/{id}', function($id) {
         $reservation = \App\Models\Reservation::where('id', $id)
             ->where('user_id', Auth::id())
-            ->firstOrFail();
+            ->first();
+        
+        if (!$reservation) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reservation not found or you do not have permission to cancel it.'
+            ], 404);
+        }
+        
+        if ($reservation->status === 'cancelled') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This reservation is already cancelled.'
+            ], 400);
+        }
         
         $reservation->update(['status' => 'cancelled']);
         

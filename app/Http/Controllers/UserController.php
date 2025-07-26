@@ -26,6 +26,7 @@ class UserController extends Controller
             'recent_orders' => $user->orders()->latest()->take(3)->get(),
             'upcoming_reservations' => $user->reservations()->upcoming()->take(3)->get(),
             'favorite_items' => $this->getFavoriteItems($user)
+            'pending_change_requests' => $this->getPendingChangeRequests($user)
         ];
 
         return view('user.dashboard', $dashboardData);
@@ -139,6 +140,16 @@ class UserController extends Controller
             'success' => true,
             'updates' => $updates
         ]);
+    }
+
+    private function getPendingChangeRequests($user)
+    {
+        return [
+            'profile_changes' => $user->profileChangeRequests()->where('status', 'pending')->count(),
+            'reservation_changes' => \App\Models\ReservationChangeRequest::where('user_id', $user->id)
+                ->where('status', 'pending')
+                ->count()
+        ];
     }
 
     private function getPointsToNextTier($currentPoints)

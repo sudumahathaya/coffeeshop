@@ -19,6 +19,24 @@ class ReservationChangeController extends Controller
             'reservation_date' => 'required|date|after:today',
             'reservation_time' => 'required|string',
             'guests' => 'required|integer|min:1|max:20',
+            'table_type' => 'nullable|string|in:window,corner,center,outdoor,private',
+            'occasion' => 'nullable|string|in:birthday,anniversary,business,date,family,other',
+            'special_requests' => 'nullable|string|max:1000',
+        ]);
+
+        // Additional validation for date (must be at least 24 hours in advance)
+        $reservationDateTime = \Carbon\Carbon::parse($validatedData['reservation_date'] . ' ' . $validatedData['reservation_time']);
+        if ($reservationDateTime->lessThan(now()->addHours(24))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reservation changes must be made at least 24 hours in advance.'
+            ], 422);
+        }
+
+        $validatedData = $request->validate([
+            'reservation_date' => 'required|date|after:today',
+            'reservation_time' => 'required|string',
+            'guests' => 'required|integer|min:1|max:20',
             'table_type' => 'nullable|string',
             'occasion' => 'nullable|string',
             'special_requests' => 'nullable|string|max:1000',

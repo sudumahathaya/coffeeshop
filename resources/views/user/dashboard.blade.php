@@ -472,10 +472,16 @@
     .reservation-item {
         padding: 1.5rem 0;
         border-bottom: 1px solid rgba(139, 69, 19, 0.05);
+        transition: all 0.5s ease;
     }
 
     .reservation-item:last-child {
         border-bottom: none;
+    }
+
+    .reservation-item.cancelling {
+        opacity: 0.5;
+        pointer-events: none;
     }
 
     .reservation-date {
