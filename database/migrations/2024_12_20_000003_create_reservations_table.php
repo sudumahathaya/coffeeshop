@@ -25,7 +25,7 @@ return new class extends Migration
             $table->string('occasion')->nullable();
             $table->text('special_requests')->nullable();
             $table->boolean('email_updates')->default(false);
-            $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled'])->default('pending');
+            $table->enum('status', ['pending', 'confirmed', 'completed', 'cancelled', 'rejected'])->default('pending');
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->timestamps();
         });

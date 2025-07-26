@@ -193,26 +193,58 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="text-md-end">
-                                        <span class="badge bg-{{ $reservation->status === 'confirmed' ? 'success' : ($reservation->status === 'pending' ? 'warning' : 'secondary') }}">
-                                            {{ ucfirst($reservation->status) }}
-                                        </span>
+                                        @if($reservation->status === 'confirmed')
+                                            <div class="d-flex align-items-center justify-content-end mb-2">
+                                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                <span class="text-success fw-semibold">Confirmed</span>
+                                            </div>
+                                        @elseif($reservation->status === 'pending')
+                                            <div class="d-flex align-items-center justify-content-end mb-2">
+                                                <i class="bi bi-clock-fill text-warning me-2"></i>
+                                                <span class="text-warning fw-semibold">Pending</span>
+                                            </div>
+                                        @elseif($reservation->status === 'rejected')
+                                            <div class="d-flex align-items-center justify-content-end mb-2">
+                                                <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                                                <span class="text-danger fw-semibold">Rejected</span>
+                                            </div>
+                                        @else
+                                            <div class="d-flex align-items-center justify-content-end mb-2">
+                                                <i class="bi bi-info-circle-fill text-secondary me-2"></i>
+                                                <span class="text-secondary fw-semibold">{{ ucfirst($reservation->status) }}</span>
+                                            </div>
+                                        @endif
                                         @if($reservation->status === 'pending')
                                             <div class="mt-1">
                                                 <small class="text-muted">
-                                                    <i class="bi bi-clock me-1"></i>Awaiting approval
+                                                    <i class="bi bi-hourglass-split me-1"></i>Awaiting admin approval
+                                                </small>
+                                            </div>
+                                        @elseif($reservation->status === 'rejected')
+                                            <div class="mt-1">
+                                                <small class="text-danger">
+                                                    <i class="bi bi-exclamation-triangle me-1"></i>Contact us for details
                                                 </small>
                                             </div>
                                         @endif
                                         <div class="mt-2">
                                             <div class="btn-group btn-group-sm">
-                                                @if($reservation->status !== 'cancelled' && $reservation->status !== 'completed')
+                                                @if($reservation->status === 'confirmed')
                                                     <button class="btn btn-outline-primary" onclick="editReservation({{ $reservation->id }})">
                                                         <i class="bi bi-pencil"></i> Edit
                                                     </button>
+                                                    <button class="btn btn-outline-danger" onclick="cancelReservation({{ $reservation->id }})">
+                                                        <i class="bi bi-x"></i> Cancel
+                                                    </button>
+                                                @elseif($reservation->status === 'pending')
+                                                    <button class="btn btn-outline-danger" onclick="cancelReservation({{ $reservation->id }})">
+                                                        <i class="bi bi-x"></i> Cancel
+                                                    </button>
+                                                @elseif($reservation->status === 'rejected')
+                                                    <a href="{{ route('contact') }}" class="btn btn-outline-info">
+                                                        <i class="bi bi-headset"></i> Contact Support
+                                                    </a>
                                                 @endif
-                                                <button class="btn btn-outline-danger" onclick="cancelReservation({{ $reservation->id }})">
-                                                    <i class="bi bi-x"></i> Cancel
-                                                </button>
                                             </div>
                                         </div>
                                     </div>

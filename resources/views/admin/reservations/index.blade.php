@@ -571,9 +571,24 @@ function saveReservation() {
 }
 
 function updateStatus(reservationId, status) {
-    const confirmMessage = status === 'confirmed' ? 'approve and confirm' : 'reject and cancel';
+    let confirmMessage = '';
+    let successMessage = '';
     
-    if (!confirm(`Are you sure you want to ${confirmMessage} this reservation? ${status === 'confirmed' ? 'The customer will be notified and earn 50 loyalty points.' : 'The customer will be notified of the cancellation.'}`)) {
+    if (status === 'confirmed') {
+        confirmMessage = 'approve and confirm';
+        successMessage = 'Reservation approved and confirmed! Customer has been notified and earned 50 loyalty points.';
+    } else if (status === 'rejected') {
+        confirmMessage = 'reject';
+        successMessage = 'Reservation rejected. Customer has been notified.';
+    } else if (status === 'completed') {
+        confirmMessage = 'mark as completed';
+        successMessage = 'Reservation marked as completed.';
+    } else {
+        confirmMessage = 'cancel';
+        successMessage = 'Reservation cancelled.';
+    }
+    
+    if (!confirm(`Are you sure you want to ${confirmMessage} this reservation?`)) {
         return;
     }
 
@@ -588,10 +603,7 @@ function updateStatus(reservationId, status) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            const message = status === 'confirmed' ? 
-                'Reservation approved and confirmed! Customer has been notified and earned 50 loyalty points.' : 
-                'Reservation rejected and cancelled. Customer has been notified.';
-            showNotification(message, status === 'confirmed' ? 'success' : 'warning');
+            showNotification(successMessage, status === 'confirmed' ? 'success' : status === 'rejected' ? 'warning' : 'info');
             refreshReservations();
             updateStats();
         } else {
