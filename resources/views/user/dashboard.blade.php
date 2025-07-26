@@ -1,1069 +1,933 @@
-@extends('layouts.master')
-
-@section('title', 'My Dashboard - Café Elixir')
-@section('description', 'Manage your account, view orders, track loyalty points, and more at Café Elixir.')
-
-@section('content')
-<!-- Dashboard Hero Section -->
-<section class="dashboard-hero">
-    <div class="container">
-        <div class="row align-items-center py-5">
-            <div class="col-lg-8">
-                <div class="welcome-content" data-aos="fade-up">
-                    <h1 class="display-5 fw-bold text-white mb-3">
-                        Welcome back, {{ explode(' ', Auth::user()->name)[0] }}! ☕
-                    </h1>
-                    <p class="lead text-white mb-4">
-                        Your coffee journey continues here. Manage your orders, track rewards, and discover new favorites.
-                    </p>
-                    <div class="d-flex gap-3 flex-wrap">
-                        <a href="{{ route('menu') }}" class="btn btn-coffee btn-lg">
-                            <i class="bi bi-cup-hot me-2"></i>Order Coffee
-                        </a>
-                        <a href="{{ route('reservation') }}" class="btn btn-outline-light btn-lg">
-                            <i class="bi bi-calendar-check me-2"></i>Book Table
-                        </a>
-                    </div>
-                </div>
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-coffee text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-gear me-2"></i>Edit Profile
+                </h5>
+                                        <i class="bi bi-pencil-square"></i> Request Edit
+                                    </button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="col-lg-4" data-aos="fade-left" data-aos-delay="200">
-                <div class="user-stats-card">
-                    <div class="text-center">
-                        <div class="user-avatar">
-                            <span class="avatar-text">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</span>
+            <div class="modal-body">
+                <form id="editProfileForm">
+                    @csrf
+                    <div class="row g-4">
+                        <!-- Personal Information -->
+                        <div class="col-12">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-person-circle me-2"></i>Personal Information
+                            </h6>
                         </div>
-                        <h5 class="text-white mt-3 mb-2">{{ Auth::user()->name }}</h5>
-                        <p class="text-white-50 mb-3">{{ Auth::user()->email }}</p>
-                        
-                        <div class="loyalty-badge">
-                            <i class="bi bi-star-fill text-warning me-2"></i>
-                            <span class="text-white">Gold Member</span>
+
+                        <div class="col-md-6">
+                            <label for="editName" class="form-label fw-semibold">
+                                <i class="bi bi-person me-2"></i>Full Name *
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editName" 
+                                   value="{{ Auth::user()->name }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editEmail" class="form-label fw-semibold">
+                                <i class="bi bi-envelope me-2"></i>Email Address *
+                            </label>
+                            <input type="email" class="form-control form-control-lg" id="editEmail" 
+                                   value="{{ Auth::user()->email }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editPhone" class="form-label fw-semibold">
+                                <i class="bi bi-telephone me-2"></i>Phone Number
+                            </label>
+                            <input type="tel" class="form-control form-control-lg" id="editPhone" 
+                                   placeholder="+94 XX XXX XXXX">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editBirthday" class="form-label fw-semibold">
+                                <i class="bi bi-calendar-heart me-2"></i>Birthday
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="editBirthday">
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-geo-alt me-2"></i>Address Information
+                            </h6>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="editAddress" class="form-label fw-semibold">
+                                <i class="bi bi-house me-2"></i>Street Address
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editAddress" 
+                                   placeholder="Enter your street address">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editCity" class="form-label fw-semibold">
+                                <i class="bi bi-building me-2"></i>City
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editCity" 
+                                   placeholder="Enter your city">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editPostalCode" class="form-label fw-semibold">
+                                <i class="bi bi-mailbox me-2"></i>Postal Code
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editPostalCode" 
+                                   placeholder="Enter postal code">
+                        </div>
+
+                        <!-- Preferences -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-sliders me-2"></i>Preferences
+                            </h6>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editLanguage" class="form-label fw-semibold">
+                                <i class="bi bi-translate me-2"></i>Preferred Language
+                            </label>
+                            <select class="form-select form-select-lg" id="editLanguage">
+                                <option value="en">English</option>
+                                <option value="si">Sinhala</option>
+                                <option value="ta">Tamil</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editTimezone" class="form-label fw-semibold">
+                                <i class="bi bi-clock me-2"></i>Timezone
+                            </label>
+                            <select class="form-select form-select-lg" id="editTimezone">
+                                <option value="Asia/Colombo">Asia/Colombo (GMT+5:30)</option>
+                                <option value="UTC">UTC (GMT+0:00)</option>
+                            </select>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-bell me-2"></i>Notification Preferences
+                            </h6>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="notification-preferences">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editEmailNotif" checked>
+                                            <label class="form-check-label" for="editEmailNotif">
+                                                <i class="bi bi-envelope me-2"></i>Email Notifications
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editSmsNotif">
+                                            <label class="form-check-label" for="editSmsNotif">
+                                                <i class="bi bi-phone me-2"></i>SMS Notifications
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editOrderUpdates" checked>
+                                            <label class="form-check-label" for="editOrderUpdates">
+                                                <i class="bi bi-receipt me-2"></i>Order Updates
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editPromotions" checked>
+                                            <label class="form-check-label" for="editPromotions">
+                                                <i class="bi bi-gift me-2"></i>Promotional Offers
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-coffee" onclick="saveProfile()">
+                    <i class="bi bi-check-lg me-2"></i>Save Changes
+                </button>
             </div>
         </div>
     </div>
-</section>
+</div>
 
-<!-- Quick Stats Section -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row g-4">
-            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                <div class="stat-card">
-                    <div class="stat-icon bg-primary">
-                        <i class="bi bi-receipt"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">24</h3>
-                        <p class="stat-label">Total Orders</p>
-                        <small class="text-success">
-                            <i class="bi bi-arrow-up"></i> +3 this month
-                        </small>
-                    </div>
-                </div>
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-key me-2"></i>Change Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="200">
-                <div class="stat-card">
-                    <div class="stat-icon bg-warning">
-                        <i class="bi bi-star-fill"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">1,250</h3>
-                        <p class="stat-label">Loyalty Points</p>
-                        <small class="text-info">
-                            <i class="bi bi-gift"></i> 250 points to next reward
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="300">
-                <div class="stat-card">
-                    <div class="stat-icon bg-success">
-                        <i class="bi bi-calendar-check"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">8</h3>
-                        <p class="stat-label">Reservations</p>
-                        <small class="text-primary">
-                            <i class="bi bi-clock"></i> 1 upcoming
-                        </small>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-3 col-md-6" data-aos="fade-up" data-aos-delay="400">
-                <div class="stat-card">
-                    <div class="stat-icon bg-info">
-                        <i class="bi bi-heart-fill"></i>
-                    </div>
-                    <div class="stat-content">
-                        <h3 class="stat-number">12</h3>
-                        <p class="stat-label">Favorite Items</p>
-                        <small class="text-muted">
-                            <i class="bi bi-cup-hot"></i> Cappuccino is #1
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Main Dashboard Content -->
-<section class="py-5">
-    <div class="container">
-        <div class="row g-4">
-            <!-- Left Column -->
-            <div class="col-lg-8">
-                <!-- Recent Orders -->
-                <div class="dashboard-card mb-4" data-aos="fade-up">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="bi bi-receipt me-2 text-coffee"></i>Recent Orders
-                            </h5>
-                            <a href="#" class="btn btn-outline-coffee btn-sm">View All</a>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="order-list">
-                            <!-- Order Item 1 -->
-                            <div class="order-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="order-icon">
-                                        <i class="bi bi-cup-hot text-coffee"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">Order #CE2024001</h6>
-                                        <p class="text-muted mb-1">Cappuccino x2, Croissant x1</p>
-                                        <small class="text-muted">December 15, 2024 • 2:30 PM</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="h6 text-coffee mb-0">Rs. 1,240</span>
-                                        <br>
-                                        <span class="badge bg-success">Completed</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Order Item 2 -->
-                            <div class="order-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="order-icon">
-                                        <i class="bi bi-cup text-coffee"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">Order #CE2024002</h6>
-                                        <p class="text-muted mb-1">Latte x1, Sandwich x1</p>
-                                        <small class="text-muted">December 12, 2024 • 10:15 AM</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="h6 text-coffee mb-0">Rs. 850</span>
-                                        <br>
-                                        <span class="badge bg-success">Completed</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Order Item 3 -->
-                            <div class="order-item">
-                                <div class="d-flex align-items-center">
-                                    <div class="order-icon">
-                                        <i class="bi bi-snow text-info"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h6 class="mb-1">Order #CE2024003</h6>
-                                        <p class="text-muted mb-1">Iced Coffee x1, Muffin x2</p>
-                                        <small class="text-muted">December 10, 2024 • 4:45 PM</small>
-                                    </div>
-                                    <div class="text-end">
-                                        <span class="h6 text-coffee mb-0">Rs. 920</span>
-                                        <br>
-                                        <span class="badge bg-success">Completed</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="text-center mt-4">
-                            <button class="btn btn-outline-coffee" onclick="loadMoreOrders()">
-                                <i class="bi bi-plus-circle me-2"></i>Load More Orders
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label fw-semibold">
+                            <i class="bi bi-lock me-2"></i>Current Password *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg" id="currentPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('currentPassword', this)">
+                                <i class="bi bi-eye"></i>
                             </button>
                         </div>
                     </div>
-                </div>
 
-                <!-- Upcoming Reservations -->
-                <div class="dashboard-card mb-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">
-                                <i class="bi bi-calendar-event me-2 text-coffee"></i>Upcoming Reservations
-                            </h5>
-                            <a href="{{ route('reservation') }}" class="btn btn-outline-coffee btn-sm">New Reservation</a>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label fw-semibold">
+                            <i class="bi bi-lock-fill me-2"></i>New Password *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg" id="newPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('newPassword', this)">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="reservation-item">
-                            <div class="row align-items-center">
-                                <div class="col-md-8">
-                                    <div class="d-flex align-items-center">
-                                        <div class="reservation-date">
-                                            <span class="date-day">22</span>
-                                            <span class="date-month">Dec</span>
-                                        </div>
-                                        <div class="ms-3">
-                                            <h6 class="mb-1">Table for 4 People</h6>
-                                            <p class="text-muted mb-1">
-                                                <i class="bi bi-clock me-1"></i>6:30 PM
-                                                <i class="bi bi-geo-alt ms-3 me-1"></i>Window Side Table
-                                            </p>
-                                            <small class="text-success">
-                                                <i class="bi bi-check-circle me-1"></i>Confirmed
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 text-md-end">
-                                    <button class="btn btn-outline-primary btn-sm me-2">
-                                        <i class="bi bi-pencil"></i> Edit
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm">
-                                        <i class="bi bi-x"></i> Cancel
-                                    </button>
-                                </div>
+                        <div class="form-text">
+                            <div id="reservationStatus" class="alert alert-info" style="display: none;">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <span id="statusMessage"></span>
                             </div>
-                        </div>
-
-                        <div class="text-center mt-3">
-                            <p class="text-muted mb-0">
+                            <small class="text-muted">
                                 <i class="bi bi-info-circle me-1"></i>
-                                You can cancel or modify your reservation up to 2 hours before the scheduled time.
-                            </p>
+                                Password must be at least 8 characters with uppercase, lowercase, and numbers
+                            </small>
                         </div>
                     </div>
-                </div>
 
-                <!-- Favorite Items -->
-                <div class="dashboard-card" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="bi bi-heart-fill me-2 text-danger"></i>Your Favorite Items
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="favorite-item">
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=80&h=80&fit=crop"
-                                             class="favorite-image" alt="Cappuccino">
-                                        <div class="ms-3 flex-grow-1">
-                                            <h6 class="mb-1">Cappuccino</h6>
-                                            <p class="text-muted mb-1">Rs. 480.00</p>
-                                            <small class="text-success">Ordered 8 times</small>
-                                        </div>
-                                        <button class="btn btn-coffee btn-sm add-to-cart"
-                                                data-id="fav-1"
-                                                data-name="Cappuccino"
-                                                data-price="480"
-                                                data-image="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=80&h=80&fit=crop">
-                                            <i class="bi bi-cart-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="favorite-item">
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=80&h=80&fit=crop"
-                                             class="favorite-image" alt="Latte">
-                                        <div class="ms-3 flex-grow-1">
-                                            <h6 class="mb-1">Café Latte</h6>
-                                            <p class="text-muted mb-1">Rs. 520.00</p>
-                                            <small class="text-success">Ordered 6 times</small>
-                                        </div>
-                                        <button class="btn btn-coffee btn-sm add-to-cart"
-                                                data-id="fav-2"
-                                                data-name="Café Latte"
-                                                data-price="520"
-                                                data-image="https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=80&h=80&fit=crop">
-                                            <i class="bi bi-cart-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="favorite-item">
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=80&h=80&fit=crop"
-                                             class="favorite-image" alt="Caramel Macchiato">
-                                        <div class="ms-3 flex-grow-1">
-                                            <h6 class="mb-1">Caramel Macchiato</h6>
-                                            <p class="text-muted mb-1">Rs. 650.00</p>
-                                            <small class="text-success">Ordered 4 times</small>
-                                        </div>
-                                        <button class="btn btn-coffee btn-sm add-to-cart"
-                                                data-id="fav-3"
-                                                data-name="Caramel Macchiato"
-                                                data-price="650"
-                                                data-image="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=80&h=80&fit=crop">
-                                            <i class="bi bi-cart-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-md-6">
-                                <div class="favorite-item">
-                                    <div class="d-flex align-items-center">
-                                        <img src="https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=80&h=80&fit=crop"
-                                             class="favorite-image" alt="Croissant">
-                                        <div class="ms-3 flex-grow-1">
-                                            <h6 class="mb-1">Butter Croissant</h6>
-                                            <p class="text-muted mb-1">Rs. 280.00</p>
-                                            <small class="text-success">Ordered 5 times</small>
-                                        </div>
-                                        <button class="btn btn-coffee btn-sm add-to-cart"
-                                                data-id="fav-4"
-                                                data-name="Butter Croissant"
-                                                data-price="280"
-                                                data-image="https://images.unsplash.com/photo-1555507036-ab794f4afe5b?w=80&h=80&fit=crop">
-                                            <i class="bi bi-cart-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label fw-semibold">
+                            <i class="bi bi-shield-check me-2"></i>Confirm New Password *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg" id="confirmPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword', this)">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
+
+                    <div class="password-strength">
+                        <div class="strength-meter">
+                            <div class="strength-bar" id="strengthBar"></div>
+                        </div>
+                        <small class="strength-text" id="strengthText">Enter a password to see strength</small>
+                    </div>
+                </form>
             </div>
-
-            <!-- Right Column -->
-            <div class="col-lg-4">
-                <!-- Loyalty Program Card -->
-                <div class="dashboard-card mb-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="bi bi-award me-2 text-warning"></i>Loyalty Program
-                        </h5>
-                    </div>
-                    <div class="card-body text-center">
-                        <div class="loyalty-circle mb-3">
-                            <div class="circle-progress" data-percentage="75">
-                                <div class="circle-content">
-                                    <span class="percentage">75%</span>
-                                    <small>to Gold+</small>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <h6 class="text-coffee mb-2">Gold Member</h6>
-                        <p class="text-muted mb-3">1,250 / 1,500 points</p>
-                        
-                        <div class="loyalty-benefits">
-                            <div class="benefit-item">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                <span>15% discount on all orders</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                <span>Free birthday coffee</span>
-                            </div>
-                            <div class="benefit-item">
-                                <i class="bi bi-check-circle text-success me-2"></i>
-                                <span>Priority reservations</span>
-                            </div>
-                        </div>
-
-                        <button class="btn btn-outline-coffee btn-sm mt-3" data-bs-toggle="modal" data-bs-target="#loyaltyModal">
-                            <i class="bi bi-info-circle me-2"></i>Learn More
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="dashboard-card mb-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="bi bi-lightning me-2 text-warning"></i>Quick Actions
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-grid gap-3">
-                            <button class="btn btn-coffee" onclick="reorderLast()">
-                                <i class="bi bi-arrow-clockwise me-2"></i>Reorder Last Order
-                            </button>
-                            <button class="btn btn-outline-coffee" data-bs-toggle="modal" data-bs-target="#profileModal">
-                                <i class="bi bi-person-gear me-2"></i>Update Profile
-                            </button>
-                            <button class="btn btn-outline-coffee" onclick="downloadReceipts()">
-                                <i class="bi bi-download me-2"></i>Download Receipts
-                            </button>
-                            <a href="{{ route('contact') }}" class="btn btn-outline-coffee">
-                                <i class="bi bi-headset me-2"></i>Contact Support
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Special Offers -->
-                <div class="dashboard-card" data-aos="fade-up" data-aos-delay="300">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="bi bi-gift me-2 text-danger"></i>Special Offers
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="offer-item">
-                            <div class="offer-badge">
-                                <span class="badge bg-danger">20% OFF</span>
-                            </div>
-                            <h6 class="mb-2">Happy Hour Special</h6>
-                            <p class="text-muted mb-2">Get 20% off all hot drinks from 2-5 PM</p>
-                            <small class="text-muted">
-                                <i class="bi bi-clock me-1"></i>Valid until Dec 31, 2024
-                            </small>
-                        </div>
-
-                        <div class="offer-item">
-                            <div class="offer-badge">
-                                <span class="badge bg-success">FREE</span>
-                            </div>
-                            <h6 class="mb-2">Birthday Treat</h6>
-                            <p class="text-muted mb-2">Free coffee on your birthday month</p>
-                            <small class="text-muted">
-                                <i class="bi bi-calendar me-1"></i>Available all year
-                            </small>
-                        </div>
-                    </div>
-                </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="changePassword()">
+                    <i class="bi bi-key me-2"></i>Change Password
+                </button>
             </div>
         </div>
     </div>
-</section>
+</div>
 
-<!-- Modals -->
-@include('user.partials.dashboard-modals')
+<!-- Loyalty Details Modal -->
+<div class="modal fade" id="loyaltyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-award me-2"></i>Loyalty Program Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="loyalty-tiers">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="tier-card bronze">
+                                    <div class="tier-icon">
+                                        <i class="bi bi-award"></i>
+                                    </div>
+                                    <h6>Bronze</h6>
+                                    <p class="small">0 - 499 points</p>
+                                    <ul class="tier-benefits">
+                                        <li>5% discount</li>
+                                        <li>Birthday treat</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="tier-card gold active">
+                                    <div class="tier-icon">
+                                        <i class="bi bi-award-fill"></i>
+                                    </div>
+                                    <h6>Gold</h6>
+                                    <p class="small">500 - 1,499 points</p>
+                                    <ul class="tier-benefits">
+                                        <li>15% discount</li>
+                                        <li>Free birthday coffee</li>
+                                        <li>Priority reservations</li>
+                                    </ul>
+                                    <div class="current-tier">Your Current Tier</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="tier-card platinum">
+                                    <div class="tier-icon">
+                                        <i class="bi bi-gem"></i>
+                                    </div>
+                                    <h6>Platinum</h6>
+                                    <p class="small">1,500+ points</p>
+                                    <ul class="tier-benefits">
+                                        <li>25% discount</li>
+                                        <li>Free monthly coffee</li>
+                                        <li>Exclusive events</li>
+                                        <li>Personal barista</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-@push('styles')
+                <div class="points-earning">
+                    <h6 class="text-coffee mb-3">How to Earn Points</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-cup-hot text-coffee me-2"></i>
+                                <span>1 point per Rs. 10 spent</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-calendar-check text-coffee me-2"></i>
+                                <span>50 bonus points per reservation</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-share text-coffee me-2"></i>
+                                <span>25 points for social media shares</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-star text-coffee me-2"></i>
+                                <span>100 points for reviews</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h6 class="text-coffee mb-3">Available Rewards</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="reward-item">
+                                <div class="reward-icon">
+                                    <i class="bi bi-cup-hot"></i>
+                                </div>
+                                <div class="reward-content">
+                                    <h6>Free Coffee</h6>
+                                    <p class="small text-muted">Any regular coffee drink</p>
+                                    <span class="badge bg-coffee">500 points</span>
+                                </div>
+                                <button class="btn btn-outline-coffee btn-sm">Redeem</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="reward-item">
+                                <div class="reward-icon">
+                                    <i class="bi bi-cookie"></i>
+                                </div>
+                                <div class="reward-content">
+                                    <h6>Free Pastry</h6>
+                                    <p class="small text-muted">Any pastry or snack</p>
+                                    <span class="badge bg-coffee">300 points</span>
+                                </div>
+                                <button class="btn btn-outline-coffee btn-sm">Redeem</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-coffee">
+                    <i class="bi bi-gift me-2"></i>View All Rewards
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Deactivation Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Deactivate Account
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Warning:</strong> This action will temporarily deactivate your account. You can reactivate it anytime by logging in.
+                </div>
+
+                <h6 class="mb-3">What happens when you deactivate your account?</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Your profile will be hidden</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Order history will be preserved</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Loyalty points will remain</li>
+                    <li class="mb-2"><i class="bi bi-x text-danger me-2"></i>You won't receive notifications</li>
+                    <li class="mb-2"><i class="bi bi-x text-danger me-2"></i>Active reservations will be cancelled</li>
+                </ul>
+
+                <div class="mt-4">
+                    <label for="deactivateReason" class="form-label fw-semibold">
+                        Reason for deactivation (optional)
+                    </label>
+                    <select class="form-select" id="deactivateReason">
+                        <option value="">Select a reason</option>
+                        <option value="temporary_break">Taking a temporary break</option>
+                        <option value="privacy_concerns">Privacy concerns</option>
+                        <option value="too_many_emails">Too many emails</option>
+                        <option value="not_using">Not using the service</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="mt-3">
+                    <label for="deactivateComments" class="form-label fw-semibold">
+                        Additional comments (optional)
+                    </label>
+                    <textarea class="form-control" id="deactivateComments" rows="3" 
+                              placeholder="Help us improve by sharing your feedback..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="deactivateAccount()">
+                    <i class="bi bi-pause-circle me-2"></i>Deactivate Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Edit Reservation Modal -->
+<div class="modal fade" id="editReservationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-pencil-square me-2"></i>Request Reservation Changes
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Note:</strong> Changes to your reservation require admin approval. You will be notified once your request is reviewed.
+                </div>
+                
+                <form id="editReservationForm">
+                    @csrf
+                    <input type="hidden" id="editReservationId" name="reservation_id">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="editReservationDate" class="form-label fw-semibold">
+                                <i class="bi bi-calendar3 me-2"></i>Date *
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="editReservationDate" name="reservation_date" required>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="editReservationTime" class="form-label fw-semibold">
+                                <i class="bi bi-clock me-2"></i>Time *
+                            </label>
+                            <select class="form-select form-select-lg" id="editReservationTime" name="reservation_time" required>
+                                <option value="">Select Time</option>
+                                @for($hour = 6; $hour <= 22; $hour++)
+                                    @for($minute = 0; $minute < 60; $minute += 30)
+                                        @php
+                                            $time = sprintf('%02d:%02d', $hour, $minute);
+                                            $displayTime = date('g:i A', strtotime($time));
+                                        @endphp
+                                        <option value="{{ $time }}">{{ $displayTime }}</option>
+                                    @endfor
+                                @endfor
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="editGuests" class="form-label fw-semibold">
+                                <i class="bi bi-people me-2"></i>Number of Guests *
+                            </label>
+                            <select class="form-select form-select-lg" id="editGuests" name="guests" required>
+                                <option value="">Select Guests</option>
+                                @for($i = 1; $i <= 20; $i++)
+                                    <option value="{{ $i }}">{{ $i }} {{ $i == 1 ? 'Person' : 'People' }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="editTableType" class="form-label fw-semibold">
+                                <i class="bi bi-grid-3x3-gap me-2"></i>Table Preference
+                            </label>
+                            <select class="form-select form-select-lg" id="editTableType" name="table_type">
+                                <option value="">No Preference</option>
+                                <option value="window">Window Side</option>
+                                <option value="corner">Corner Table</option>
+                                <option value="center">Center Area</option>
+                                <option value="outdoor">Outdoor Seating</option>
+                                <option value="private">Private Section</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="editOccasion" class="form-label fw-semibold">
+                                <i class="bi bi-balloon-heart me-2"></i>Occasion
+                            </label>
+                            <select class="form-select form-select-lg" id="editOccasion" name="occasion">
+                                <option value="">Select Occasion</option>
+                                <option value="birthday">Birthday</option>
+                                <option value="anniversary">Anniversary</option>
+                                <option value="business">Business Meeting</option>
+                                <option value="date">Date</option>
+                                <option value="family">Family Gathering</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="editSpecialRequests" class="form-label fw-semibold">
+                                <i class="bi bi-pencil-square me-2"></i>Special Requests
+                            </label>
+                            <textarea class="form-control" id="editSpecialRequests" name="special_requests" rows="3" 
+                                      placeholder="Any special requirements..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="submitReservationEdit()">
+                    <i class="bi bi-send me-2"></i>Submit Request
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <style>
-    .dashboard-hero {
-        background: linear-gradient(135deg,
-                    rgba(139, 69, 19, 0.9),
-                    rgba(210, 105, 30, 0.8)),
-                    url('https://images.unsplash.com/photo-1521017432531-fbd92d768814?w=1920&h=600&fit=crop') center/cover;
-        position: relative;
-        min-height: 400px;
-    }
+.tier-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    height: 100%;
+}
 
-    .dashboard-hero::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.3);
-    }
+.tier-card.active {
+    border-color: var(--coffee-primary);
+    background: linear-gradient(45deg, rgba(139, 69, 19, 0.05), rgba(210, 105, 30, 0.05));
+    transform: scale(1.05);
+}
 
-    .dashboard-hero .container {
-        position: relative;
-        z-index: 2;
-    }
+.tier-card.bronze .tier-icon { color: #cd7f32; }
+.tier-card.gold .tier-icon { color: #ffd700; }
+.tier-card.platinum .tier-icon { color: #e5e4e2; }
 
-    .user-stats-card {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 20px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-    }
+.tier-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
 
-    .user-avatar {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto;
-        border: 4px solid rgba(255, 255, 255, 0.3);
-    }
+.tier-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
 
-    .avatar-text {
-        font-size: 2rem;
-        font-weight: 700;
-        color: white;
-    }
+.tier-benefits li {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+}
 
-    .loyalty-badge {
-        background: rgba(255, 193, 7, 0.2);
-        border: 1px solid rgba(255, 193, 7, 0.5);
-        border-radius: 25px;
-        padding: 0.5rem 1rem;
-        display: inline-block;
-    }
+.tier-benefits li::before {
+    content: '✓';
+    color: #28a745;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
 
-    .stat-card {
-        background: white;
-        border-radius: 20px;
-        padding: 2rem;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        border: 1px solid rgba(139, 69, 19, 0.05);
-        transition: all 0.3s ease;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-    }
+.current-tier {
+    background: var(--coffee-primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
 
-    .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 35px rgba(139, 69, 19, 0.15);
-    }
+.earning-method {
+    background: linear-gradient(45deg, rgba(139, 69, 19, 0.05), rgba(210, 105, 30, 0.05));
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid rgba(139, 69, 19, 0.1);
+}
 
-    .stat-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 15px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: white;
-        flex-shrink: 0;
-    }
+.reward-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(45deg, rgba(139, 69, 19, 0.02), rgba(210, 105, 30, 0.02));
+    border-radius: 10px;
+    border: 1px solid rgba(139, 69, 19, 0.1);
+}
 
-    .stat-content {
-        flex-grow: 1;
-    }
+.reward-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
 
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: var(--coffee-primary);
-        margin-bottom: 0.25rem;
-    }
+.reward-content {
+    flex-grow: 1;
+}
 
-    .stat-label {
-        color: #6c757d;
-        margin-bottom: 0.25rem;
-        font-weight: 500;
-    }
+.reward-content h6 {
+    margin-bottom: 0.25rem;
+    color: var(--coffee-primary);
+}
 
-    .dashboard-card {
-        background: white;
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        border: 1px solid rgba(139, 69, 19, 0.05);
-        overflow: hidden;
-        transition: all 0.3s ease;
-    }
+.password-strength {
+    margin-top: 1rem;
+}
 
-    .dashboard-card:hover {
-        box-shadow: 0 15px 35px rgba(139, 69, 19, 0.12);
-    }
+.strength-meter {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
 
-    .dashboard-card .card-header {
-        background: linear-gradient(45deg, rgba(139, 69, 19, 0.05), rgba(210, 105, 30, 0.05));
-        border-bottom: 1px solid rgba(139, 69, 19, 0.1);
-        padding: 1.5rem;
-    }
+.strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
 
-    .dashboard-card .card-body {
-        padding: 1.5rem;
-    }
+.strength-weak { background: #dc3545; width: 25%; }
+.strength-fair { background: #fd7e14; width: 50%; }
+.strength-good { background: #ffc107; width: 75%; }
+.strength-strong { background: #28a745; width: 100%; }
 
-    .order-item {
-        padding: 1.5rem;
-        border-radius: 15px;
-        background: linear-gradient(45deg, rgba(139, 69, 19, 0.02), rgba(210, 105, 30, 0.02));
-        border: 1px solid rgba(139, 69, 19, 0.05);
-        margin-bottom: 1rem;
-        transition: all 0.3s ease;
-    }
-
-    .order-item:hover {
-        transform: translateX(5px);
-        box-shadow: 0 5px 15px rgba(139, 69, 19, 0.1);
-    }
-
-    .order-item:last-child {
-        margin-bottom: 0;
-    }
-
-    .order-icon {
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(45deg, rgba(139, 69, 19, 0.1), rgba(210, 105, 30, 0.1));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        margin-right: 1rem;
-    }
-
-    .reservation-item {
-        padding: 1.5rem;
-        border-radius: 15px;
-        background: linear-gradient(45deg, rgba(40, 167, 69, 0.05), rgba(25, 135, 84, 0.05));
-        border: 1px solid rgba(40, 167, 69, 0.1);
-    }
-
-    .reservation-date {
-        background: var(--coffee-primary);
-        color: white;
-        border-radius: 15px;
-        padding: 1rem;
-        text-align: center;
-        min-width: 70px;
-    }
-
-    .date-day {
-        display: block;
-        font-size: 1.5rem;
-        font-weight: 700;
-        line-height: 1;
-    }
-
-    .date-month {
-        display: block;
-        font-size: 0.875rem;
-        opacity: 0.9;
-    }
-
-    .favorite-item {
-        padding: 1rem;
-        border-radius: 15px;
-        background: linear-gradient(45deg, rgba(220, 53, 69, 0.05), rgba(214, 51, 132, 0.05));
-        border: 1px solid rgba(220, 53, 69, 0.1);
-        transition: all 0.3s ease;
-    }
-
-    .favorite-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 5px 15px rgba(220, 53, 69, 0.1);
-    }
-
-    .favorite-image {
-        width: 60px;
-        height: 60px;
-        border-radius: 10px;
-        object-fit: cover;
-    }
-
-    .loyalty-circle {
-        position: relative;
-        width: 120px;
-        height: 120px;
-        margin: 0 auto;
-    }
-
-    .circle-progress {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: conic-gradient(var(--coffee-primary) 0deg, var(--coffee-primary) 270deg, #e9ecef 270deg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-
-    .circle-progress::before {
-        content: '';
-        position: absolute;
-        width: 90px;
-        height: 90px;
-        background: white;
-        border-radius: 50%;
-    }
-
-    .circle-content {
-        position: relative;
-        z-index: 2;
-        text-align: center;
-    }
-
-    .percentage {
-        display: block;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--coffee-primary);
-    }
-
-    .benefit-item {
-        text-align: left;
-        margin-bottom: 0.75rem;
-        font-size: 0.9rem;
-    }
-
-    .offer-item {
-        position: relative;
-        padding: 1.5rem;
-        border-radius: 15px;
-        background: linear-gradient(45deg, rgba(220, 53, 69, 0.05), rgba(255, 193, 7, 0.05));
-        border: 1px solid rgba(220, 53, 69, 0.1);
-        margin-bottom: 1rem;
-    }
-
-    .offer-item:last-child {
-        margin-bottom: 0;
-    }
-
-    .offer-badge {
-        position: absolute;
-        top: -10px;
-        right: 15px;
-    }
-
-    .btn-coffee {
-        background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary));
-        border: none;
-        color: white;
-        font-weight: 600;
-        border-radius: 15px;
-        transition: all 0.3s ease;
-    }
-
-    .btn-coffee:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
-        color: white;
-    }
-
-    .btn-outline-coffee {
-        border: 2px solid var(--coffee-primary);
-        color: var(--coffee-primary);
-        background: transparent;
-        font-weight: 600;
-        border-radius: 15px;
-        transition: all 0.3s ease;
-    }
-
-    .btn-outline-coffee:hover {
-        background: var(--coffee-primary);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(139, 69, 19, 0.3);
-    }
-
-    .text-coffee {
-        color: var(--coffee-primary) !important;
-    }
-
-    @media (max-width: 768px) {
-        .dashboard-hero {
-            min-height: 300px;
-        }
-
-        .user-stats-card {
-            margin-top: 2rem;
-            padding: 1.5rem;
-        }
-
-        .stat-card {
-            padding: 1.5rem;
-            flex-direction: column;
-            text-align: center;
-            gap: 1rem;
-        }
-
-        .stat-icon {
-            margin: 0 auto;
-        }
-
-        .dashboard-card .card-header,
-        .dashboard-card .card-body {
-            padding: 1rem;
-        }
-
-        .order-item,
-        .reservation-item {
-            padding: 1rem;
-        }
-
-        .loyalty-circle {
-            width: 100px;
-            height: 100px;
-        }
-
-        .circle-progress {
-            width: 100px;
-            height: 100px;
-        }
-
-        .circle-progress::before {
-            width: 75px;
-            height: 75px;
-        }
-    }
-
-    /* Loading animations */
-    .loading-skeleton {
-        background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-        background-size: 200% 100%;
-        animation: loading 1.5s infinite;
-    }
-
-    @keyframes loading {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
+.bg-coffee {
+    background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary)) !important;
+}
 </style>
-@endpush
 
-@push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Start real-time updates for user dashboard
-    startUserDashboardUpdates();
-    
-    // Initialize loyalty circle progress
-    const circleProgress = document.querySelector('.circle-progress');
-    if (circleProgress) {
-        const percentage = circleProgress.getAttribute('data-percentage');
-        const degrees = (percentage / 100) * 360;
-        circleProgress.style.background = `conic-gradient(var(--coffee-primary) 0deg, var(--coffee-primary) ${degrees}deg, #e9ecef ${degrees}deg)`;
-    }
-
-    // Animate stats on scroll
-    const statNumbers = document.querySelectorAll('.stat-number');
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                animateNumber(entry.target);
-                observer.unobserve(entry.target);
-            }
-        });
-    });
-
-    statNumbers.forEach(stat => observer.observe(stat));
-
-    function animateNumber(element) {
-        const target = parseInt(element.textContent.replace(/,/g, ''));
-        const increment = target / 50;
-        let current = 0;
-
-        const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-                element.textContent = target.toLocaleString();
-                clearInterval(timer);
-            } else {
-                element.textContent = Math.floor(current).toLocaleString();
-            }
-        }, 30);
-    }
-
-    // Add to cart functionality is now handled by cart.js
-
-    // Order item hover effects
-    document.querySelectorAll('.order-item').forEach(item => {
-        item.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateX(10px)';
-        });
-
-        item.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateX(0)';
-        });
-    });
-
-    // Stat card hover effects
-    document.querySelectorAll('.stat-card').forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px) scale(1.02)';
-        });
-
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-    });
-});
-
-// Real-time updates for user dashboard
-function startUserDashboardUpdates() {
-    updateUserDashboard();
-    
-    // Update every 60 seconds
-    setInterval(updateUserDashboard, 60000);
-}
-
-function updateUserDashboard() {
-    // Check for reservation status updates
-    fetch('/api/user/reservations/status')
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.updates.length > 0) {
-                data.updates.forEach(update => {
-                    if (update.status === 'confirmed') {
-                        showNotification(`Your reservation #${update.reservation_id} has been confirmed!`, 'success');
-                        updateReservationStatus(update.reservation_id, 'confirmed');
-                    } else if (update.status === 'cancelled') {
-                        showNotification(`Your reservation #${update.reservation_id} has been cancelled.`, 'warning');
-                        updateReservationStatus(update.reservation_id, 'cancelled');
-                    }
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Failed to check reservation updates:', error);
-        });
-}
-
-function updateReservationStatus(reservationId, status) {
-    const reservationElement = document.querySelector(`[data-reservation-id="${reservationId}"]`);
-    if (reservationElement) {
-        const statusBadge = reservationElement.querySelector('.badge');
-        if (statusBadge) {
-            statusBadge.className = `badge bg-${status === 'confirmed' ? 'success' : status === 'cancelled' ? 'danger' : 'warning'}`;
-            statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        }
-    }
-}
-
-// Quick action functions
-function reorderLast() {
-    showNotification('Reordering your last order...', 'info');
-    
-    setTimeout(() => {
-        showNotification('Order #CE2024001 has been added to your cart!', 'success');
-    }, 1500);
-}
-
-function downloadReceipts() {
-    showNotification('Preparing your receipt download...', 'info');
-    
-    setTimeout(() => {
-        // Create a mock download
-        const link = document.createElement('a');
-        link.href = 'data:text/plain;charset=utf-8,Café Elixir - Receipt History\n\nOrder #CE2024001 - Rs. 1,240\nOrder #CE2024002 - Rs. 850\nOrder #CE2024003 - Rs. 920\n\nTotal: Rs. 3,010';
-        link.download = 'cafe-elixir-receipts.txt';
-        link.click();
-        
-        showNotification('Receipt history downloaded successfully!', 'success');
-    }, 1000);
-}
-
-function loadMoreOrders() {
+function saveProfile() {
     const button = event.target;
     const originalText = button.innerHTML;
     
-    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
     button.disabled = true;
 
     setTimeout(() => {
-        // Add more orders to the list
-        const orderList = document.querySelector('.order-list');
-        const newOrders = `
-            <div class="order-item" style="opacity: 0; transform: translateY(20px);">
-                <div class="d-flex align-items-center">
-                    <div class="order-icon">
-                        <i class="bi bi-cup-straw text-info"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1">Order #CE2024004</h6>
-                        <p class="text-muted mb-1">Frappuccino x1, Cookie x2</p>
-                        <small class="text-muted">December 8, 2024 • 3:20 PM</small>
-                    </div>
-                    <div class="text-end">
-                        <span class="h6 text-coffee mb-0">Rs. 1,080</span>
-                        <br>
-                        <span class="badge bg-success">Completed</span>
-                    </div>
-                </div>
-            </div>
-        `;
+        button.innerHTML = '<i class="bi bi-check-lg me-2"></i>Saved!';
+        button.classList.remove('btn-coffee');
+        button.classList.add('btn-success');
 
-        orderList.insertAdjacentHTML('beforeend', newOrders);
+        showNotification('Profile updated successfully!', 'success');
 
-        // Animate new orders
-        const newOrderElements = orderList.querySelectorAll('.order-item[style*="opacity: 0"]');
-        newOrderElements.forEach((order, index) => {
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+            modal.hide();
+            
+            // Reset button and reload page to show changes
             setTimeout(() => {
-                order.style.transition = 'all 0.5s ease';
-                order.style.opacity = '1';
-                order.style.transform = 'translateY(0)';
-            }, index * 100);
-        });
-
-        button.innerHTML = originalText;
-        button.disabled = false;
-        
-        showNotification('More orders loaded!', 'success');
+                location.reload();
+            }, 500);
+        }, 1500);
     }, 1000);
 }
 
-// Notification function
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} position-fixed notification-toast`;
-    notification.style.cssText = `
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 350px;
-        border-radius: 15px;
-        animation: slideInRight 0.5s ease;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    `;
-    notification.innerHTML = `
-        <div class="d-flex align-items-center">
-            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'warning' ? 'exclamation-triangle-fill' : 'info-circle-fill'} me-2"></i>
-            <span class="flex-grow-1">${message}</span>
-            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
-    `;
+function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
 
-    document.body.appendChild(notification);
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showNotification('Please fill in all password fields', 'warning');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showNotification('New passwords do not match', 'warning');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        showNotification('Password must be at least 8 characters long', 'warning');
+        return;
+    }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Changing...';
+    button.disabled = true;
 
     setTimeout(() => {
-        if (notification.parentElement) {
-            notification.style.animation = 'slideOutRight 0.5s ease';
-            setTimeout(() => notification.remove(), 500);
-        }
-    }, 4000);
+        button.innerHTML = '<i class="bi bi-check-lg me-2"></i>Changed!';
+        button.classList.remove('btn-warning');
+        button.classList.add('btn-success');
+
+        showNotification('Password changed successfully!', 'success');
+
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+            modal.hide();
+            
+            // Reset form and button
+            document.getElementById('changePasswordForm').reset();
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-warning');
+        }, 1500);
+    }, 1500);
 }
 
-// CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
+function togglePassword(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+}
+
+function deactivateAccount() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    if (!confirm('Are you sure you want to deactivate your account? You can reactivate it anytime by logging in.')) {
+        return;
     }
 
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deactivating...';
+    button.disabled = true;
+
+    setTimeout(() => {
+        showNotification('Account deactivated successfully. You will be logged out shortly.', 'info');
+        
+        setTimeout(() => {
+            window.location.href = '/logout';
+        }, 2000);
+    }, 1500);
+}
+
+// Password strength checker
+document.addEventListener('DOMContentLoaded', function() {
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+    }
+    // Check for pending reservation change requests
+    checkReservationStatus();
+});
+
+function editReservation(reservationId) {
+    // Set minimum date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    document.getElementById('editReservationDate').min = tomorrow.toISOString().split('T')[0];
+    
+    // Set reservation ID
+    document.getElementById('editReservationId').value = reservationId;
+    
+    // Load current reservation data (mock data for demo)
+    document.getElementById('editReservationDate').value = '2024-12-22';
+    document.getElementById('editReservationTime').value = '18:30';
+    document.getElementById('editGuests').value = '4';
+    document.getElementById('editTableType').value = 'window';
+    document.getElementById('editOccasion').value = '';
+    document.getElementById('editSpecialRequests').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('editReservationModal'));
+    modal.show();
+}
+
+function submitReservationEdit() {
+    const form = document.getElementById('editReservationForm');
+    const formData = new FormData(form);
+    const reservationId = document.getElementById('editReservationId').value;
+    const submitButton = event.target;
+    
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Submitting...';
+    submitButton.disabled = true;
+
+    // Convert FormData to JSON
+    const data = {};
+    formData.forEach((value, key) => {
+        if (key !== 'reservation_id') {
+            data[key] = value;
         }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
+    });
+
+    fetch(`/reservation-change-requests/${reservationId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Reservation change request submitted successfully!', 'success');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
+            modal.hide();
+            
+            // Show status message
+            showReservationStatus('pending', 'Your reservation change request is pending admin approval.');
+            
+            // Reset form
+            form.reset();
+        } else {
+            showNotification(data.message || 'Failed to submit request', 'error');
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while submitting the request', 'error');
+    })
+    .finally(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.disabled = false;
+    });
+}
+
+function checkReservationStatus() {
+    // Check if there's a pending reservation change request
+    fetch('/reservation-change-requests/1/status')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.has_pending_request) {
+                showReservationStatus('pending', 'You have a pending reservation change request awaiting admin approval.');
+            }
+        })
+        .catch(error => {
+            console.error('Error checking reservation status:', error);
+        });
+}
+
+function showReservationStatus(status, message) {
+    const statusDiv = document.getElementById('reservationStatus');
+    const statusMessage = document.getElementById('statusMessage');
+    
+    if (statusDiv && statusMessage) {
+        statusDiv.className = `alert alert-${status === 'pending' ? 'warning' : status === 'approved' ? 'success' : 'danger'}`;
+        statusMessage.textContent = message;
+        statusDiv.style.display = 'block';
+    }
+});
+
+function checkPasswordStrength(password) {
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    
+    if (!password) {
+        strengthBar.className = 'strength-bar';
+        strengthText.textContent = 'Enter a password to see strength';
+        return;
     }
 
-    .notification-toast {
-        backdrop-filter: blur(10px);
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    // Update strength indicator
+    strengthBar.className = 'strength-bar';
+    
+    if (score < 3) {
+        strengthBar.classList.add('strength-weak');
+        strengthText.textContent = 'Weak password';
+        strengthText.className = 'strength-text text-danger';
+    } else if (score < 4) {
+        strengthBar.classList.add('strength-fair');
+        strengthText.textContent = 'Fair password';
+        strengthText.className = 'strength-text text-warning';
+    } else if (score < 5) {
+        strengthBar.classList.add('strength-good');
+        strengthText.textContent = 'Good password';
+        strengthText.className = 'strength-text text-info';
+    } else {
+        strengthBar.classList.add('strength-strong');
+        strengthText.textContent = 'Strong password';
+        strengthText.className = 'strength-text text-success';
     }
-`;
-document.head.appendChild(style);
+}
 </script>
-@endpush
-@endsection

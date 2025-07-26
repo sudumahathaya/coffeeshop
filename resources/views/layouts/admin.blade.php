@@ -1,327 +1,724 @@
-<!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>@yield('title', 'Admin Dashboard - Café Elixir')</title>
-
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☕</text></svg>">
-
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        :root {
-            --coffee-primary: #8B4513;
-            --coffee-secondary: #D2691E;
-            --sidebar-width: 280px;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: var(--sidebar-width);
-            background: linear-gradient(135deg, var(--coffee-primary), var(--coffee-secondary));
-            color: white;
-            z-index: 1000;
-            transition: all 0.3s ease;
-        }
-
-        .sidebar-brand {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .sidebar-brand h4 {
-            margin: 0;
-            font-weight: 600;
-        }
-
-        .sidebar-nav {
-            padding: 1rem 0;
-        }
-
-        .nav-item {
-            margin: 0.25rem 1rem;
-        }
-
-        .nav-link {
-            color: rgba(255,255,255,0.8) !important;
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            text-decoration: none;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            background: rgba(255,255,255,0.1);
-            color: white !important;
-            transform: translateX(5px);
-        }
-
-        .nav-link i {
-            width: 20px;
-            margin-right: 0.75rem;
-        }
-
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-        }
-
-        .topbar {
-            background: white;
-            padding: 1rem 2rem;
-            border-bottom: 1px solid #e3e6f0;
-            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
-        }
-
-        .content-wrapper {
-            padding: 2rem;
-        }
-
-        .stat-card {
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            color: white;
-        }
-
-        .avatar-sm {
-            width: 32px;
-            height: 32px;
-        }
-
-        .bg-coffee {
-            background-color: var(--coffee-primary) !important;
-        }
-
-        .text-coffee {
-            color: var(--coffee-primary) !important;
-        }
-
-        .btn-coffee {
-            background-color: var(--coffee-primary);
-            border-color: var(--coffee-primary);
-            color: white;
-        }
-
-        .btn-coffee:hover {
-            background-color: var(--coffee-secondary);
-            border-color: var(--coffee-secondary);
-            color: white;
-        }
-
-        .card {
-            border-radius: 15px;
-        }
-
-        .table th {
-            border-top: none;
-            font-weight: 600;
-            color: #5a5c69;
-            font-size: 0.875rem;
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.show {
-                transform: translateX(0);
-            }
-
-            .main-content {
-                margin-left: 0;
-            }
-        }
-    </style>
-
-    @stack('styles')
-</head>
-
-<body>
-    <!-- Sidebar -->
-    <nav class="sidebar">
-        <div class="sidebar-brand">
-            <h4><i class="bi bi-cup-hot-fill me-2"></i>Café Elixir</h4>
-            <small class="text-white-50">Admin Panel</small>
-        </div>
-
-        <ul class="sidebar-nav nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}" 
-                   href="{{ route('admin.dashboard') }}">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-coffee text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-person-gear me-2"></i>Edit Profile
+                </h5>
+                <a class="nav-link {{ request()->routeIs('admin.reservation-requests*') ? 'active' : '' }}" 
+                   href="{{ route('admin.reservation-requests.index') }}">
+                    <i class="bi bi-pencil-square"></i>
+                    Reservation Changes
                 </a>
             </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.orders*') ? 'active' : '' }}" 
-                   href="{{ route('admin.orders') }}">
-                    <i class="bi bi-receipt"></i>
-                    Orders
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.reservations*') ? 'active' : '' }}" 
-                   href="{{ route('admin.reservations') }}">
-                    <i class="bi bi-calendar-check"></i>
-                    Reservations
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.users*') ? 'active' : '' }}" 
-                   href="{{ route('admin.users') }}">
-                    <i class="bi bi-people"></i>
-                    Users
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.menu*') ? 'active' : '' }}" 
-                   href="{{ route('admin.menu.management') }}">
-                    <i class="bi bi-journal-text"></i>
-                    Menu Management
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.analytics*') ? 'active' : '' }}" 
-                   href="{{ route('admin.analytics') }}">
-                    <i class="bi bi-graph-up"></i>
-                    Analytics
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('admin.settings*') ? 'active' : '' }}" 
-                   href="{{ route('admin.settings') }}">
-                    <i class="bi bi-gear"></i>
-                    Settings
-                </a>
-            </li>
-            
-            <hr class="my-3" style="border-color: rgba(255,255,255,0.1);">
-            
-            <li class="nav-item">
-                <a class="nav-link" href="{{ route('home') }}" target="_blank">
-                    <i class="bi bi-box-arrow-up-right"></i>
-                    View Website
-                </a>
-            </li>
-            <li class="nav-item">
-                <form method="POST" action="{{ route('logout') }}">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProfileForm">
                     @csrf
-                    <button type="submit" class="nav-link border-0 bg-transparent w-100 text-start">
-                        <i class="bi bi-box-arrow-right"></i>
-                        Logout
-                    </button>
-                </form>
-            </li>
-        </ul>
-    </nav>
+                    <div class="row g-4">
+                        <!-- Personal Information -->
+                        <div class="col-12">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-person-circle me-2"></i>Personal Information
+                            </h6>
+                        </div>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <!-- Top Bar -->
-        <div class="topbar">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <button class="btn btn-link d-md-none" id="sidebarToggle">
-                        <i class="bi bi-list fs-4"></i>
-                    </button>
-                    <div class="d-none d-md-block">
-                        <span class="text-muted">{{ now()->format('l, F j, Y') }}</span>
+                        <div class="col-md-6">
+                            <label for="editName" class="form-label fw-semibold">
+                                <i class="bi bi-person me-2"></i>Full Name *
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editName" 
+                                   value="{{ Auth::user()->name }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editEmail" class="form-label fw-semibold">
+                                <i class="bi bi-envelope me-2"></i>Email Address *
+                            </label>
+                            <input type="email" class="form-control form-control-lg" id="editEmail" 
+                                   value="{{ Auth::user()->email }}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editPhone" class="form-label fw-semibold">
+                                <i class="bi bi-telephone me-2"></i>Phone Number
+                            </label>
+                            <input type="tel" class="form-control form-control-lg" id="editPhone" 
+                                   placeholder="+94 XX XXX XXXX">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editBirthday" class="form-label fw-semibold">
+                                <i class="bi bi-calendar-heart me-2"></i>Birthday
+                            </label>
+                            <input type="date" class="form-control form-control-lg" id="editBirthday">
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-geo-alt me-2"></i>Address Information
+                            </h6>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="editAddress" class="form-label fw-semibold">
+                                <i class="bi bi-house me-2"></i>Street Address
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editAddress" 
+                                   placeholder="Enter your street address">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editCity" class="form-label fw-semibold">
+                                <i class="bi bi-building me-2"></i>City
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editCity" 
+                                   placeholder="Enter your city">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editPostalCode" class="form-label fw-semibold">
+                                <i class="bi bi-mailbox me-2"></i>Postal Code
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="editPostalCode" 
+                                   placeholder="Enter postal code">
+                        </div>
+
+                        <!-- Preferences -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-sliders me-2"></i>Preferences
+                            </h6>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editLanguage" class="form-label fw-semibold">
+                                <i class="bi bi-translate me-2"></i>Preferred Language
+                            </label>
+                            <select class="form-select form-select-lg" id="editLanguage">
+                                <option value="en">English</option>
+                                <option value="si">Sinhala</option>
+                                <option value="ta">Tamil</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="editTimezone" class="form-label fw-semibold">
+                                <i class="bi bi-clock me-2"></i>Timezone
+                            </label>
+                            <select class="form-select form-select-lg" id="editTimezone">
+                                <option value="Asia/Colombo">Asia/Colombo (GMT+5:30)</option>
+                                <option value="UTC">UTC (GMT+0:00)</option>
+                            </select>
+                        </div>
+
+                        <!-- Notification Preferences -->
+                        <div class="col-12 mt-4">
+                            <h6 class="text-coffee mb-3">
+                                <i class="bi bi-bell me-2"></i>Notification Preferences
+                            </h6>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="notification-preferences">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editEmailNotif" checked>
+                                            <label class="form-check-label" for="editEmailNotif">
+                                                <i class="bi bi-envelope me-2"></i>Email Notifications
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editSmsNotif">
+                                            <label class="form-check-label" for="editSmsNotif">
+                                                <i class="bi bi-phone me-2"></i>SMS Notifications
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editOrderUpdates" checked>
+                                            <label class="form-check-label" for="editOrderUpdates">
+                                                <i class="bi bi-receipt me-2"></i>Order Updates
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="editPromotions" checked>
+                                            <label class="form-check-label" for="editPromotions">
+                                                <i class="bi bi-gift me-2"></i>Promotional Offers
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-coffee" onclick="saveProfile()">
+                    <i class="bi bi-check-lg me-2"></i>Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-key me-2"></i>Change Password
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="currentPassword" class="form-label fw-semibold">
+                            <i class="bi bi-lock me-2"></i>Current Password *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg" id="currentPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('currentPassword', this)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label fw-semibold">
+                            <i class="bi bi-lock-fill me-2"></i>New Password *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg" id="newPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('newPassword', this)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Password must be at least 8 characters with uppercase, lowercase, and numbers
+                            </small>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label fw-semibold">
+                            <i class="bi bi-shield-check me-2"></i>Confirm New Password *
+                        </label>
+                        <div class="input-group">
+                            <input type="password" class="form-control form-control-lg" id="confirmPassword" required>
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPassword', this)">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="password-strength">
+                        <div class="strength-meter">
+                            <div class="strength-bar" id="strengthBar"></div>
+                        </div>
+                        <small class="strength-text" id="strengthText">Enter a password to see strength</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" onclick="changePassword()">
+                    <i class="bi bi-key me-2"></i>Change Password
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loyalty Details Modal -->
+<div class="modal fade" id="loyaltyModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="bi bi-award me-2"></i>Loyalty Program Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <div class="loyalty-tiers">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <div class="tier-card bronze">
+                                    <div class="tier-icon">
+                                        <i class="bi bi-award"></i>
+                                    </div>
+                                    <h6>Bronze</h6>
+                                    <p class="small">0 - 499 points</p>
+                                    <ul class="tier-benefits">
+                                        <li>5% discount</li>
+                                        <li>Birthday treat</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="tier-card gold active">
+                                    <div class="tier-icon">
+                                        <i class="bi bi-award-fill"></i>
+                                    </div>
+                                    <h6>Gold</h6>
+                                    <p class="small">500 - 1,499 points</p>
+                                    <ul class="tier-benefits">
+                                        <li>15% discount</li>
+                                        <li>Free birthday coffee</li>
+                                        <li>Priority reservations</li>
+                                    </ul>
+                                    <div class="current-tier">Your Current Tier</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="tier-card platinum">
+                                    <div class="tier-icon">
+                                        <i class="bi bi-gem"></i>
+                                    </div>
+                                    <h6>Platinum</h6>
+                                    <p class="small">1,500+ points</p>
+                                    <ul class="tier-benefits">
+                                        <li>25% discount</li>
+                                        <li>Free monthly coffee</li>
+                                        <li>Exclusive events</li>
+                                        <li>Personal barista</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex align-items-center">
-                    <div class="dropdown">
-                        <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <div class="d-flex align-items-center">
-                                <div class="avatar-sm bg-coffee rounded-circle d-flex align-items-center justify-content-center me-2">
-                                    <span class="text-white small fw-bold">
-                                        {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
-                                    </span>
-                                </div>
-                                <span class="fw-medium">{{ Auth::user()->name }}</span>
+                <div class="points-earning">
+                    <h6 class="text-coffee mb-3">How to Earn Points</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-cup-hot text-coffee me-2"></i>
+                                <span>1 point per Rs. 10 spent</span>
                             </div>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                <i class="bi bi-person me-2"></i>Profile
-                            </a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form method="POST" action="{{ route('logout') }}">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item">
-                                        <i class="bi bi-box-arrow-right me-2"></i>Logout
-                                    </button>
-                                </form>
-                            </li>
-                        </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-calendar-check text-coffee me-2"></i>
+                                <span>50 bonus points per reservation</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-share text-coffee me-2"></i>
+                                <span>25 points for social media shares</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="earning-method">
+                                <i class="bi bi-star text-coffee me-2"></i>
+                                <span>100 points for reviews</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <h6 class="text-coffee mb-3">Available Rewards</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="reward-item">
+                                <div class="reward-icon">
+                                    <i class="bi bi-cup-hot"></i>
+                                </div>
+                                <div class="reward-content">
+                                    <h6>Free Coffee</h6>
+                                    <p class="small text-muted">Any regular coffee drink</p>
+                                    <span class="badge bg-coffee">500 points</span>
+                                </div>
+                                <button class="btn btn-outline-coffee btn-sm">Redeem</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="reward-item">
+                                <div class="reward-icon">
+                                    <i class="bi bi-cookie"></i>
+                                </div>
+                                <div class="reward-content">
+                                    <h6>Free Pastry</h6>
+                                    <p class="small text-muted">Any pastry or snack</p>
+                                    <span class="badge bg-coffee">300 points</span>
+                                </div>
+                                <button class="btn btn-outline-coffee btn-sm">Redeem</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Page Content -->
-        <div class="content-wrapper">
-            @yield('content')
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-coffee">
+                    <i class="bi bi-gift me-2"></i>View All Rewards
+                </button>
+            </div>
         </div>
     </div>
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Account Deactivation Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Deactivate Account
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Warning:</strong> This action will temporarily deactivate your account. You can reactivate it anytime by logging in.
+                </div>
 
-    <script>
-        // Sidebar toggle for mobile
-        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-            document.querySelector('.sidebar').classList.toggle('show');
-        });
+                <h6 class="mb-3">What happens when you deactivate your account?</h6>
+                <ul class="list-unstyled">
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Your profile will be hidden</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Order history will be preserved</li>
+                    <li class="mb-2"><i class="bi bi-check text-success me-2"></i>Loyalty points will remain</li>
+                    <li class="mb-2"><i class="bi bi-x text-danger me-2"></i>You won't receive notifications</li>
+                    <li class="mb-2"><i class="bi bi-x text-danger me-2"></i>Active reservations will be cancelled</li>
+                </ul>
 
-        // Close sidebar when clicking outside on mobile
-        document.addEventListener('click', function(e) {
-            const sidebar = document.querySelector('.sidebar');
-            const toggle = document.getElementById('sidebarToggle');
+                <div class="mt-4">
+                    <label for="deactivateReason" class="form-label fw-semibold">
+                        Reason for deactivation (optional)
+                    </label>
+                    <select class="form-select" id="deactivateReason">
+                        <option value="">Select a reason</option>
+                        <option value="temporary_break">Taking a temporary break</option>
+                        <option value="privacy_concerns">Privacy concerns</option>
+                        <option value="too_many_emails">Too many emails</option>
+                        <option value="not_using">Not using the service</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="mt-3">
+                    <label for="deactivateComments" class="form-label fw-semibold">
+                        Additional comments (optional)
+                    </label>
+                    <textarea class="form-control" id="deactivateComments" rows="3" 
+                              placeholder="Help us improve by sharing your feedback..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="deactivateAccount()">
+                    <i class="bi bi-pause-circle me-2"></i>Deactivate Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tier-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.tier-card.active {
+    border-color: var(--coffee-primary);
+    background: linear-gradient(45deg, rgba(139, 69, 19, 0.05), rgba(210, 105, 30, 0.05));
+    transform: scale(1.05);
+}
+
+.tier-card.bronze .tier-icon { color: #cd7f32; }
+.tier-card.gold .tier-icon { color: #ffd700; }
+.tier-card.platinum .tier-icon { color: #e5e4e2; }
+
+.tier-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.tier-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+}
+
+.tier-benefits li {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+}
+
+.tier-benefits li::before {
+    content: '✓';
+    color: #28a745;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+.current-tier {
+    background: var(--coffee-primary);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.earning-method {
+    background: linear-gradient(45deg, rgba(139, 69, 19, 0.05), rgba(210, 105, 30, 0.05));
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid rgba(139, 69, 19, 0.1);
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: linear-gradient(45deg, rgba(139, 69, 19, 0.02), rgba(210, 105, 30, 0.02));
+    border-radius: 10px;
+    border: 1px solid rgba(139, 69, 19, 0.1);
+}
+
+.reward-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.reward-content {
+    flex-grow: 1;
+}
+
+.reward-content h6 {
+    margin-bottom: 0.25rem;
+    color: var(--coffee-primary);
+}
+
+.password-strength {
+    margin-top: 1rem;
+}
+
+.strength-meter {
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.strength-bar {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.strength-weak { background: #dc3545; width: 25%; }
+.strength-fair { background: #fd7e14; width: 50%; }
+.strength-good { background: #ffc107; width: 75%; }
+.strength-strong { background: #28a745; width: 100%; }
+
+.bg-coffee {
+    background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary)) !important;
+}
+</style>
+
+<script>
+function saveProfile() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    button.disabled = true;
+
+    setTimeout(() => {
+        button.innerHTML = '<i class="bi bi-check-lg me-2"></i>Saved!';
+        button.classList.remove('btn-coffee');
+        button.classList.add('btn-success');
+
+        showNotification('Profile updated successfully!', 'success');
+
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editProfileModal'));
+            modal.hide();
             
-            if (window.innerWidth <= 768 && 
-                !sidebar.contains(e.target) && 
-                !toggle?.contains(e.target)) {
-                sidebar.classList.remove('show');
-            }
-        });
-    </script>
+            // Reset button and reload page to show changes
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        }, 1500);
+    }, 1000);
+}
 
-    @stack('scripts')
-</body>
-</html>
+function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showNotification('Please fill in all password fields', 'warning');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showNotification('New passwords do not match', 'warning');
+        return;
+    }
+
+    if (newPassword.length < 8) {
+        showNotification('Password must be at least 8 characters long', 'warning');
+        return;
+    }
+
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Changing...';
+    button.disabled = true;
+
+    setTimeout(() => {
+        button.innerHTML = '<i class="bi bi-check-lg me-2"></i>Changed!';
+        button.classList.remove('btn-warning');
+        button.classList.add('btn-success');
+
+        showNotification('Password changed successfully!', 'success');
+
+        setTimeout(() => {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+            modal.hide();
+            
+            // Reset form and button
+            document.getElementById('changePasswordForm').reset();
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-warning');
+        }, 1500);
+    }, 1500);
+}
+
+function togglePassword(inputId, button) {
+    const input = document.getElementById(inputId);
+    const icon = button.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('bi-eye');
+        icon.classList.add('bi-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('bi-eye-slash');
+        icon.classList.add('bi-eye');
+    }
+}
+
+function deactivateAccount() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    if (!confirm('Are you sure you want to deactivate your account? You can reactivate it anytime by logging in.')) {
+        return;
+    }
+
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deactivating...';
+    button.disabled = true;
+
+    setTimeout(() => {
+        showNotification('Account deactivated successfully. You will be logged out shortly.', 'info');
+        
+        setTimeout(() => {
+            window.location.href = '/logout';
+        }, 2000);
+    }, 1500);
+}
+
+// Password strength checker
+document.addEventListener('DOMContentLoaded', function() {
+    const newPasswordInput = document.getElementById('newPassword');
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+    }
+});
+
+function checkPasswordStrength(password) {
+    const strengthBar = document.getElementById('strengthBar');
+    const strengthText = document.getElementById('strengthText');
+    
+    if (!password) {
+        strengthBar.className = 'strength-bar';
+        strengthText.textContent = 'Enter a password to see strength';
+        return;
+    }
+
+    let score = 0;
+    
+    // Length check
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    // Update strength indicator
+    strengthBar.className = 'strength-bar';
+    
+    if (score < 3) {
+        strengthBar.classList.add('strength-weak');
+        strengthText.textContent = 'Weak password';
+        strengthText.className = 'strength-text text-danger';
+    } else if (score < 4) {
+        strengthBar.classList.add('strength-fair');
+        strengthText.textContent = 'Fair password';
+        strengthText.className = 'strength-text text-warning';
+    } else if (score < 5) {
+        strengthBar.classList.add('strength-good');
+        strengthText.textContent = 'Good password';
+        strengthText.className = 'strength-text text-info';
+    } else {
+        strengthBar.classList.add('strength-strong');
+        strengthText.textContent = 'Strong password';
+        strengthText.className = 'strength-text text-success';
+    }
+}
+</script>
