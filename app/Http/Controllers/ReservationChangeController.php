@@ -91,7 +91,7 @@ class ReservationChangeController extends Controller
         return response()->json([
             'success' => true,
             'has_pending_request' => $pendingRequest !== null,
-            'pending_request' => $pendingRequest
+            'pending_request' => $pendingRequest,
             'reservation_details' => $pendingRequest ? $pendingRequest->reservation : null
         ]);
     }
