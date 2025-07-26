@@ -26,8 +26,8 @@ class ReservationChangeController extends Controller
 
         // Get current reservation data
         $currentData = [
-            'reservation_date' => $reservation->reservation_date->format('Y-m-d'),
-            'reservation_time' => $reservation->reservation_time->format('H:i'),
+            'reservation_date' => $reservation->reservation_date instanceof \Carbon\Carbon ? $reservation->reservation_date->format('Y-m-d') : $reservation->reservation_date,
+            'reservation_time' => $reservation->reservation_time instanceof \Carbon\Carbon ? $reservation->reservation_time->format('H:i') : $reservation->reservation_time,
             'guests' => $reservation->guests,
             'table_type' => $reservation->table_type,
             'occasion' => $reservation->occasion,

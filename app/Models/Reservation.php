@@ -28,7 +28,7 @@ class Reservation extends Model
 
     protected $casts = [
         'reservation_date' => 'date',
-        'reservation_time' => 'datetime:H:i',
+        'reservation_time' => 'string',
         'email_updates' => 'boolean',
     ];
 

@@ -47,7 +47,7 @@ class MenuItem extends Model
 
     public function getFormattedPriceAttribute()
     {
-        return 'Rs. ' . number_format($this->price, 2);
+        return 'Rs. ' . number_format((float) $this->price, 2);
     }
 
     public function getIngredientsListAttribute()
