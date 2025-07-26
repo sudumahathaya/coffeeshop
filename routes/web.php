@@ -142,6 +142,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/profile-requests/{id}', [AdminProfileController::class, 'show'])->name('profile-requests.show');
     Route::post('/profile-requests/{id}/approve', [AdminProfileController::class, 'approve'])->name('profile-requests.approve');
     Route::post('/profile-requests/{id}/reject', [AdminProfileController::class, 'reject'])->name('profile-requests.reject');
+    Route::delete('/profile-requests/{id}', [AdminProfileController::class, 'destroy'])->name('profile-requests.destroy');
     Route::get('/profile-requests/pending-count', [AdminProfileController::class, 'getPendingCount'])->name('profile-requests.pending-count');
     
     // Reservation change requests management
@@ -149,5 +150,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/reservation-requests/{id}', [AdminReservationChangeController::class, 'show'])->name('reservation-requests.show');
     Route::post('/reservation-requests/{id}/approve', [AdminReservationChangeController::class, 'approve'])->name('reservation-requests.approve');
     Route::post('/reservation-requests/{id}/reject', [AdminReservationChangeController::class, 'reject'])->name('reservation-requests.reject');
+    Route::delete('/reservation-requests/{id}', [AdminReservationChangeController::class, 'destroy'])->name('reservation-requests.destroy');
     Route::get('/reservation-requests/pending-count', [AdminReservationChangeController::class, 'getPendingCount'])->name('reservation-requests.pending-count');
 });

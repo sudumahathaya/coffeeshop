@@ -755,7 +755,140 @@ function viewReservation(reservationId) {
 }
 
 function editReservation(reservationId) {
-    showNotification('Edit functionality will be implemented soon', 'info');
+    fetch(`/admin/reservations/${reservationId}/edit`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const reservation = data.reservation;
+                
+                // Create edit modal
+                const editModal = document.createElement('div');
+                editModal.className = 'modal fade';
+                editModal.id = 'editReservationModal';
+                editModal.innerHTML = `
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header bg-warning text-dark">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-pencil me-2"></i>Edit Reservation
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="editReservationForm">
+                                    <input type="hidden" id="editReservationId" value="${reservation.id}">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">First Name</label>
+                                            <input type="text" class="form-control" name="first_name" value="${reservation.first_name}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Last Name</label>
+                                            <input type="text" class="form-control" name="last_name" value="${reservation.last_name}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Email</label>
+                                            <input type="email" class="form-control" name="email" value="${reservation.email}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Phone</label>
+                                            <input type="tel" class="form-control" name="phone" value="${reservation.phone}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Date</label>
+                                            <input type="date" class="form-control" name="reservation_date" value="${reservation.reservation_date}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Time</label>
+                                            <input type="time" class="form-control" name="reservation_time" value="${reservation.reservation_time}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Guests</label>
+                                            <input type="number" class="form-control" name="guests" value="${reservation.guests}" min="1" max="20" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Table Type</label>
+                                            <select class="form-select" name="table_type">
+                                                <option value="">No Preference</option>
+                                                <option value="window" ${reservation.table_type === 'window' ? 'selected' : ''}>Window Side</option>
+                                                <option value="corner" ${reservation.table_type === 'corner' ? 'selected' : ''}>Corner Table</option>
+                                                <option value="center" ${reservation.table_type === 'center' ? 'selected' : ''}>Center Area</option>
+                                                <option value="outdoor" ${reservation.table_type === 'outdoor' ? 'selected' : ''}>Outdoor Seating</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Special Requests</label>
+                                            <textarea class="form-control" name="special_requests" rows="3">${reservation.special_requests || ''}</textarea>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-warning" onclick="saveReservationEdit()">
+                                    <i class="bi bi-check-lg me-2"></i>Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(editModal);
+                const modal = new bootstrap.Modal(editModal);
+                modal.show();
+                
+                // Clean up when modal is hidden
+                editModal.addEventListener('hidden.bs.modal', function() {
+                    document.body.removeChild(editModal);
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load reservation data', 'error');
+        });
+}
+
+function saveReservationEdit() {
+    const form = document.getElementById('editReservationForm');
+    const formData = new FormData(form);
+    const reservationId = document.getElementById('editReservationId').value;
+    const button = event.target;
+    
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+    button.disabled = true;
+
+    fetch(`/admin/reservations/${reservationId}`, {
+        method: 'PUT',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Reservation updated successfully!', 'success');
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editReservationModal'));
+            modal.hide();
+            
+            // Refresh the reservations list
+            refreshReservations();
+            updateStats();
+        } else {
+            showNotification('Failed to update reservation', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while updating the reservation', 'error');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
 }
 
 function exportReservations() {

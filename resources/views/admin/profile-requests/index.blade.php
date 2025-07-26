@@ -470,6 +470,36 @@ function updateRequestRow(requestId, newStatus) {
     updatePendingCount();
 }
 
+function editProfileRequest(requestId) {
+    showNotification('Edit functionality for profile requests coming soon!', 'info');
+}
+
+function deleteProfileRequest(requestId) {
+    if (!confirm('Are you sure you want to delete this profile change request?')) {
+        return;
+    }
+
+    fetch(`/admin/profile-requests/${requestId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Profile request deleted successfully!', 'success');
+            location.reload();
+        } else {
+            showNotification('Failed to delete profile request', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while deleting the request', 'error');
+    });
+}
+
 function updatePendingCount() {
     fetch('/admin/profile-requests/pending-count')
         .then(response => response.json())

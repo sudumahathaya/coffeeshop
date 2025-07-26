@@ -427,6 +427,88 @@ function refreshOrdersTable() {
         });
 }
 
+// Real-time updates using WebSockets (if available)
+if (typeof Echo !== 'undefined') {
+    Echo.channel('orders')
+        .listen('OrderUpdated', (e) => {
+            console.log('Order updated:', e);
+            updateOrderInTable(e);
+            showNotification(`Order ${e.order_id} status updated to ${e.status}`, 'info');
+        });
+}
+
+function updateOrderInTable(orderData) {
+    const row = document.querySelector(`tr[data-order-id="${orderData.id}"]`);
+    if (row) {
+        // Update status badge
+        const statusCell = row.querySelector('td:nth-child(5)');
+        if (statusCell) {
+            let badgeClass = 'bg-secondary';
+            switch(orderData.status) {
+                case 'completed': badgeClass = 'bg-success'; break;
+                case 'preparing': badgeClass = 'bg-warning'; break;
+                case 'ready': badgeClass = 'bg-info'; break;
+                case 'confirmed': badgeClass = 'bg-primary'; break;
+                case 'cancelled': badgeClass = 'bg-danger'; break;
+            }
+            statusCell.innerHTML = `<span class="badge ${badgeClass}">${orderData.status.charAt(0).toUpperCase() + orderData.status.slice(1)}</span>`;
+        }
+        
+        // Update action buttons based on new status
+        updateOrderActionButtons(row, orderData.status, orderData.id);
+        
+        // Add visual feedback
+        row.style.backgroundColor = '#d1ecf1';
+        setTimeout(() => {
+            row.style.backgroundColor = '';
+        }, 2000);
+    }
+}
+
+function updateOrderActionButtons(row, status, orderId) {
+    const actionsCell = row.querySelector('td:nth-child(7) .btn-group');
+    if (!actionsCell) return;
+    
+    let buttonsHtml = '';
+    
+    if (status === 'pending') {
+        buttonsHtml += `
+            <button class="btn btn-success btn-sm" onclick="confirmOrder('${orderId}')">
+                <i class="bi bi-check"></i>
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="cancelOrder('${orderId}')">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+    } else if (status === 'preparing') {
+        buttonsHtml += `
+            <button class="btn btn-success btn-sm" onclick="markReady('${orderId}')">
+                <i class="bi bi-check"></i>
+            </button>
+        `;
+    } else if (status === 'ready') {
+        buttonsHtml += `
+            <button class="btn btn-primary btn-sm" onclick="markCompleted('${orderId}')">
+                <i class="bi bi-check-all"></i>
+            </button>
+        `;
+    }
+    
+    // Always add view, edit, and delete buttons
+    buttonsHtml += `
+        <button class="btn btn-outline-secondary btn-sm" onclick="viewOrder('${orderId}')">
+            <i class="bi bi-eye"></i>
+        </button>
+        <button class="btn btn-outline-primary btn-sm" onclick="printReceipt('${orderId}')">
+            <i class="bi bi-pencil"></i>
+        </button>
+        <button class="btn btn-outline-danger btn-sm" onclick="deleteOrder('${orderId}')">
+            <i class="bi bi-trash"></i>
+        </button>
+    `;
+    
+    actionsCell.innerHTML = buttonsHtml;
+}
 // CSS animations
 const style = document.createElement('style');
 style.textContent = `

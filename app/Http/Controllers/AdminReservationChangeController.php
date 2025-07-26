@@ -100,4 +100,27 @@ class AdminReservationChangeController extends Controller
             'pending_count' => $count
         ]);
     }
+
+    public function destroy($id)
+    {
+        try {
+            $changeRequest = ReservationChangeRequest::findOrFail($id);
+            $changeRequest->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Reservation change request deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Reservation change request not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete reservation change request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

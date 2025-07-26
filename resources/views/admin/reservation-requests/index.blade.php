@@ -482,6 +482,36 @@ function updateRequestRow(requestId, newStatus) {
     updatePendingCount();
 }
 
+function editReservationRequest(requestId) {
+    showNotification('Edit functionality for reservation requests coming soon!', 'info');
+}
+
+function deleteReservationRequest(requestId) {
+    if (!confirm('Are you sure you want to delete this reservation change request?')) {
+        return;
+    }
+
+    fetch(`/admin/reservation-requests/${requestId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Reservation request deleted successfully!', 'success');
+            location.reload();
+        } else {
+            showNotification('Failed to delete reservation request', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while deleting the request', 'error');
+    });
+}
+
 function updatePendingCount() {
     fetch('/admin/reservation-requests/pending-count')
         .then(response => response.json())

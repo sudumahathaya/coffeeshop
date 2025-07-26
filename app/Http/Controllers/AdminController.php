@@ -317,6 +317,44 @@ class AdminController extends Controller
         ]);
     }
 
+    public function editReservation($id)
+    {
+        $reservation = Reservation::findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'reservation' => $reservation
+        ]);
+    }
+    
+    public function updateReservation(Request $request, $id)
+    {
+        $validatedData = $request->validate([
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'required|string|max:20',
+            'reservation_date' => 'required|date',
+            'reservation_time' => 'required|string',
+            'guests' => 'required|integer|min:1|max:20',
+            'table_type' => 'nullable|string',
+            'occasion' => 'nullable|string',
+            'special_requests' => 'nullable|string|max:1000',
+        ]);
+
+        $reservation = Reservation::findOrFail($id);
+        $reservation->update($validatedData);
+        
+        // Broadcast real-time update
+        broadcast(new \App\Events\ReservationUpdated($reservation))->toOthers();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Reservation updated successfully',
+            'reservation' => $reservation
+        ]);
+    }
+
     public function updateReservationStatus(Request $request, $id)
     {
         $validatedData = $request->validate([

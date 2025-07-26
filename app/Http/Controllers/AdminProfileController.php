@@ -100,4 +100,27 @@ class AdminProfileController extends Controller
             'pending_count' => $count
         ]);
     }
+
+    public function destroy($id)
+    {
+        try {
+            $changeRequest = ProfileChangeRequest::findOrFail($id);
+            $changeRequest->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Profile change request deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Profile change request not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete profile change request: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
