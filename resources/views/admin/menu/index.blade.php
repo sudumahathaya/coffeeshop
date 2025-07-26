@@ -97,9 +97,9 @@
     </div>
 
     <!-- Menu Items Grid -->
-    <div class="row g-4" id="menuItemsGrid">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="menuItemsGrid">
         @foreach($menuItems as $item)
-        <div class="col-lg-4 col-md-6 menu-item-card" data-category="{{ $item->category }}" data-status="{{ $item->status }}">
+        <div class="col menu-item-card" data-category="{{ $item->category }}" data-status="{{ $item->status }}">
             <div class="card menu-item border-0 shadow-sm h-100">
                 <div class="position-relative">
                     <img src="{{ $item->image }}" class="card-img-top" alt="{{ $item->name }}" style="height: 200px; object-fit: cover;">
@@ -129,6 +129,7 @@
                             <div class="col-6">
                                 <small class="text-muted">Calories:</small>
                              <div class="fw-bold">{{ $item->calories ?? 'Not specified' }}</div>
+                            </div>
                             <div class="col-6">
                                 <small class="text-muted">Allergens:</small>
                                 <div class="fw-bold">{{ empty($item->allergens) ? 'None' : implode(', ', $item->allergens) }}</div>
@@ -793,7 +794,7 @@ function createItemCard(item) {
     const allergens = Array.isArray(item.allergens) ? item.allergens.join(', ') : (item.allergens || 'None');
     
     return `
-        <div class="col-lg-4 col-md-6 menu-item-card" data-category="${item.category}" data-status="${item.status}" data-item-id="${item.id}">
+        <div class="col menu-item-card" data-category="${item.category}" data-status="${item.status}" data-item-id="${item.id}">
             <div class="card menu-item border-0 shadow-sm h-100">
                 <div class="position-relative">
                     <img src="${item.image}" class="card-img-top" alt="${item.name}" style="height: 200px; object-fit: cover;">
