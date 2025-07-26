@@ -11,7 +11,7 @@ class MenuController extends Controller
 {
     public function index()
     {
-        $menuItems = MenuItem::active()->get();
+        $menuItems = MenuItem::all();
         $categories = MenuItem::select('category')->distinct()->pluck('category');
         
         return response()->json([
@@ -27,12 +27,14 @@ class MenuController extends Controller
         
         return response()->json([
             'success' => true,
-            'menu_item' => $menuItem
+            'menu_item' => $menuItem,
+            'data' => $menuItem
         ]);
     }
 
     public function store(Request $request)
     {
+        try {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
@@ -78,7 +80,7 @@ class MenuController extends Controller
 
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'required|string',
+                'description' => 'nullable|string',
             'category' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -87,8 +89,13 @@ class MenuController extends Controller
             'ingredients' => 'nullable|array',
             'allergens' => 'nullable|array',
             'calories' => 'nullable|integer|min:0',
-            'status' => 'required|in:active,inactive',
+                'status' => 'nullable|in:active,inactive',
         ]);
+
+            // Set default status if not provided
+            if (!isset($validatedData['status'])) {
+                $validatedData['status'] = 'active';
+            }
 
         // Handle image upload
         if ($request->hasFile('image')) {
@@ -96,6 +103,9 @@ class MenuController extends Controller
             if ($menuItem->image && str_contains($menuItem->image, 'storage/menu-items/')) {
                 $oldImagePath = str_replace('/storage/', '', $menuItem->image);
                 Storage::disk('public')->delete($oldImagePath);
+            } else {
+                // Set default image if none provided
+                $validatedData['image'] = 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=300&fit=crop';
             }
             
             $imagePath = $request->file('image')->store('menu-items', 'public');
@@ -103,45 +113,125 @@ class MenuController extends Controller
         } elseif ($request->image_url) {
             $validatedData['image'] = $request->image_url;
         }
-
-        $menuItem->update($validatedData);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Menu item updated successfully',
-            'menu_item' => $menuItem
+            // Handle ingredients and allergens
+            if (isset($validatedData['ingredients'])) {
+                if (is_string($validatedData['ingredients'])) {
+                    $validatedData['ingredients'] = array_map('trim', explode(',', $validatedData['ingredients']));
+                }
+            }
+            
+            if (isset($validatedData['allergens'])) {
+                if (is_string($validatedData['allergens'])) {
+                    $validatedData['allergens'] = array_map('trim', explode(',', $validatedData['allergens']));
+                }
+            }
         ]);
     }
 
     public function destroy($id)
     {
         $menuItem = MenuItem::findOrFail($id);
-        
+                'menu_item' => $menuItem,
+                'data' => $menuItem
         // Delete image if exists
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create menu item: ' . $e->getMessage()
+            ], 500);
+        }
         if ($menuItem->image && str_contains($menuItem->image, 'storage/menu-items/')) {
             $oldImagePath = str_replace('/storage/', '', $menuItem->image);
             Storage::disk('public')->delete($oldImagePath);
         }
-        
-        $menuItem->delete();
+        try {
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($menuItem->image && str_contains($menuItem->image, 'storage/menu-items/')) {
+                    $oldImagePath = str_replace('/storage/', '', $menuItem->image);
+                    Storage::disk('public')->delete($oldImagePath);
+                }
+                
+                $imagePath = $request->file('image')->store('menu-items', 'public');
+                $validatedData['image'] = Storage::url($imagePath);
+            } elseif ($request->image_url) {
+                $validatedData['image'] = $request->image_url;
+                'price' => 'required|numeric|min:0',
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Menu item deleted successfully'
-        ]);
-    }
+            // Handle ingredients and allergens
+            if (isset($validatedData['ingredients'])) {
+                if (is_string($validatedData['ingredients'])) {
+                    $validatedData['ingredients'] = array_map('trim', explode(',', $validatedData['ingredients']));
+                }
+            }
+            
+            if (isset($validatedData['allergens'])) {
+                if (is_string($validatedData['allergens'])) {
+                    $validatedData['allergens'] = array_map('trim', explode(',', $validatedData['allergens']));
+                }
+            }
+                'status' => 'required|in:active,inactive',
+            $menuItem->update($validatedData);
 
-    public function toggleStatus($id)
-    {
-        $menuItem = MenuItem::findOrFail($id);
-        $menuItem->update([
-            'status' => $menuItem->status === 'active' ? 'inactive' : 'active'
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Menu item status updated successfully',
-            'menu_item' => $menuItem
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu item not found'
+            ], 404);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+        try {
+            $menuItem = MenuItem::findOrFail($id);
+            $menuItem->update([
+                'status' => $menuItem->status === 'active' ? 'inactive' : 'active'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu item status updated successfully',
+                'menu_item' => $menuItem
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Menu item not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update menu item status: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
+        try {
+            $menuItem = MenuItem::findOrFail($id);
+            
+            // Delete image if exists
+            if ($menuItem->image && str_contains($menuItem->image, 'storage/menu-items/')) {
+                $oldImagePath = str_replace('/storage/', '', $menuItem->image);
+                Storage::disk('public')->delete($oldImagePath);
+            }
+            
+            $menuItem->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Menu item deleted successfully'
+            ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Menu item not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete menu item: ' . $e->getMessage()
+            ], 500);

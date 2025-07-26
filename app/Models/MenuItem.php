@@ -26,6 +26,13 @@ class MenuItem extends Model
         'ingredients' => 'array',
         'allergens' => 'array',
         'price' => 'decimal:2',
+        'calories' => 'integer',
+    ];
+
+    protected $attributes = [
+        'status' => 'active',
+        'ingredients' => '[]',
+        'allergens' => '[]',
     ];
 
     public function scopeActive($query)
@@ -41,5 +48,15 @@ class MenuItem extends Model
     public function getFormattedPriceAttribute()
     {
         return 'Rs. ' . number_format($this->price, 2);
+    }
+
+    public function getIngredientsListAttribute()
+    {
+        return is_array($this->ingredients) ? implode(', ', $this->ingredients) : '';
+    }
+
+    public function getAllergensListAttribute()
+    {
+        return is_array($this->allergens) ? implode(', ', $this->allergens) : '';
     }
 }

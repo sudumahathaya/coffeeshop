@@ -525,24 +525,6 @@ function saveItem() {
     const formData = new FormData(form);
     const submitButton = event.target;
     
-    // Convert comma-separated strings to arrays
-    const ingredients = formData.get('ingredients');
-    const allergens = formData.get('allergens');
-    
-    if (ingredients) {
-        formData.delete('ingredients');
-        ingredients.split(',').forEach((ingredient, index) => {
-            formData.append(`ingredients[${index}]`, ingredient.trim());
-        });
-    }
-    
-    if (allergens) {
-        formData.delete('allergens');
-        allergens.split(',').forEach((allergen, index) => {
-            formData.append(`allergens[${index}]`, allergen.trim());
-        });
-    }
-    
     const originalText = submitButton.innerHTML;
     submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
     submitButton.disabled = true;
@@ -563,12 +545,15 @@ function saveItem() {
             form.reset();
             location.reload();
         } else {
-            showNotification('Failed to create menu item', 'error');
+            showNotification(data.message || 'Failed to create menu item', 'error');
+            if (data.errors) {
+                console.error('Validation errors:', data.errors);
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('An error occurred', 'error');
+        showNotification('An error occurred while creating the menu item', 'error');
     })
     .finally(() => {
         submitButton.innerHTML = originalText;
@@ -581,24 +566,6 @@ function updateItem() {
     const formData = new FormData(form);
     const itemId = document.getElementById('editItemId').value;
     const submitButton = event.target;
-    
-    // Convert comma-separated strings to arrays
-    const ingredients = formData.get('ingredients');
-    const allergens = formData.get('allergens');
-    
-    if (ingredients) {
-        formData.delete('ingredients');
-        ingredients.split(',').forEach((ingredient, index) => {
-            formData.append(`ingredients[${index}]`, ingredient.trim());
-        });
-    }
-    
-    if (allergens) {
-        formData.delete('allergens');
-        allergens.split(',').forEach((allergen, index) => {
-            formData.append(`allergens[${index}]`, allergen.trim());
-        });
-    }
     
     // Add method override for PUT request
     formData.append('_method', 'PUT');
@@ -622,12 +589,15 @@ function updateItem() {
             modal.hide();
             location.reload();
         } else {
-            showNotification('Failed to update menu item', 'error');
+            showNotification(data.message || 'Failed to update menu item', 'error');
+            if (data.errors) {
+                console.error('Validation errors:', data.errors);
+            }
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('An error occurred', 'error');
+        showNotification('An error occurred while updating the menu item', 'error');
     })
     .finally(() => {
         submitButton.innerHTML = originalText;
@@ -666,23 +636,7 @@ function showNotification(message, type = 'info') {
 }
 
 function exportMenu() {
-    showNotification('Exporting menu data...', 'info');
-    
-    fetch('/admin/menu/export')
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'menu-items.csv';
-            a.click();
-            window.URL.revokeObjectURL(url);
-            showNotification('Menu exported successfully!', 'success');
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Export failed', 'error');
-        });
+    showNotification('Export functionality coming soon!', 'info');
 }
 
 // CSS animations

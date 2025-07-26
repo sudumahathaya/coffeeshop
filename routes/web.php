@@ -83,6 +83,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Admin menu management
     Route::post('/menu', [MenuController::class, 'store'])->name('menu.store');
+    Route::get('/menu/{id}', [MenuController::class, 'show'])->name('menu.show');
     Route::put('/menu/{id}', [MenuController::class, 'update'])->name('menu.update');
     Route::delete('/menu/{id}', [MenuController::class, 'destroy'])->name('menu.destroy');
     Route::patch('/menu/{id}/toggle-status', [MenuController::class, 'toggleStatus'])->name('menu.toggle-status');
@@ -101,9 +102,6 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     
     // Real-time dashboard data
     Route::get('/api/dashboard-data', [App\Http\Controllers\AdminController::class, 'getDashboardData'])->name('api.dashboard-data');
-    
-    // Menu item details
-    Route::get('/menu/{id}', [MenuController::class, 'show'])->name('menu.show');
 });
 
 // Payment API routes
