@@ -984,99 +984,9 @@ function deleteItemFromDetails() {
     }
 }
 
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `alert alert-${type} position-fixed notification-toast`;
-    notification.style.cssText = `
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 350px;
-        border-radius: 15px;
-        animation: slideInRight 0.5s ease;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        backdrop-filter: blur(10px);
-    `;
-    
-    // Add emoji based on type for better visual feedback
-    const emojiMap = {
-        'success': '✅',
-        'error': '❌',
-        'warning': '⚠️',
-        'info': 'ℹ️'
-    `;
-    notification.innerHTML = `
-        <div class="d-flex align-items-center">
-            <span class="me-2">${emojiMap[type] || 'ℹ️'}</span>
-            <span class="flex-grow-1">${message}</span>
-            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
-        </div>
-    `;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.style.animation = 'slideOutRight 0.5s ease';
-            setTimeout(() => notification.remove(), 500);
-        }
-    }, 5000);
-}
-
 function exportMenu() {
     showNotification('Export functionality coming soon!', 'info');
 }
 
-// CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
-    
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
-    
-    .notification-toast {
-        backdrop-filter: blur(10px);
-    }
-    
-    .stat-icon {
-        transition: all 0.3s ease;
-    }
-    
-    .menu-item:hover .stat-icon {
-        transform: scale(1.1);
-    }
-    
-    .stats-updated {
-        animation: statsGlow 0.5s ease;
-    }
-    
-    @keyframes statsGlow {
-        0% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
-        50% { box-shadow: 0 0 20px rgba(40, 167, 69, 0.8); }
-        100% { box-shadow: 0 0 5px rgba(40, 167, 69, 0.5); }
-    }
-    
-    .menu-item-card {
-        transition: all 0.3s ease;
-    }
-    
-    .menu-item-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .item-details {
-        background: linear-gradient(45deg, rgba(139, 69, 19, 0.02), rgba(210, 105, 30, 0.02));
-        border-radius: 8px;
-        padding: 1rem;
-        border: 1px solid rgba(139, 69, 19, 0.05);
-    }
-`;
-document.head.appendChild(style);
 </script>
 @endpush
