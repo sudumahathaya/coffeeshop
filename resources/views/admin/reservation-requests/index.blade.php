@@ -119,7 +119,7 @@
                                     <h6 class="mb-0">#{{ $request->reservation->reservation_id }}</h6>
                                     <small class="text-muted">
                                         {{ $request->reservation->reservation_date->format('M d, Y') }} • 
-                                        {{ $request->reservation->reservation_time->format('g:i A') }}
+                                        {{ is_string($request->reservation->reservation_time) ? date('g:i A', strtotime($request->reservation->reservation_time)) : $request->reservation->reservation_time->format('g:i A') }}
                                     </small>
                                 </div>
                             </td>
