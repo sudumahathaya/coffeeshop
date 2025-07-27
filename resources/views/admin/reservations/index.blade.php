@@ -430,12 +430,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function startRealTimeUpdates() {
+window.startRealTimeUpdates = function() {
     // Update stats every 30 seconds
     setInterval(updateReservationStats, 30000);
-}
+};
 
-function updateReservationStats() {
+window.updateReservationStats = function() {
     fetch('/admin/api/reservation-stats')
         .then(response => response.json())
         .then(data => {
@@ -452,9 +452,9 @@ function updateReservationStats() {
         .catch(error => {
             console.error('Error updating reservation stats:', error);
         });
-}
+};
 
-function animateStatUpdate(elementId, newValue) {
+window.animateStatUpdate = function(elementId, newValue) {
     const element = document.getElementById(elementId);
     if (!element) return;
     
@@ -470,9 +470,9 @@ function animateStatUpdate(elementId, newValue) {
             element.style.color = '';
         }, 150);
     }
-}
+};
 
-function viewReservation(reservationId) {
+window.viewReservation = function(reservationId) {
     fetch(`/admin/reservations/${reservationId}`)
         .then(response => response.json())
         .then(data => {
@@ -555,21 +555,21 @@ function viewReservation(reservationId) {
             console.error('Error:', error);
             showNotification('Failed to load reservation details', 'error');
         });
-}
+};
 
-function approveReservation(reservationId) {
+window.approveReservation = function(reservationId) {
     currentReservationId = reservationId;
     const modal = new bootstrap.Modal(document.getElementById('approveModal'));
     modal.show();
-}
+};
 
-function rejectReservation(reservationId) {
+window.rejectReservation = function(reservationId) {
     currentReservationId = reservationId;
     const modal = new bootstrap.Modal(document.getElementById('rejectModal'));
     modal.show();
-}
+};
 
-function confirmApproval() {
+window.confirmApproval = function() {
     const notes = document.getElementById('approveNotes').value;
     const button = event.target;
     const originalText = button.innerHTML;
@@ -611,9 +611,9 @@ function confirmApproval() {
         button.innerHTML = originalText;
         button.disabled = false;
     });
-}
+};
 
-function confirmRejection() {
+window.confirmRejection = function() {
     const reason = document.getElementById('rejectionReason').value;
     const notes = document.getElementById('rejectNotes').value;
     
@@ -664,9 +664,9 @@ function confirmRejection() {
         button.innerHTML = originalText;
         button.disabled = false;
     });
-}
+};
 
-function editReservation(reservationId) {
+window.editReservation = function(reservationId) {
     fetch(`/admin/reservations/${reservationId}/edit`)
         .then(response => response.json())
         .then(data => {
@@ -693,9 +693,9 @@ function editReservation(reservationId) {
             console.error('Error:', error);
             showNotification('Failed to load reservation data', 'error');
         });
-}
+};
 
-function updateReservation() {
+window.updateReservation = function() {
     const form = document.getElementById('editReservationForm');
     const formData = new FormData(form);
     const reservationId = document.getElementById('editReservationId').value;
@@ -751,15 +751,15 @@ function updateReservation() {
         button.innerHTML = originalText;
         button.disabled = false;
     });
-}
+};
 
-function markCompleted(reservationId) {
+window.markCompleted = function(reservationId) {
     if (confirm('Mark this reservation as completed?')) {
         updateReservationStatus(reservationId, 'completed');
     }
-}
+};
 
-function updateReservationStatus(reservationId, status) {
+window.updateReservationStatus = function(reservationId, status) {
     fetch(`/admin/reservations/${reservationId}/status`, {
         method: 'PATCH',
         headers: {
@@ -782,9 +782,9 @@ function updateReservationStatus(reservationId, status) {
         console.error('Error:', error);
         showNotification('An error occurred', 'error');
     });
-}
+};
 
-function updateReservationRow(reservationId, newStatus) {
+window.updateReservationRow = function(reservationId, newStatus) {
     const row = document.querySelector(`tr[data-reservation-id="${reservationId}"]`);
     if (row) {
         const statusCell = row.querySelector('td:nth-child(6)');
@@ -813,9 +813,9 @@ function updateReservationRow(reservationId, newStatus) {
             row.style.backgroundColor = '';
         }, 2000);
     }
-}
+};
 
-function updateReservationRowData(reservation) {
+window.updateReservationRowData = function(reservation) {
     const row = document.querySelector(`tr[data-reservation-id="${reservation.id}"]`);
     if (row) {
         // Update customer info
@@ -849,9 +849,9 @@ function updateReservationRowData(reservation) {
             tableCell.innerHTML = '<span class="text-muted">No preference</span>';
         }
     }
-}
+};
 
-function updateActionButtons(actionsCell, status, reservationId) {
+window.updateActionButtons = function(actionsCell, status, reservationId) {
     let buttonsHtml = `
         <div class="btn-group btn-group-sm">
             <button class="btn btn-outline-secondary" onclick="viewReservation(${reservationId})">
@@ -888,9 +888,9 @@ function updateActionButtons(actionsCell, status, reservationId) {
     
     buttonsHtml += '</div>';
     actionsCell.innerHTML = buttonsHtml;
-}
+};
 
-function getStatusColor(status) {
+window.getStatusColor = function(status) {
     const colors = {
         'pending': 'warning',
         'confirmed': 'success',
@@ -899,9 +899,9 @@ function getStatusColor(status) {
         'rejected': 'danger'
     };
     return colors[status] || 'secondary';
-}
+};
 
-function applyFilters() {
+window.applyFilters = function() {
     const statusFilter = document.getElementById('statusFilter').value;
     const dateFilter = document.getElementById('dateFilter').value;
     const guestsFilter = document.getElementById('guestsFilter').value;
@@ -953,32 +953,51 @@ function applyFilters() {
         
         row.style.display = show ? '' : 'none';
     });
-}
+};
 
-function refreshReservations() {
-}
+window.refreshReservations = function() {
+};
 
-function exportReservations() {
+window.exportReservations = function() {
     showNotification('Export functionality coming soon!', 'info');
-}
+};
 
-// CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
-    }
+window.showNotification = function(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} position-fixed notification-toast`;
+    notification.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 350px;
+        border-radius: 15px;
+        animation: slideInRight 0.5s ease;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    `;
     
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
-    }
+    const iconMap = {
+        'success': 'check-circle-fill',
+        'error': 'exclamation-triangle-fill',
+        'warning': 'exclamation-triangle-fill',
+        'info': 'info-circle-fill'
+    };
     
-    .notification-toast {
-        backdrop-filter: blur(10px);
-    }
-`;
-document.head.appendChild(style);
+    notification.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${iconMap[type]} me-2"></i>
+            <span class="flex-grow-1">${message}</span>
+            <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.style.animation = 'slideOutRight 0.5s ease';
+            setTimeout(() => notification.remove(), 500);
+        }
+    }, 5000);
+};
 </script>
 @endpush
