@@ -35,9 +35,9 @@
                         <p class="text-white-50 mb-3">{{ $dashboardData['stats']['loyalty_points'] }} loyalty points</p>
                         <div class="progress-container">
                             <div class="progress">
-                                <div class="progress-bar bg-warning" style="width: {{ min(($dashboardData['stats']['loyalty_points'] / 1500) * 100, 100) }}%"></div>
+                                <div class="progress-bar bg-warning" style="width: {{ isset($dashboardData['stats']['loyalty_points']) ? min(($dashboardData['stats']['loyalty_points'] / 1500) * 100, 100) : 0 }}%"></div>
                             </div>
-                            <small class="text-white-50 mt-2 d-block">{{ $dashboardData['stats']['points_to_next_tier'] }} points to next tier</small>
+                            <small class="text-white-50 mt-2 d-block">{{ $dashboardData['stats']['points_to_next_tier'] ?? 0 }} points to next tier</small>
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
                         <i class="bi bi-receipt"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>{{ $dashboardData['stats']['total_orders'] }}</h3>
+                        <h3>{{ $dashboardData['stats']['total_orders'] ?? 0 }}</h3>
                         <p>Total Orders</p>
                         <small class="text-success">
                             <i class="bi bi-arrow-up"></i> Active member
@@ -71,10 +71,10 @@
                         <i class="bi bi-star-fill"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>{{ number_format($dashboardData['stats']['loyalty_points']) }}</h3>
+                        <h3>{{ number_format($dashboardData['stats']['loyalty_points'] ?? 0) }}</h3>
                         <p>Loyalty Points</p>
                         <small class="text-info">
-                            <i class="bi bi-gift"></i> {{ $dashboardData['stats']['current_tier'] }} tier
+                            <i class="bi bi-gift"></i> {{ $dashboardData['stats']['current_tier'] ?? 'Bronze' }} tier
                         </small>
                     </div>
                 </div>
@@ -86,10 +86,10 @@
                         <i class="bi bi-calendar-check"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>{{ $dashboardData['stats']['total_reservations'] }}</h3>
+                        <h3>{{ $dashboardData['stats']['total_reservations'] ?? 0 }}</h3>
                         <p>Reservations</p>
                         <small class="text-primary">
-                            <i class="bi bi-clock"></i> Upcoming: {{ count($dashboardData['upcoming_reservations']) }}
+                            <i class="bi bi-clock"></i> Upcoming: {{ count($dashboardData['upcoming_reservations'] ?? []) }}
                         </small>
                     </div>
                 </div>
@@ -101,7 +101,7 @@
                         <i class="bi bi-currency-dollar"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Rs. {{ number_format($dashboardData['stats']['total_spent']) }}</h3>
+                        <h3>Rs. {{ number_format($dashboardData['stats']['total_spent'] ?? 0) }}</h3>
                         <p>Total Spent</p>
                         <small class="text-success">
                             <i class="bi bi-trending-up"></i> Great savings!
@@ -129,7 +129,7 @@
                         </div>
                     </div>
                     <div class="section-body">
-                        @if(count($dashboardData['recent_orders']) > 0)
+                        @if(isset($dashboardData['recent_orders']) && count($dashboardData['recent_orders']) > 0)
                             @foreach($dashboardData['recent_orders'] as $order)
                             <div class="order-item">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -181,7 +181,7 @@
                         </div>
                     </div>
                     <div class="section-body">
-                        @if(count($dashboardData['upcoming_reservations']) > 0)
+                        @if(isset($dashboardData['upcoming_reservations']) && count($dashboardData['upcoming_reservations']) > 0)
                             @foreach($dashboardData['upcoming_reservations'] as $reservation)
                             <div class="reservation-item">
                                 <div class="d-flex justify-content-between align-items-center">
@@ -234,15 +234,15 @@
                     </div>
                     <div class="section-body text-center">
                         <div class="loyalty-circle mb-3">
-                            <div class="circle-progress" data-percentage="{{ min(($dashboardData['stats']['loyalty_points'] / 1500) * 100, 100) }}">
+                            <div class="circle-progress" data-percentage="{{ isset($dashboardData['stats']['loyalty_points']) ? min(($dashboardData['stats']['loyalty_points'] / 1500) * 100, 100) : 0 }}">
                                 <div class="circle-content">
-                                    <span class="points">{{ $dashboardData['stats']['loyalty_points'] }}</span>
+                                    <span class="points">{{ $dashboardData['stats']['loyalty_points'] ?? 0 }}</span>
                                     <small>points</small>
                                 </div>
                             </div>
                         </div>
-                        <h6 class="text-coffee mb-2">{{ $dashboardData['stats']['current_tier'] }} Member</h6>
-                        <p class="text-muted mb-3">{{ $dashboardData['stats']['points_to_next_tier'] }} points to Platinum</p>
+                        <h6 class="text-coffee mb-2">{{ $dashboardData['stats']['current_tier'] ?? 'Bronze' }} Member</h6>
+                        <p class="text-muted mb-3">{{ $dashboardData['stats']['points_to_next_tier'] ?? 0 }} points to Platinum</p>
                         <button class="btn btn-outline-coffee btn-sm" data-bs-toggle="modal" data-bs-target="#loyaltyModal">
                             <i class="bi bi-info-circle me-2"></i>View Details
                         </button>
@@ -255,7 +255,8 @@
                         <h5><i class="bi bi-heart me-2 text-danger"></i>Your Favorites</h5>
                     </div>
                     <div class="section-body">
-                        @foreach($dashboardData['favorite_items'] as $item)
+                        @if(isset($dashboardData['favorite_items']))
+                            @foreach($dashboardData['favorite_items'] as $item)
                         <div class="favorite-item">
                             <div class="d-flex align-items-center">
                                 <img src="{{ $item->image }}" class="favorite-image me-3" alt="{{ $item->name }}">
@@ -275,7 +276,14 @@
                                 </div>
                             </div>
                         </div>
-                        @endforeach
+                            @endforeach
+                        @else
+                            <div class="empty-state">
+                                <i class="bi bi-heart text-muted" style="font-size: 2rem;"></i>
+                                <h6 class="text-muted mt-2">No favorites yet</h6>
+                                <p class="text-muted small">Start ordering to build your favorites!</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -303,13 +311,13 @@
                 </div>
 
                 <!-- Pending Requests -->
-                @if($dashboardData['pending_change_requests']['profile_changes'] > 0 || $dashboardData['pending_change_requests']['reservation_changes'] > 0)
+                @if(isset($dashboardData['pending_change_requests']) && ($dashboardData['pending_change_requests']['profile_changes'] > 0 || $dashboardData['pending_change_requests']['reservation_changes'] > 0))
                 <div class="dashboard-section mt-4">
                     <div class="section-header">
                         <h5><i class="bi bi-clock-history me-2 text-warning"></i>Pending Requests</h5>
                     </div>
                     <div class="section-body">
-                        @if($dashboardData['pending_change_requests']['profile_changes'] > 0)
+                        @if(isset($dashboardData['pending_change_requests']['profile_changes']) && $dashboardData['pending_change_requests']['profile_changes'] > 0)
                         <div class="alert alert-warning">
                             <i class="bi bi-person-gear me-2"></i>
                             <strong>Profile Change Request</strong><br>
@@ -317,7 +325,7 @@
                         </div>
                         @endif
                         
-                        @if($dashboardData['pending_change_requests']['reservation_changes'] > 0)
+                        @if(isset($dashboardData['pending_change_requests']['reservation_changes']) && $dashboardData['pending_change_requests']['reservation_changes'] > 0)
                         <div class="alert alert-info">
                             <i class="bi bi-calendar-event me-2"></i>
                             <strong>Reservation Change Request</strong><br>

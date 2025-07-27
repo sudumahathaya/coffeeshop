@@ -11,14 +11,14 @@ class UserController extends Controller
     {
         $user = Auth::user();
         
-        // Get real user data
+        // Get user data and statistics
         $dashboardData = [
             'user' => $user,
             'stats' => [
                 'total_orders' => $user->orders()->count(),
                 'loyalty_points' => $user->total_loyalty_points,
                 'total_reservations' => $user->reservations()->count(),
-                'favorite_items' => 12, // This would be calculated from user preferences
+                'favorite_items' => 12,
                 'total_spent' => $user->orders()->sum('total'),
                 'current_tier' => $user->loyalty_tier,
                 'points_to_next_tier' => $this->getPointsToNextTier($user->total_loyalty_points)
@@ -29,7 +29,7 @@ class UserController extends Controller
             'pending_change_requests' => $this->getPendingChangeRequests($user)
         ];
 
-        return view('user.dashboard', $dashboardData);
+        return view('user.dashboard', compact('dashboardData'));
     }
 
     public function orders()
