@@ -17,7 +17,7 @@
                     <button class="btn btn-coffee btn-lg" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                         <i class="bi bi-pencil-square me-2"></i>Edit Profile
                     </button>
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline-light btn-lg">
+                    <a href="{{ route('user.dashboard') }}" class="btn btn-outline-light btn-lg">
                         <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>

@@ -14,7 +14,7 @@
                     Your coffee journey continues. Track your orders, manage reservations, and enjoy exclusive member benefits.
                 </p>
                 <div class="d-flex gap-3">
-                    <a href="{{ route('menu') }}" class="btn btn-coffee btn-lg">
+                    <a href="{{ route('user.dashboard') }}" class="btn btn-outline-light btn-lg">
                         <i class="bi bi-cup-hot me-2"></i>Order Coffee
                     </a>
                     <a href="{{ route('reservation') }}" class="btn btn-outline-light btn-lg">

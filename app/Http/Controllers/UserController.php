@@ -29,7 +29,7 @@ class UserController extends Controller
             'pending_change_requests' => $this->getPendingChangeRequests($user)
         ];
 
-        return view('user.dashboard', compact('dashboardData'));
+        return view('user.dashboard', compact('dashboardData', 'user'));
     }
 
     public function orders()
@@ -145,8 +145,8 @@ class UserController extends Controller
     private function getPendingChangeRequests($user)
     {
         return [
-            'profile_changes' => 0, // Will be implemented when needed
-            'reservation_changes' => 0 // Will be implemented when needed
+            'profile_changes' => \App\Models\ProfileChangeRequest::where('user_id', $user->id)->where('status', 'pending')->count(),
+            'reservation_changes' => \App\Models\ReservationChangeRequest::where('user_id', $user->id)->where('status', 'pending')->count()
         ];
     }
 
@@ -166,24 +166,28 @@ class UserController extends Controller
         // For now, return sample data
         return [
             (object) [
+                'id' => 1,
                 'name' => 'Cappuccino',
                 'price' => 480.00,
                 'order_count' => 8,
                 'image' => 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=80&h=80&fit=crop'
             ],
             (object) [
+                'id' => 2,
                 'name' => 'Café Latte',
                 'price' => 520.00,
                 'order_count' => 6,
                 'image' => 'https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=80&h=80&fit=crop'
             ],
             (object) [
+                'id' => 3,
                 'name' => 'Caramel Macchiato',
                 'price' => 650.00,
                 'order_count' => 4,
                 'image' => 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=80&h=80&fit=crop'
             ],
             (object) [
+                'id' => 4,
                 'name' => 'Butter Croissant',
                 'price' => 280.00,
                 'order_count' => 5,

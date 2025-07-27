@@ -38,6 +38,7 @@ require __DIR__.'/auth.php';
 // Authenticated user routes
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
+    Route::get('/user/dashboard', [UserController::class, 'dashboard'])->name('user.dashboard');
     Route::get('/profile', function () {
         return view('profile.index');
     })->name('profile.view');

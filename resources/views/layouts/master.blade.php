@@ -475,7 +475,7 @@
                                 <i class="bi bi-person-circle me-1"></i>{{ Auth::user()->name }}
                             </button>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('dashboard') }}">
+                                <li><a class="dropdown-item" href="{{ route('user.dashboard') }}">
                                         <i class="bi bi-speedometer2 me-2"></i>Dashboard
                                     </a></li>
                                 <li><a class="dropdown-item" href="{{ route('user.orders') }}">

@@ -17,7 +17,7 @@
                     <a href="{{ route('menu') }}" class="btn btn-coffee btn-lg">
                         <i class="bi bi-plus-circle me-2"></i>New Order
                     </a>
-                    <a href="{{ route('dashboard') }}" class="btn btn-outline-light btn-lg">
+                    <a href="{{ route('user.dashboard') }}" class="btn btn-outline-light btn-lg">
                         <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
                     </a>
                 </div>

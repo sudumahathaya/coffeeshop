@@ -59,7 +59,7 @@ class Reservation extends Model
 
     public function scopeUpcoming($query)
     {
-        return $query->where('reservation_date', '>=', now()->format('Y-m-d'))
+        return $query->where('reservation_date', '>=', now()->toDateString())
                     ->where('status', '!=', 'cancelled');
     }
 }
