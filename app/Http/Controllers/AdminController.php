@@ -18,19 +18,19 @@ class AdminController extends Controller
     {
         // Dashboard statistics
         $stats = [
-            'total_users' => User::count(),
-            'new_users_today' => User::whereDate('created_at', today())->count(),
-            'total_reservations' => Reservation::count(),
-            'pending_reservations' => Reservation::where('status', 'pending')->count(),
-            'revenue_today' => Order::whereDate('created_at', today())->sum('total'),
-            'revenue_month' => Order::whereMonth('created_at', now()->month)->sum('total'),
+            'total_users' => User::count('id'),
+            'new_users_today' => User::whereDate('created_at', '=', today())->count('id'),
+            'total_reservations' => Reservation::count('id'),
+            'pending_reservations' => Reservation::where('status', '=', 'pending')->count('id'),
+            'revenue_today' => Order::whereDate('created_at', '=', today())->sum('total'),
+            'revenue_month' => Order::whereMonth('created_at', '=', now()->month)->sum('total'),
             'popular_items' => [
                 ['name' => 'Cappuccino', 'orders' => 45],
                 ['name' => 'Latte', 'orders' => 38],
                 ['name' => 'Espresso', 'orders' => 32],
                 ['name' => 'Americano', 'orders' => 28]
             ],
-            'recent_users' => User::latest()->take(5)->get()
+            'recent_users' => User::latest('created_at')->take(5)->get()
         ];
 
         // Chart data for dashboard
@@ -47,14 +47,14 @@ class AdminController extends Controller
     public function reservations()
     {
         // Get today's reservations and statistics
-        $todayReservations = Reservation::whereDate('reservation_date', today())->get();
-        $pendingReservations = Reservation::where('status', 'pending')->get();
-        $confirmedReservations = Reservation::where('status', 'confirmed')->get();
-        $totalGuests = Reservation::whereDate('reservation_date', today())->sum('guests');
+        $todayReservations = Reservation::whereDate('reservation_date', '=', today())->get();
+        $pendingReservations = Reservation::where('status', '=', 'pending')->get();
+        $confirmedReservations = Reservation::where('status', '=', 'confirmed')->get();
+        $totalGuests = Reservation::whereDate('reservation_date', '=', today())->sum('guests');
         
         // All reservations for the table
         $reservations = Reservation::with('user')
-            ->latest('reservation_date')
+            ->orderBy('reservation_date', 'desc')
             ->latest('reservation_time')
             ->paginate(20);
 
@@ -177,7 +177,7 @@ class AdminController extends Controller
 
     public function users()
     {
-        $users = User::latest()->paginate(20);
+        $users = User::latest('created_at')->paginate(20);
         return view('admin.users.index', compact('users'));
     }
 
@@ -188,9 +188,9 @@ class AdminController extends Controller
         
         // Calculate real-time statistics
         $stats = [
-            'total_items' => MenuItem::count(),
-            'active_items' => MenuItem::where('status', 'active')->count(),
-            'inactive_items' => MenuItem::where('status', 'inactive')->count(),
+            'total_items' => MenuItem::count('id'),
+            'active_items' => MenuItem::where('status', '=', 'active')->count('id'),
+            'inactive_items' => MenuItem::where('status', '=', 'inactive')->count('id'),
             'total_categories' => $categories->count(),
             'average_price' => MenuItem::avg('price') ?? 0,
             'highest_price' => MenuItem::max('price') ?? 0,
@@ -268,14 +268,14 @@ class AdminController extends Controller
     public function getTodayReservations()
     {
         $todayReservations = Reservation::with('user')
-            ->whereDate('reservation_date', today())
-            ->orderBy('reservation_time')
+            ->whereDate('reservation_date', '=', today())
+            ->orderBy('reservation_time', 'asc')
             ->get();
 
         $stats = [
             'today_count' => $todayReservations->count(),
-            'pending_count' => Reservation::where('status', 'pending')->whereDate('reservation_date', today())->count(),
-            'confirmed_count' => Reservation::where('status', 'confirmed')->whereDate('reservation_date', today())->count(),
+            'pending_count' => Reservation::where('status', '=', 'pending')->whereDate('reservation_date', '=', today())->count('id'),
+            'confirmed_count' => Reservation::where('status', '=', 'confirmed')->whereDate('reservation_date', '=', today())->count('id'),
             'total_guests' => $todayReservations->sum('guests')
         ];
 
@@ -489,15 +489,15 @@ class AdminController extends Controller
         $today = today();
         
         $stats = [
-            'today_count' => Reservation::whereDate('reservation_date', $today)->count(),
-            'pending_count' => Reservation::where('status', 'pending')->count(),
-            'confirmed_count' => Reservation::where('status', 'confirmed')->count(),
-            'total_guests' => Reservation::whereDate('reservation_date', $today)->sum('guests'),
-            'upcoming_count' => Reservation::where('reservation_date', '>', $today)->count(),
+            'today_count' => Reservation::whereDate('reservation_date', '=', $today)->count('id'),
+            'pending_count' => Reservation::where('status', '=', 'pending')->count('id'),
+            'confirmed_count' => Reservation::where('status', '=', 'confirmed')->count('id'),
+            'total_guests' => Reservation::whereDate('reservation_date', '=', $today)->sum('guests'),
+            'upcoming_count' => Reservation::where('reservation_date', '>', $today)->count('id'),
             'this_week_count' => Reservation::whereBetween('reservation_date', [
                 $today->startOfWeek(),
                 $today->endOfWeek()
-            ])->count()
+            ])->count('id')
         ];
 
         return response()->json([
@@ -516,7 +516,7 @@ class AdminController extends Controller
         }
 
         if ($request->has('date') && $request->date !== '') {
-            $query->whereDate('reservation_date', $request->date);
+            $query->whereDate('reservation_date', '=', $request->date);
         }
 
         if ($request->has('search') && $request->search !== '') {
@@ -530,7 +530,7 @@ class AdminController extends Controller
         }
 
         $reservations = $query->latest('reservation_date')
-                             ->latest('reservation_time')
+                             ->orderBy('reservation_time', 'desc')
                              ->paginate(20);
 
         return response()->json([
@@ -553,20 +553,20 @@ class AdminController extends Controller
     public function getDashboardData()
     {
         $stats = [
-            'total_users' => User::count(),
-            'new_users_today' => User::whereDate('created_at', today())->count(),
-            'total_reservations' => Reservation::count(),
-            'pending_reservations' => Reservation::where('status', 'pending')->count(),
-            'revenue_today' => Order::whereDate('created_at', today())->sum('total'),
-            'revenue_month' => Order::whereMonth('created_at', now()->month)->sum('total'),
-            'active_orders' => Order::whereIn('status', ['pending', 'confirmed', 'preparing'])->count(),
-            'completed_orders_today' => Order::where('status', 'completed')->whereDate('created_at', today())->count(),
+            'total_users' => User::count('id'),
+            'new_users_today' => User::whereDate('created_at', '=', today())->count('id'),
+            'total_reservations' => Reservation::count('id'),
+            'pending_reservations' => Reservation::where('status', '=', 'pending')->count('id'),
+            'revenue_today' => Order::whereDate('created_at', '=', today())->sum('total'),
+            'revenue_month' => Order::whereMonth('created_at', '=', now()->month)->sum('total'),
+            'active_orders' => Order::whereIn('status', ['pending', 'confirmed', 'preparing'])->count('id'),
+            'completed_orders_today' => Order::where('status', '=', 'completed')->whereDate('created_at', '=', today())->count('id'),
         ];
 
         $recentActivity = [
-            'recent_orders' => Order::with('user')->latest()->take(5)->get(),
-            'recent_reservations' => Reservation::with('user')->latest()->take(5)->get(),
-            'recent_users' => User::latest()->take(5)->get(),
+            'recent_orders' => Order::with('user')->latest('created_at')->take(5)->get(),
+            'recent_reservations' => Reservation::with('user')->latest('created_at')->take(5)->get(),
+            'recent_users' => User::latest('created_at')->take(5)->get(),
         ];
 
         return response()->json([
