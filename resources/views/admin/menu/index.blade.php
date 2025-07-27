@@ -140,7 +140,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-info" onclick="viewDetails({{ $item->id }})" title="View Details">
-                                <i class="bi bi-eye"></i>
+                                <i class="bi bi-info-circle"></i>
                             </button>
                             <button class="btn btn-outline-primary" onclick="editItem({{ $item->id }})" title="Edit Item">
                                 <i class="bi bi-pencil"></i>
@@ -148,7 +148,7 @@
                             <button class="btn btn-outline-{{ $item->status === 'active' ? 'warning' : 'success' }}" 
                                     onclick="toggleStatus({{ $item->id }}, '{{ $item->status }}')" 
                                     title="{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}">
-                                <i class="bi bi-{{ $item->status === 'active' ? 'pause' : 'play' }}"></i>
+                                <i class="bi bi-{{ $item->status === 'active' ? 'eye-slash' : 'eye' }}"></i>
                             </button>
                             <button class="btn btn-outline-danger" onclick="deleteItem({{ $item->id }})" title="Delete Item">
                                 <i class="bi bi-trash"></i>
@@ -596,7 +596,7 @@ function toggleStatus(itemId, currentStatus) {
             
             // Update button
             button.className = `btn btn-outline-${newStatus === 'active' ? 'warning' : 'success'} btn-sm`;
-            button.innerHTML = `<i class="bi bi-${newStatus === 'active' ? 'pause' : 'play'}"></i>`;
+            button.innerHTML = `<i class="bi bi-${newStatus === 'active' ? 'eye-slash' : 'eye'}"></i>`;
             button.title = newStatus === 'active' ? 'Deactivate' : 'Activate';
             
             // Update data attribute
@@ -877,7 +877,7 @@ function createItemCard(item) {
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-info" onclick="viewDetails(${item.id})" title="View Details">
-                                <i class="bi bi-eye"></i>
+                                <i class="bi bi-info-circle"></i>
                             </button>
                             <button class="btn btn-outline-primary" onclick="editItem(${item.id})" title="Edit Item">
                                 <i class="bi bi-pencil"></i>
@@ -885,7 +885,7 @@ function createItemCard(item) {
                             <button class="btn btn-outline-${item.status === 'active' ? 'warning' : 'success'}" 
                                     onclick="toggleStatus(${item.id}, '${item.status}')" 
                                     title="${item.status === 'active' ? 'Deactivate' : 'Activate'}">
-                                <i class="bi bi-${item.status === 'active' ? 'pause' : 'play'}"></i>
+                                <i class="bi bi-${item.status === 'active' ? 'eye-slash' : 'eye'}"></i>
                             </button>
                             <button class="btn btn-outline-danger" onclick="deleteItem(${item.id})" title="Delete Item">
                                 <i class="bi bi-trash"></i>
