@@ -95,7 +95,7 @@ Route::middleware('auth')->group(function () {
 
 // Menu API routes
 Route::middleware(['auth', 'admin'])->group(function () {
-    Route::get('/admin/menu', [MenuController::class, 'index'])->name('admin.menu.index');
+    Route::get('/admin/menu', [AdminController::class, 'menuManagement'])->name('admin.menu');
     Route::post('/admin/menu', [MenuController::class, 'store'])->name('admin.menu.store');
     Route::get('/admin/menu/{id}', [MenuController::class, 'show'])->name('admin.menu.show');
     Route::put('/admin/menu/{id}', [MenuController::class, 'update'])->name('admin.menu.update');

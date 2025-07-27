@@ -6,6 +6,7 @@ use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class MenuController extends Controller
 {
@@ -21,6 +22,7 @@ class MenuController extends Controller
                 'categories' => $categories
             ]);
         } catch (\Exception $e) {
+            Log::error('Failed to fetch menu items: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch menu items: ' . $e->getMessage()
@@ -44,6 +46,7 @@ class MenuController extends Controller
                 'message' => 'Menu item not found'
             ], 404);
         } catch (\Exception $e) {
+            Log::error('Failed to fetch menu item: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to fetch menu item: ' . $e->getMessage()
@@ -68,8 +71,7 @@ class MenuController extends Controller
                 'status' => 'required|in:active,inactive',
             ]);
 
-            // Log the creation attempt
-            \Log::info('Creating new menu item', [
+            Log::info('Creating new menu item', [
                 'name' => $validatedData['name'],
                 'category' => $validatedData['category'],
                 'price' => $validatedData['price'],
@@ -90,42 +92,33 @@ class MenuController extends Controller
             // Handle ingredients and allergens
             if (isset($validatedData['ingredients'])) {
                 if (is_string($validatedData['ingredients'])) {
-                    $validatedData['ingredients'] = array_map('trim', explode(',', $validatedData['ingredients']));
+                    $validatedData['ingredients'] = array_filter(array_map('trim', explode(',', $validatedData['ingredients'])));
                 }
             }
             
             if (isset($validatedData['allergens'])) {
                 if (is_string($validatedData['allergens'])) {
-                    $validatedData['allergens'] = array_map('trim', explode(',', $validatedData['allergens']));
+                    $validatedData['allergens'] = array_filter(array_map('trim', explode(',', $validatedData['allergens'])));
                 }
-            }
-
-            // Ensure status is set
-            if (!isset($validatedData['status'])) {
-                $validatedData['status'] = 'active';
             }
 
             $menuItem = MenuItem::create($validatedData);
 
-            // Log successful creation
-            \Log::info('Menu item created successfully', [
+            Log::info('Menu item created successfully', [
                 'id' => $menuItem->id,
                 'name' => $menuItem->name,
                 'category' => $menuItem->category
             ]);
 
-            // Broadcast real-time stats update
-            $this->broadcastStatsUpdate();
-
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item created successfully',
-                'menu_item' => $menuItem,
-                'data' => $menuItem
+                'menu_item' => $menuItem->fresh(),
+                'data' => $menuItem->fresh()
             ], 201);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
-            \Log::warning('Menu item validation failed', [
+            Log::warning('Menu item validation failed', [
                 'errors' => $e->errors(),
                 'input' => $request->all()
             ]);
@@ -136,7 +129,7 @@ class MenuController extends Controller
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
-            \Log::error('Menu item creation failed', [
+            Log::error('Menu item creation failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -189,26 +182,29 @@ class MenuController extends Controller
             // Handle ingredients and allergens
             if (isset($validatedData['ingredients'])) {
                 if (is_string($validatedData['ingredients'])) {
-                    $validatedData['ingredients'] = array_map('trim', explode(',', $validatedData['ingredients']));
+                    $validatedData['ingredients'] = array_filter(array_map('trim', explode(',', $validatedData['ingredients'])));
                 }
             }
             
             if (isset($validatedData['allergens'])) {
                 if (is_string($validatedData['allergens'])) {
-                    $validatedData['allergens'] = array_map('trim', explode(',', $validatedData['allergens']));
+                    $validatedData['allergens'] = array_filter(array_map('trim', explode(',', $validatedData['allergens'])));
                 }
             }
 
             $menuItem->update($validatedData);
 
-            // Broadcast real-time stats update
-            $this->broadcastStatsUpdate();
+            Log::info('Menu item updated successfully', [
+                'id' => $menuItem->id,
+                'name' => $menuItem->name,
+                'changes' => $menuItem->getChanges()
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item updated successfully',
-                'menu_item' => $menuItem,
-                'data' => $menuItem
+                'menu_item' => $menuItem->fresh(),
+                'data' => $menuItem->fresh()
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -223,6 +219,7 @@ class MenuController extends Controller
                 'message' => 'Menu item not found'
             ], 404);
         } catch (\Exception $e) {
+            Log::error('Menu item update failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update menu item: ' . $e->getMessage()
@@ -234,17 +231,22 @@ class MenuController extends Controller
     {
         try {
             $menuItem = MenuItem::findOrFail($id);
-            $menuItem->update([
-                'status' => $menuItem->status === 'active' ? 'inactive' : 'active'
-            ]);
+            $oldStatus = $menuItem->status;
+            $newStatus = $menuItem->status === 'active' ? 'inactive' : 'active';
+            
+            $menuItem->update(['status' => $newStatus]);
 
-            // Broadcast real-time stats update
-            $this->broadcastStatsUpdate();
+            Log::info('Menu item status toggled', [
+                'id' => $menuItem->id,
+                'name' => $menuItem->name,
+                'old_status' => $oldStatus,
+                'new_status' => $newStatus
+            ]);
 
             return response()->json([
                 'success' => true,
                 'message' => 'Menu item status updated successfully',
-                'menu_item' => $menuItem
+                'menu_item' => $menuItem->fresh()
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -252,6 +254,7 @@ class MenuController extends Controller
                 'message' => 'Menu item not found'
             ], 404);
         } catch (\Exception $e) {
+            Log::error('Failed to toggle menu item status: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to update menu item status: ' . $e->getMessage()
@@ -264,6 +267,13 @@ class MenuController extends Controller
         try {
             $menuItem = MenuItem::findOrFail($id);
             
+            // Store item info for logging
+            $itemInfo = [
+                'id' => $menuItem->id,
+                'name' => $menuItem->name,
+                'category' => $menuItem->category
+            ];
+            
             // Delete image if exists
             if ($menuItem->image && str_contains($menuItem->image, 'storage/menu-items/')) {
                 $oldImagePath = str_replace('/storage/', '', $menuItem->image);
@@ -272,8 +282,7 @@ class MenuController extends Controller
             
             $menuItem->delete();
 
-            // Broadcast real-time stats update
-            $this->broadcastStatsUpdate();
+            Log::info('Menu item deleted successfully', $itemInfo);
 
             return response()->json([
                 'success' => true,
@@ -285,37 +294,11 @@ class MenuController extends Controller
                 'message' => 'Menu item not found'
             ], 404);
         } catch (\Exception $e) {
+            Log::error('Failed to delete menu item: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to delete menu item: ' . $e->getMessage()
             ], 500);
-        }
-    }
-
-    /**
-     * Broadcast real-time statistics update
-     */
-    private function broadcastStatsUpdate()
-    {
-        try {
-            $categories = MenuItem::select('category')->distinct()->pluck('category');
-            
-            $stats = [
-                'total_items' => MenuItem::count(),
-                'active_items' => MenuItem::where('status', 'active')->count(),
-                'inactive_items' => MenuItem::where('status', 'inactive')->count(),
-                'total_categories' => $categories->count(),
-                'average_price' => MenuItem::avg('price') ?? 0,
-                'highest_price' => MenuItem::max('price') ?? 0,
-                'lowest_price' => MenuItem::min('price') ?? 0,
-            ];
-
-            // In a real application, you would broadcast this via WebSockets
-            // For now, we'll store it in session for the next request
-            session(['menu_stats_updated' => $stats]);
-        } catch (\Exception $e) {
-            // Log error but don't fail the main operation
-            \Log::error('Failed to broadcast stats update: ' . $e->getMessage());
         }
     }
 }

@@ -25,7 +25,7 @@
                     <div class="stat-icon bg-primary mx-auto mb-3">
                         <i class="bi bi-cup-hot"></i>
                     </div>
-                    <h4 class="mb-0">{{ count($menuItems) }}</h4>
+                    <h4 class="mb-0" id="totalItemsCount">{{ $stats['total_items'] }}</h4>
                     <small class="text-muted">Total Items</small>
                 </div>
             </div>
@@ -36,7 +36,7 @@
                     <div class="stat-icon bg-success mx-auto mb-3">
                         <i class="bi bi-check-circle"></i>
                     </div>
-                    <h4 class="mb-0">{{ $menuItems->where('status', 'active')->count() }}</h4>
+                    <h4 class="mb-0" id="activeItemsCount">{{ $stats['active_items'] }}</h4>
                     <small class="text-muted">Active Items</small>
                 </div>
             </div>
@@ -47,7 +47,7 @@
                     <div class="stat-icon bg-info mx-auto mb-3">
                         <i class="bi bi-grid-3x3-gap"></i>
                     </div>
-                    <h4 class="mb-0">{{ count($categories) }}</h4>
+                    <h4 class="mb-0" id="categoriesCount">{{ $stats['total_categories'] }}</h4>
                     <small class="text-muted">Categories</small>
                 </div>
             </div>
@@ -58,7 +58,7 @@
                     <div class="stat-icon bg-warning mx-auto mb-3">
                         <i class="bi bi-currency-dollar"></i>
                     </div>
-                    <h4 class="mb-0">Rs. {{ number_format(collect($menuItems)->avg('price'), 0) }}</h4>
+                    <h4 class="mb-0" id="avgPriceDisplay">Rs. {{ number_format($stats['average_price'], 0) }}</h4>
                     <small class="text-muted">Avg. Price</small>
                 </div>
             </div>
@@ -99,7 +99,7 @@
     <!-- Menu Items Grid -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="menuItemsGrid">
         @foreach($menuItems as $item)
-        <div class="col menu-item-card" data-category="{{ $item->category }}" data-status="{{ $item->status }}">
+        <div class="col menu-item-card" data-category="{{ $item->category }}" data-status="{{ $item->status }}" data-item-id="{{ $item->id }}">
             <div class="card menu-item border-0 shadow-sm h-100">
                 <div class="position-relative">
                     <img src="{{ $item->image }}" class="card-img-top" alt="{{ $item->name }}" style="height: 200px; object-fit: cover;">
@@ -114,7 +114,7 @@
                 </div>
                 <div class="card-body">
                     <h5 class="card-title text-coffee">{{ $item->name }}</h5>
-                    <p class="card-text text-muted">{{ $item->description }}</p>
+                    <p class="card-text text-muted">{{ Str::limit($item->description, 100) }}</p>
                     
                     <div class="item-details mb-3">
                         <div class="row g-2">
@@ -124,130 +124,129 @@
                             </div>
                             <div class="col-6">
                                 <small class="text-muted">Prep Time:</small>
-                                <div class="fw-bold">{{ $item->preparation_time }}</div>
+                                <div class="fw-bold">{{ $item->preparation_time ?? 'Not specified' }}</div>
                             </div>
                             <div class="col-6">
                                 <small class="text-muted">Calories:</small>
-                             <div class="fw-bold">{{ $item->calories ?? 'Not specified' }}</div>
+                                <div class="fw-bold">{{ $item->calories ?? 'Not specified' }}</div>
                             </div>
                             <div class="col-6">
                                 <small class="text-muted">Allergens:</small>
-                                <div class="fw-bold">{{ empty($item->allergens) ? 'None' : implode(', ', $item->allergens) }}</div>
+                                <div class="fw-bold">{{ empty($item->allergens) ? 'None' : (is_array($item->allergens) ? implode(', ', $item->allergens) : $item->allergens) }}</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary" onclick="editItem({{ $item->id }})">
+                            <button class="btn btn-outline-info" onclick="viewDetails({{ $item->id }})" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="editItem({{ $item->id }})" title="Edit Item">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-{{ $item->status === 'active' ? 'warning' : 'success' }}" 
-                                    onclick="toggleStatus({{ $item->id }}, '{{ $item->status }}')">
+                                    onclick="toggleStatus({{ $item->id }}, '{{ $item->status }}')" 
+                                    title="{{ $item->status === 'active' ? 'Deactivate' : 'Activate' }}">
                                 <i class="bi bi-{{ $item->status === 'active' ? 'pause' : 'play' }}"></i>
                             </button>
-                            <button class="btn btn-outline-danger" onclick="deleteItem({{ $item->id }})">
+                            <button class="btn btn-outline-danger" onclick="deleteItem({{ $item->id }})" title="Delete Item">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
-                        <button class="btn btn-coffee btn-sm" onclick="viewDetails({{ $item->id }})">
-                            <i class="bi bi-eye"></i> View
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
         @endforeach
     </div>
+
+    @if($menuItems->isEmpty())
+    <div class="text-center py-5">
+        <i class="bi bi-cup text-muted" style="font-size: 4rem;"></i>
+        <h4 class="text-muted mt-3">No menu items found</h4>
+        <p class="text-muted">Start by adding your first menu item!</p>
+        <button class="btn btn-coffee" data-bs-toggle="modal" data-bs-target="#addItemModal">
+            <i class="bi bi-plus-circle me-2"></i>Add First Item
+        </button>
+    </div>
+    @endif
 </div>
 
 <!-- Add Item Modal -->
 <div class="modal fade" id="addItemModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add New Menu Item</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-coffee text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Menu Item
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="addItemForm">
+                <form id="addItemForm" enctype="multipart/form-data">
+                    @csrf
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Item Name *</label>
+                            <label class="form-label fw-semibold">Item Name *</label>
                             <input type="text" class="form-control" name="name" required>
+                            <div class="invalid-feedback">Please provide an item name.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Category *</label>
-                            <input type="text" class="form-control" name="category" list="categoryList" required>
-                            <datalist id="categoryList">
-                                <option value="Hot Coffee">
-                                <option value="Cold Coffee">
-                                <option value="Specialty">
-                                <option value="Tea & Others">
-                                <option value="Food & Snacks">
-                            </datalist>
+                            <label class="form-label fw-semibold">Category *</label>
+                            <select class="form-select" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Hot Coffee">Hot Coffee</option>
+                                <option value="Cold Coffee">Cold Coffee</option>
+                                <option value="Specialty">Specialty</option>
+                                <option value="Tea & Others">Tea & Others</option>
+                                <option value="Food & Snacks">Food & Snacks</option>
+                            </select>
+                            <div class="invalid-feedback">Please select a category.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Price (Rs.) *</label>
-                            <input type="number" class="form-control" name="price" step="0.01" required>
+                            <label class="form-label fw-semibold">Price (Rs.) *</label>
+                            <input type="number" class="form-control" name="price" step="0.01" min="0" required>
+                            <div class="invalid-feedback">Please provide a valid price.</div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Preparation Time</label>
+                            <label class="form-label fw-semibold">Preparation Time</label>
                             <input type="text" class="form-control" name="preparation_time" placeholder="e.g., 3-4 min">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Calories</label>
-                            <input type="number" class="form-control" name="calories">
-                            <div class="form-text">
-                                <small class="text-muted">Optional: Enter calorie count per serving</small>
-                            </div>
+                            <label class="form-label fw-semibold">Calories</label>
+                            <input type="number" class="form-control" name="calories" min="0">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Status</label>
+                            <label class="form-label fw-semibold">Status</label>
                             <select class="form-select" name="status">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Description *</label>
+                            <label class="form-label fw-semibold">Description *</label>
                             <textarea class="form-control" name="description" rows="3" required placeholder="Enter a detailed description of the menu item..."></textarea>
-                            <div class="invalid-feedback">
-                                Please provide a description for the menu item.
-                            </div>
+                            <div class="invalid-feedback">Please provide a description.</div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Ingredients (comma separated)</label>
+                            <label class="form-label fw-semibold">Ingredients (comma separated)</label>
                             <input type="text" class="form-control" name="ingredients" placeholder="e.g., Espresso, Steamed milk, Foam">
-                            <div class="form-text">
-                                <small class="text-muted">Separate ingredients with commas</small>
-                            </div>
+                            <small class="text-muted">Separate ingredients with commas</small>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Allergens (comma separated)</label>
+                            <label class="form-label fw-semibold">Allergens (comma separated)</label>
                             <input type="text" class="form-control" name="allergens" placeholder="e.g., Dairy, Nuts">
-                            <div class="form-text">
-                                <small class="text-muted">List any allergens separated by commas</small>
-                            </div>
+                            <small class="text-muted">List any allergens separated by commas</small>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Image</label>
+                            <label class="form-label fw-semibold">Image</label>
                             <div class="mb-2">
                                 <input type="file" class="form-control" name="image" accept="image/*">
                                 <small class="text-muted">Or provide image URL below</small>
                             </div>
                             <input type="url" class="form-control" name="image_url" placeholder="https://...">
-                            <div class="form-text">
-                                <small class="text-muted">Upload an image file or provide a URL</small>
-                            </div>
-                        </div>
-                        
-                        <!-- Preview Section -->
-                        <div class="col-12">
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle me-2"></i>
-                                <strong>Preview:</strong> Your menu item will appear in the customer menu once saved and activated.
-                            </div>
+                            <small class="text-muted">Upload an image file or provide a URL</small>
                         </div>
                     </div>
                 </form>
@@ -273,63 +272,57 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="editItemForm">
+                <form id="editItemForm" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" id="editItemId" name="item_id">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">Item Name *</label>
+                            <label class="form-label fw-semibold">Item Name *</label>
                             <input type="text" class="form-control" id="editItemName" name="name" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Category *</label>
-                            <input type="text" class="form-control" id="editItemCategory" name="category" list="categoryList" required>
+                            <label class="form-label fw-semibold">Category *</label>
+                            <select class="form-select" id="editItemCategory" name="category" required>
+                                <option value="Hot Coffee">Hot Coffee</option>
+                                <option value="Cold Coffee">Cold Coffee</option>
+                                <option value="Specialty">Specialty</option>
+                                <option value="Tea & Others">Tea & Others</option>
+                                <option value="Food & Snacks">Food & Snacks</option>
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Price (Rs.) *</label>
+                            <label class="form-label fw-semibold">Price (Rs.) *</label>
                             <input type="number" class="form-control" id="editItemPrice" name="price" step="0.01" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Preparation Time</label>
+                            <label class="form-label fw-semibold">Preparation Time</label>
                             <input type="text" class="form-control" id="editItemPrepTime" name="preparation_time">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Calories</label>
+                            <label class="form-label fw-semibold">Calories</label>
                             <input type="number" class="form-control" id="editItemCalories" name="calories">
-                            <div class="form-text">
-                                <small class="text-muted">Optional: Enter calorie count per serving</small>
-                            </div>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Status</label>
+                            <label class="form-label fw-semibold">Status</label>
                             <select class="form-select" id="editItemStatus" name="status">
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Description *</label>
-                            <textarea class="form-control" id="editItemDescription" name="description" rows="3" required placeholder="Enter a detailed description of the menu item..."></textarea>
-                            <div class="invalid-feedback">
-                                Please provide a description for the menu item.
-                            </div>
+                            <label class="form-label fw-semibold">Description *</label>
+                            <textarea class="form-control" id="editItemDescription" name="description" rows="3" required></textarea>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Ingredients (comma separated)</label>
+                            <label class="form-label fw-semibold">Ingredients (comma separated)</label>
                             <input type="text" class="form-control" id="editItemIngredients" name="ingredients">
-                            <div class="form-text">
-                                <small class="text-muted">Separate ingredients with commas</small>
-                            </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Allergens (comma separated)</label>
+                            <label class="form-label fw-semibold">Allergens (comma separated)</label>
                             <input type="text" class="form-control" id="editItemAllergens" name="allergens">
-                            <div class="form-text">
-                                <small class="text-muted">List any allergens separated by commas</small>
-                            </div>
                         </div>
                         <div class="col-12">
-                            <label class="form-label">Image</label>
+                            <label class="form-label fw-semibold">Image</label>
                             <div class="mb-2">
                                 <img id="currentImage" src="" alt="Current Image" class="img-thumbnail" style="max-width: 200px; display: none;">
                             </div>
@@ -338,9 +331,6 @@
                                 <small class="text-muted">Or provide image URL below</small>
                             </div>
                             <input type="url" class="form-control" id="editItemImageUrl" name="image_url">
-                            <div class="form-text">
-                                <small class="text-muted">Upload a new image file or provide a URL</small>
-                            </div>
                         </div>
                     </div>
                 </form>
@@ -359,16 +349,20 @@
 <div class="modal fade" id="itemDetailsModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Item Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-info-circle me-2"></i>Item Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="itemDetailsBody">
                 <!-- Item details will be loaded here -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-coffee" onclick="editItemFromDetails()">Edit Item</button>
+                <button type="button" class="btn btn-coffee" onclick="editItemFromDetails()">
+                    <i class="bi bi-pencil me-2"></i>Edit Item
+                </button>
             </div>
         </div>
     </div>
@@ -472,6 +466,59 @@ function animateStatUpdate(elementId, newValue) {
     }
 }
 
+function viewDetails(itemId) {
+    currentItemId = itemId;
+    
+    fetch(`/admin/menu/${itemId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const item = data.menu_item;
+                
+                const modalBody = document.getElementById('itemDetailsBody');
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img src="${item.image || 'https://via.placeholder.com/300x200'}" 
+                                 class="img-fluid rounded" alt="${item.name}">
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="text-coffee">${item.name}</h4>
+                            <p class="text-muted">${item.description || 'No description available'}</p>
+                            
+                            <table class="table table-sm">
+                                <tr><td><strong>Category:</strong></td><td>${item.category}</td></tr>
+                                <tr><td><strong>Price:</strong></td><td>Rs. ${parseFloat(item.price).toFixed(2)}</td></tr>
+                                <tr><td><strong>Preparation Time:</strong></td><td>${item.preparation_time || 'Not specified'}</td></tr>
+                                <tr><td><strong>Calories:</strong></td><td>${item.calories || 'Not specified'}</td></tr>
+                                <tr><td><strong>Status:</strong></td><td><span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td></tr>
+                                <tr><td><strong>Created:</strong></td><td>${new Date(item.created_at).toLocaleDateString()}</td></tr>
+                                <tr><td><strong>Updated:</strong></td><td>${new Date(item.updated_at).toLocaleDateString()}</td></tr>
+                            </table>
+
+                            ${item.ingredients && item.ingredients.length > 0 ? `
+                                <h6 class="mt-3">Ingredients</h6>
+                                <p class="small">${Array.isArray(item.ingredients) ? item.ingredients.join(', ') : item.ingredients}</p>
+                            ` : ''}
+
+                            ${item.allergens && item.allergens.length > 0 ? `
+                                <h6 class="mt-3">Allergens</h6>
+                                <p class="small">${Array.isArray(item.allergens) ? item.allergens.join(', ') : item.allergens}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                
+                const modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
+                modal.show();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to load item details', 'error');
+        });
+}
+
 function editItem(itemId) {
     fetch(`/admin/menu/${itemId}`)
         .then(response => response.json())
@@ -487,8 +534,8 @@ function editItem(itemId) {
                 document.getElementById('editItemCalories').value = item.calories || '';
                 document.getElementById('editItemStatus').value = item.status;
                 document.getElementById('editItemDescription').value = item.description || '';
-                document.getElementById('editItemIngredients').value = item.ingredients ? item.ingredients.join(', ') : '';
-                document.getElementById('editItemAllergens').value = item.allergens ? item.allergens.join(', ') : '';
+                document.getElementById('editItemIngredients').value = Array.isArray(item.ingredients) ? item.ingredients.join(', ') : (item.ingredients || '');
+                document.getElementById('editItemAllergens').value = Array.isArray(item.allergens) ? item.allergens.join(', ') : (item.allergens || '');
                 document.getElementById('editItemImageUrl').value = item.image || '';
                 
                 // Show current image
@@ -508,6 +555,15 @@ function editItem(itemId) {
             console.error('Error:', error);
             showNotification('Failed to load item data', 'error');
         });
+}
+
+function editItemFromDetails() {
+    const modal = bootstrap.Modal.getInstance(document.getElementById('itemDetailsModal'));
+    modal.hide();
+    
+    setTimeout(() => {
+        editItem(currentItemId);
+    }, 300);
 }
 
 function toggleStatus(itemId, currentStatus) {
@@ -541,6 +597,10 @@ function toggleStatus(itemId, currentStatus) {
             // Update button
             button.className = `btn btn-outline-${newStatus === 'active' ? 'warning' : 'success'} btn-sm`;
             button.innerHTML = `<i class="bi bi-${newStatus === 'active' ? 'pause' : 'play'}"></i>`;
+            button.title = newStatus === 'active' ? 'Deactivate' : 'Activate';
+            
+            // Update data attribute
+            card.setAttribute('data-status', newStatus);
             
             // Update stats after operation
             if (typeof updateStatsAfterOperation === 'function') {
@@ -588,6 +648,12 @@ function deleteItem(itemId) {
                 
                 setTimeout(() => {
                     card.remove();
+                    
+                    // Check if no items left
+                    const remainingItems = document.querySelectorAll('.menu-item-card');
+                    if (remainingItems.length === 0) {
+                        location.reload(); // Reload to show empty state
+                    }
                 }, 300);
                 
                 // Update stats after operation
@@ -609,66 +675,6 @@ function deleteItem(itemId) {
     }
 }
 
-function viewDetails(itemId) {
-    currentItemId = itemId;
-    
-    fetch(`/admin/menu/${itemId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const item = data.menu_item;
-                
-                const modalBody = document.getElementById('itemDetailsBody');
-                modalBody.innerHTML = `
-                    <div class="row">
-                        <div class="col-md-4">
-                            <img src="${item.image || 'https://via.placeholder.com/300x200'}" 
-                                 class="img-fluid rounded" alt="${item.name}">
-                        </div>
-                        <div class="col-md-8">
-                            <h6>${item.name}</h6>
-                            <p class="text-muted">${item.description || 'No description available'}</p>
-                            
-                            <table class="table table-sm">
-                                <tr><td><strong>Category:</strong></td><td>${item.category}</td></tr>
-                                <tr><td><strong>Price:</strong></td><td>Rs. ${parseFloat(item.price).toFixed(2)}</td></tr>
-                                <tr><td><strong>Preparation Time:</strong></td><td>${item.preparation_time || 'Not specified'}</td></tr>
-                                <tr><td><strong>Calories:</strong></td><td>${item.calories || 'Not specified'}</td></tr>
-                                <tr><td><strong>Status:</strong></td><td><span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td></tr>
-                            </table>
-
-                            ${item.ingredients && item.ingredients.length > 0 ? `
-                                <h6 class="mt-3">Ingredients</h6>
-                                <p class="small">${item.ingredients.join(', ')}</p>
-                            ` : ''}
-
-                            ${item.allergens && item.allergens.length > 0 ? `
-                                <h6 class="mt-3">Allergens</h6>
-                                <p class="small">${item.allergens.join(', ')}</p>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-                
-                const modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
-                modal.show();
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            showNotification('Failed to load item details', 'error');
-        });
-}
-
-function editItemFromDetails() {
-    const modal = bootstrap.Modal.getInstance(document.getElementById('itemDetailsModal'));
-    modal.hide();
-    
-    setTimeout(() => {
-        editItem(currentItemId);
-    }, 300);
-}
-    
 function saveItem() {
     const form = document.getElementById('addItemForm');
     const formData = new FormData(form);
@@ -716,11 +722,6 @@ function saveItem() {
             if (typeof updateStatsAfterOperation === 'function') {
                 updateStatsAfterOperation();
             }
-            
-            // Show success details
-            setTimeout(() => {
-                showNotification(`Item ID: ${data.menu_item.id} | Category: ${data.menu_item.category}`, 'info');
-            }, 1000);
         } else {
             showNotification(data.message || 'Failed to create menu item', 'error');
             if (data.errors) {
@@ -832,6 +833,7 @@ function updateItemInGrid(item) {
 
 function createItemCard(item) {
     const allergens = Array.isArray(item.allergens) ? item.allergens.join(', ') : (item.allergens || 'None');
+    const ingredients = Array.isArray(item.ingredients) ? item.ingredients.join(', ') : (item.ingredients || '');
     
     return `
         <div class="col menu-item-card" data-category="${item.category}" data-status="${item.status}" data-item-id="${item.id}">
@@ -849,7 +851,7 @@ function createItemCard(item) {
                 </div>
                 <div class="card-body">
                     <h5 class="card-title text-coffee">${item.name}</h5>
-                    <p class="card-text text-muted">${item.description}</p>
+                    <p class="card-text text-muted">${item.description.length > 100 ? item.description.substring(0, 100) + '...' : item.description}</p>
                     
                     <div class="item-details mb-3">
                         <div class="row g-2">
@@ -874,20 +876,21 @@ function createItemCard(item) {
 
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-primary" onclick="editItem(${item.id})">
+                            <button class="btn btn-outline-info" onclick="viewDetails(${item.id})" title="View Details">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="editItem(${item.id})" title="Edit Item">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button class="btn btn-outline-${item.status === 'active' ? 'warning' : 'success'}" 
-                                    onclick="toggleStatus(${item.id}, '${item.status}')">
+                                    onclick="toggleStatus(${item.id}, '${item.status}')" 
+                                    title="${item.status === 'active' ? 'Deactivate' : 'Activate'}">
                                 <i class="bi bi-${item.status === 'active' ? 'pause' : 'play'}"></i>
                             </button>
-                            <button class="btn btn-outline-danger" onclick="deleteItem(${item.id})">
+                            <button class="btn btn-outline-danger" onclick="deleteItem(${item.id})" title="Delete Item">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
-                        <button class="btn btn-coffee btn-sm" onclick="viewDetails(${item.id})">
-                            <i class="bi bi-eye"></i> View
-                        </button>
                     </div>
                 </div>
             </div>
