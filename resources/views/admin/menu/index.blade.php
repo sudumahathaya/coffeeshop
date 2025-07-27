@@ -583,7 +583,7 @@ function toggleStatus(itemId, currentStatus) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Item status updated successfully!', 'success');
+            showNotification(`Item status updated successfully! ${data.menu_item.status === 'active' ? '✅' : '⏸️'}`, 'success');
             
             // Update the button and badge in the UI
             const card = button.closest('.menu-item-card');
@@ -625,11 +625,56 @@ function deleteItem(itemId) {
     // Enhanced confirmation dialog
     const itemName = document.querySelector(`[data-item-id="${itemId}"] .card-title`).textContent;
     
-    if (confirm(`Are you sure you want to delete "${itemName}"?\n\nThis action cannot be undone and will permanently remove this item from your menu.`)) {
+    // Create custom confirmation modal
+    const confirmModal = document.createElement('div');
+    confirmModal.className = 'modal fade';
+    confirmModal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Confirm Deletion
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-trash text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    <h5 class="text-center mb-3">Delete "${itemName}"?</h5>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone and will permanently remove this item from your menu.
+                    </div>
+                    <p class="text-muted text-center">Are you absolutely sure you want to delete this menu item?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x me-2"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDelete(${itemId}, '${itemName}')" data-bs-dismiss="modal">
+                        <i class="bi bi-trash me-2"></i>Yes, Delete Item
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(confirmModal);
+    const modal = new bootstrap.Modal(confirmModal);
+    modal.show();
+    
+    // Clean up when modal is hidden
+    confirmModal.addEventListener('hidden.bs.modal', function() {
+        document.body.removeChild(confirmModal);
+    });
+}
+
+function confirmDelete(itemId, itemName) {
         const button = event.target.closest('button');
         const originalText = button.innerHTML;
         
-        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
         button.disabled = true;
 
         fetch(`/admin/menu/${itemId}`, {
@@ -641,10 +686,10 @@ function deleteItem(itemId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification(`"${itemName}" has been deleted successfully!`, 'success');
+                showNotification(`"${itemName}" has been deleted successfully! 🗑️`, 'success');
                 
                 // Remove the item card from the UI
-                const card = button.closest('.menu-item-card');
+                const card = document.querySelector(`[data-item-id="${itemId}"]`);
                 card.style.transition = 'all 0.3s ease';
                 card.style.opacity = '0';
                 card.style.transform = 'scale(0.8)';
@@ -675,7 +720,6 @@ function deleteItem(itemId) {
             button.innerHTML = originalText;
             button.disabled = false;
         });
-    }
 }
 
 function saveItem() {
@@ -713,7 +757,7 @@ function saveItem() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(`${data.menu_item.name} has been added to the menu successfully!`, 'success');
+            showNotification(`${data.menu_item.name} has been added to the menu successfully! ✨`, 'success');
             const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
             modal.hide();
             form.reset();
@@ -776,7 +820,7 @@ function updateItem() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification('Menu item updated successfully!', 'success');
+            showNotification('Menu item updated successfully! 📝', 'success');
             const modal = bootstrap.Modal.getInstance(document.getElementById('editItemModal'));
             modal.hide();
             
@@ -901,6 +945,33 @@ function createItemCard(item) {
     `;
 }
 
+// Enhanced modal action handlers for item details
+function toggleStatusFromDetails() {
+    if (currentItemId) {
+        const detailsModal = bootstrap.Modal.getInstance(document.getElementById('itemDetailsModal'));
+        detailsModal.hide();
+        
+        setTimeout(() => {
+            const itemCard = document.querySelector(`[data-item-id="${currentItemId}"]`);
+            const toggleButton = itemCard.querySelector('[onclick*="toggleStatus"]');
+            if (toggleButton) {
+                toggleButton.click();
+            }
+        }, 300);
+    }
+}
+
+function deleteItemFromDetails() {
+    if (currentItemId) {
+        const detailsModal = bootstrap.Modal.getInstance(document.getElementById('itemDetailsModal'));
+        detailsModal.hide();
+        
+        setTimeout(() => {
+            deleteItem(currentItemId);
+        }, 300);
+    }
+}
+
 function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `alert alert-${type} position-fixed notification-toast`;
@@ -912,10 +983,19 @@ function showNotification(message, type = 'info') {
         border-radius: 15px;
         animation: slideInRight 0.5s ease;
         box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        backdrop-filter: blur(10px);
+    `;
+    
+    // Add emoji based on type for better visual feedback
+    const emojiMap = {
+        'success': '✅',
+        'error': '❌',
+        'warning': '⚠️',
+        'info': 'ℹ️'
     `;
     notification.innerHTML = `
         <div class="d-flex align-items-center">
-            <i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'error' ? 'exclamation-triangle-fill' : 'info-circle-fill'} me-2"></i>
+            <span class="me-2">${emojiMap[type] || 'ℹ️'}</span>
             <span class="flex-grow-1">${message}</span>
             <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
         </div>

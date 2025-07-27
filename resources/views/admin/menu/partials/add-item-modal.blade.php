@@ -138,11 +138,16 @@
 
                         <!-- Preview Section -->
                         <div class="col-12 mt-4">
-                            <div class="preview-section" style="display: none;">
+                            <div class="preview-section" id="imagePreviewSection" style="display: none;">
                                 <h6 class="text-coffee mb-3">
                                     <i class="bi bi-eye me-2"></i>Image Preview
                                 </h6>
-                                <img id="imagePreview" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px;">
+                                <div class="preview-container">
+                                    <img id="imagePreview" src="" alt="Preview" class="preview-image">
+                                    <button type="button" class="btn btn-sm btn-outline-danger preview-remove" onclick="removeImagePreview()">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -183,6 +188,31 @@
 .bg-coffee {
     background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary)) !important;
 }
+
+.preview-container {
+    position: relative;
+    display: inline-block;
+}
+
+.preview-image {
+    max-width: 200px;
+    max-height: 150px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.preview-remove {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 </style>
 
 <script>
@@ -198,10 +228,24 @@ document.addEventListener('DOMContentLoaded', function() {
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select a valid image file.');
+                    this.value = '';
+                    return;
+                }
+                
+                // Validate file size (2MB limit)
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Image size must be less than 2MB.');
+                    this.value = '';
+                    return;
+                }
+                
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     imagePreview.src = e.target.result;
-                    previewSection.style.display = 'block';
+                    showImagePreview();
                 };
                 reader.readAsDataURL(file);
                 imageUrlInput.value = ''; // Clear URL input
@@ -214,14 +258,55 @@ document.addEventListener('DOMContentLoaded', function() {
         imageUrlInput.addEventListener('input', function(e) {
             const url = e.target.value;
             if (url && isValidUrl(url)) {
-                imagePreview.src = url;
-                previewSection.style.display = 'block';
-                imageInput.value = ''; // Clear file input
+                // Test if URL is actually an image
+                const testImg = new Image();
+                testImg.onload = function() {
+                    imagePreview.src = url;
+                    showImagePreview();
+                    imageInput.value = ''; // Clear file input
+                };
+                testImg.onerror = function() {
+                    alert('Invalid image URL. Please check the URL and try again.');
+                };
+                testImg.src = url;
             } else if (!url) {
-                previewSection.style.display = 'none';
+                hideImagePreview();
             }
         });
     }
+
+    function showImagePreview() {
+        const previewSection = document.getElementById('imagePreviewSection');
+        previewSection.style.display = 'block';
+        previewSection.style.opacity = '0';
+        previewSection.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            previewSection.style.transition = 'all 0.3s ease';
+            previewSection.style.opacity = '1';
+            previewSection.style.transform = 'translateY(0)';
+        }, 100);
+    }
+    
+    function hideImagePreview() {
+        const previewSection = document.getElementById('imagePreviewSection');
+        previewSection.style.transition = 'all 0.3s ease';
+        previewSection.style.opacity = '0';
+        previewSection.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            previewSection.style.display = 'none';
+        }, 300);
+    }
+    
+    window.removeImagePreview = function() {
+        const imageInput = document.querySelector('input[name="image"]');
+        const imageUrlInput = document.querySelector('input[name="image_url"]');
+        
+        imageInput.value = '';
+        imageUrlInput.value = '';
+        hideImagePreview();
+    };
 
     function isValidUrl(string) {
         try {

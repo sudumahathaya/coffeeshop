@@ -13,13 +13,13 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="editItemFromDetails()">
+                <button type="button" class="btn btn-coffee" onclick="editItemFromDetails()">
                     <i class="bi bi-pencil me-2"></i>Edit Item
                 </button>
-                <button type="button" class="btn btn-warning" onclick="toggleStatusFromDetails()">
+                <button type="button" class="btn btn-outline-warning" onclick="toggleStatusFromDetails()">
                     <i class="bi bi-eye-slash me-2"></i>Toggle Status
                 </button>
-                <button type="button" class="btn btn-danger" onclick="deleteItemFromDetails()">
+                <button type="button" class="btn btn-outline-danger" onclick="deleteItemFromDetails()">
                     <i class="bi bi-trash me-2"></i>Delete Item
                 </button>
             </div>
