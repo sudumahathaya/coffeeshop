@@ -67,7 +67,7 @@ Route::middleware('auth')->group(function () {
     // Direct reservation management for users
     Route::delete('/user/reservations/{id}/cancel', function($id) {
         $reservation = \App\Models\Reservation::where('id', $id)
-            ->where('user_id', Auth::id())
+            ->where('user_id', '=', Auth::id())
             ->first();
         
         if (!$reservation) {
@@ -120,9 +120,9 @@ Route::get('/admin/api/menu-stats', function() {
     $categories = \App\Models\MenuItem::select('category')->distinct()->pluck('category');
     
     $stats = [
-        'total_items' => \App\Models\MenuItem::count(),
-        'active_items' => \App\Models\MenuItem::where('status', 'active')->count(),
-        'inactive_items' => \App\Models\MenuItem::where('status', 'inactive')->count(),
+        'total_items' => \App\Models\MenuItem::count('id'),
+        'active_items' => \App\Models\MenuItem::where('status', '=', 'active')->count('id'),
+        'inactive_items' => \App\Models\MenuItem::where('status', '=', 'inactive')->count('id'),
         'total_categories' => $categories->count(),
         'average_price' => \App\Models\MenuItem::avg('price') ?? 0,
         'highest_price' => \App\Models\MenuItem::max('price') ?? 0,
