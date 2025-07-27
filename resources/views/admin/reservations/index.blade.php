@@ -956,10 +956,29 @@ function applyFilters() {
 }
 
 function refreshReservations() {
-    location.reload();
 }
 
 function exportReservations() {
     showNotification('Export functionality coming soon!', 'info');
+}
+
+// CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    
+    @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    
+    .notification-toast {
+        backdrop-filter: blur(10px);
+    }
+`;
+document.head.appendChild(style);
 </script>
 @endpush
