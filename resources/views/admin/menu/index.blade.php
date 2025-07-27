@@ -476,7 +476,38 @@ function viewDetails(itemId) {
                 const item = data.menu_item;
                 
                 const modalBody = document.getElementById('itemDetailsBody');
-                modalBody.innerHTML = generateDetailedView(item);
+                modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-4">
+                            <img src="${item.image || 'https://via.placeholder.com/300x200'}" 
+                                 class="img-fluid rounded" alt="${item.name}">
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="text-coffee">${item.name}</h4>
+                            <p class="text-muted">${item.description || 'No description available'}</p>
+                            
+                            <table class="table table-sm">
+                                <tr><td><strong>Category:</strong></td><td>${item.category}</td></tr>
+                                <tr><td><strong>Price:</strong></td><td>Rs. ${parseFloat(item.price).toFixed(2)}</td></tr>
+                                <tr><td><strong>Preparation Time:</strong></td><td>${item.preparation_time || 'Not specified'}</td></tr>
+                                <tr><td><strong>Calories:</strong></td><td>${item.calories || 'Not specified'}</td></tr>
+                                <tr><td><strong>Status:</strong></td><td><span class="badge bg-${item.status === 'active' ? 'success' : 'secondary'}">${item.status.charAt(0).toUpperCase() + item.status.slice(1)}</span></td></tr>
+                                <tr><td><strong>Created:</strong></td><td>${new Date(item.created_at).toLocaleDateString()}</td></tr>
+                                <tr><td><strong>Updated:</strong></td><td>${new Date(item.updated_at).toLocaleDateString()}</td></tr>
+                            </table>
+
+                            ${item.ingredients && item.ingredients.length > 0 ? `
+                                <h6 class="mt-3">Ingredients</h6>
+                                <p class="small">${Array.isArray(item.ingredients) ? item.ingredients.join(', ') : item.ingredients}</p>
+                            ` : ''}
+
+                            ${item.allergens && item.allergens.length > 0 ? `
+                                <h6 class="mt-3">Allergens</h6>
+                                <p class="small">${Array.isArray(item.allergens) ? item.allergens.join(', ') : item.allergens}</p>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
                 
                 const modal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
                 modal.show();
@@ -591,7 +622,10 @@ function toggleStatus(itemId, currentStatus) {
 }
 
 function deleteItem(itemId) {
-    if (confirm('Are you sure you want to delete this item? This action cannot be undone.')) {
+    // Enhanced confirmation dialog
+    const itemName = document.querySelector(`[data-item-id="${itemId}"] .card-title`).textContent;
+    
+    if (confirm(`Are you sure you want to delete "${itemName}"?\n\nThis action cannot be undone and will permanently remove this item from your menu.`)) {
         const button = event.target.closest('button');
         const originalText = button.innerHTML;
         
@@ -607,7 +641,7 @@ function deleteItem(itemId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                showNotification('Item deleted successfully!', 'success');
+                showNotification(`"${itemName}" has been deleted successfully!`, 'success');
                 
                 // Remove the item card from the UI
                 const card = button.closest('.menu-item-card');

@@ -245,7 +245,7 @@ class MenuController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Menu item status updated successfully',
+                'message' => $newStatus === 'active' ? 'Menu item activated successfully' : 'Menu item deactivated successfully',
                 'menu_item' => $menuItem->fresh()
             ]);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
