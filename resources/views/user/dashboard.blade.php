@@ -35,7 +35,7 @@
                         <p class="text-white-50 mb-3">{{ $dashboardData['stats']['loyalty_points'] }} loyalty points</p>
                         <div class="progress-container">
                             <div class="progress">
-                                <div class="progress-bar bg-warning" style="width: {{ ($dashboardData['stats']['loyalty_points'] / 1500) * 100 }}%"></div>
+                                <div class="progress-bar bg-warning" style="width: {{ min(($dashboardData['stats']['loyalty_points'] / 1500) * 100, 100) }}%"></div>
                             </div>
                             <small class="text-white-50 mt-2 d-block">{{ $dashboardData['stats']['points_to_next_tier'] }} points to next tier</small>
                         </div>
@@ -234,7 +234,7 @@
                     </div>
                     <div class="section-body text-center">
                         <div class="loyalty-circle mb-3">
-                            <div class="circle-progress" data-percentage="{{ ($dashboardData['stats']['loyalty_points'] / 1500) * 100 }}">
+                            <div class="circle-progress" data-percentage="{{ min(($dashboardData['stats']['loyalty_points'] / 1500) * 100, 100) }}">
                                 <div class="circle-content">
                                     <span class="points">{{ $dashboardData['stats']['loyalty_points'] }}</span>
                                     <small>points</small>

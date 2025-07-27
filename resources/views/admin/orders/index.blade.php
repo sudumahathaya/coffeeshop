@@ -428,14 +428,16 @@ function refreshOrdersTable() {
 }
 
 // Real-time updates using WebSockets (if available)
-if (typeof Echo !== 'undefined') {
-    Echo.channel('orders')
-        .listen('OrderUpdated', (e) => {
-            console.log('Order updated:', e);
-            updateOrderInTable(e);
-            showNotification(`Order ${e.order_id} status updated to ${e.status}`, 'info');
-        });
-}
+// Real-time updates using WebSockets (if available)
+// Uncomment when Pusher/Echo is configured
+// if (typeof Echo !== 'undefined') {
+//     Echo.channel('orders')
+//         .listen('OrderUpdated', (e) => {
+//             console.log('Order updated:', e);
+//             updateOrderInTable(e);
+//             showNotification(`Order ${e.order_id} status updated to ${e.status}`, 'info');
+//         });
+// }
 
 function updateOrderInTable(orderData) {
     const row = document.querySelector(`tr[data-order-id="${orderData.id}"]`);

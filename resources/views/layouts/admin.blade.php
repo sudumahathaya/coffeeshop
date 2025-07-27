@@ -306,22 +306,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Pusher for real-time updates (optional) -->
-    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
-    <script>
-        // Initialize Pusher for real-time updates
-        if (typeof Pusher !== 'undefined') {
-            const pusher = new Pusher('your-pusher-key', {
-                cluster: 'your-cluster'
-            });
-            
-            // Make it available globally
-            window.Echo = {
-                channel: function(channelName) {
-                    return pusher.subscribe(channelName);
-                }
-            };
-        }
-    </script>
+    <!-- Pusher for real-time updates (optional) -->
+    <!-- <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script> -->
 
     <!-- Custom JavaScript -->
     <script>
