@@ -33,8 +33,8 @@ class MenuItem extends Model
 
     protected $attributes = [
         'status' => 'active',
-        'ingredients' => null,
-        'allergens' => null,
+        'ingredients' => '[]',
+        'allergens' => '[]',
     ];
 
     /**

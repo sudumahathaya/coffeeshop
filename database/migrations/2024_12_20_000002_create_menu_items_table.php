@@ -19,8 +19,8 @@ return new class extends Migration
             $table->decimal('price', 8, 2);
             $table->string('image')->nullable();
             $table->string('preparation_time')->nullable();
-            $table->json('ingredients')->nullable();
-            $table->json('allergens')->nullable();
+            $table->json('ingredients')->nullable()->default('[]');
+            $table->json('allergens')->nullable()->default('[]');
             $table->integer('calories')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();

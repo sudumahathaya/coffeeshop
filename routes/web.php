@@ -94,13 +94,21 @@ Route::middleware('auth')->group(function () {
 });
 
 // Menu API routes
-Route::middleware(['auth', 'admin'])->group(function () {
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/admin/menu', [AdminController::class, 'menuManagement'])->name('admin.menu');
     Route::post('/admin/menu', [MenuController::class, 'store'])->name('admin.menu.store');
     Route::get('/admin/menu/{id}', [MenuController::class, 'show'])->name('admin.menu.show');
     Route::put('/admin/menu/{id}', [MenuController::class, 'update'])->name('admin.menu.update');
     Route::patch('/admin/menu/{id}/toggle-status', [MenuController::class, 'toggleStatus'])->name('admin.menu.toggle-status');
     Route::delete('/admin/menu/{id}', [MenuController::class, 'destroy'])->name('admin.menu.destroy');
+    
+    // Remove the /admin prefix from these routes since we're already in admin group
+    Route::get('/menu', [AdminController::class, 'menuManagement'])->name('menu');
+    Route::post('/menu', [MenuController::class, 'store'])->name('menu.store');
+    Route::get('/menu/{id}', [MenuController::class, 'show'])->name('menu.show');
+    Route::put('/menu/{id}', [MenuController::class, 'update'])->name('menu.update');
+    Route::patch('/menu/{id}/toggle-status', [MenuController::class, 'toggleStatus'])->name('menu.toggle-status');
+    Route::delete('/menu/{id}', [MenuController::class, 'destroy'])->name('menu.destroy');
 });
 
 // Public menu API routes (for customer access)

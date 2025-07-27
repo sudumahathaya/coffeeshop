@@ -469,11 +469,16 @@ function animateStatUpdate(elementId, newValue) {
 function viewDetails(itemId) {
     currentItemId = itemId;
     
-    fetch(`/admin/menu/${itemId}`)
+    fetch(`/admin/menu/${itemId}`, {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const item = data.menu_item;
+                const item = data.menu_item || data.data;
                 
                 const modalBody = document.getElementById('itemDetailsBody');
                 modalBody.innerHTML = `
@@ -520,11 +525,16 @@ function viewDetails(itemId) {
 }
 
 function editItem(itemId) {
-    fetch(`/admin/menu/${itemId}`)
+    fetch(`/admin/menu/${itemId}`, {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                const item = data.menu_item;
+                const item = data.menu_item || data.data;
                 
                 document.getElementById('editItemId').value = item.id;
                 document.getElementById('editItemName').value = item.name;
@@ -757,13 +767,14 @@ function saveItem() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showNotification(`${data.menu_item.name} has been added to the menu successfully! ✨`, 'success');
+            const item = data.menu_item || data.data;
+            showNotification(`${item.name} has been added to the menu successfully! ✨`, 'success');
             const modal = bootstrap.Modal.getInstance(document.getElementById('addItemModal'));
             modal.hide();
             form.reset();
             
             // Add new item to the grid instead of reloading
-            addItemToGrid(data.menu_item);
+            addItemToGrid(item);
             
             // Update stats after operation
             if (typeof updateStatsAfterOperation === 'function') {
@@ -825,7 +836,8 @@ function updateItem() {
             modal.hide();
             
             // Update the item in the grid instead of reloading
-            updateItemInGrid(data.menu_item);
+            const item = data.menu_item || data.data;
+            updateItemInGrid(item);
             
             // Update stats after operation
             if (typeof updateStatsAfterOperation === 'function') {
