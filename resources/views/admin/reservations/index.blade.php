@@ -152,7 +152,7 @@
                             </td>
                             <td>
                                 <span>{{ $reservation->reservation_date->format('M d, Y') }}</span><br>
-                                <small class="text-muted">{{ $reservation->reservation_time->format('g:i A') }}</small>
+                                <small class="text-muted">{{ $reservation->reservation_time instanceof \Carbon\Carbon ? $reservation->reservation_time->format('g:i A') : $reservation->reservation_time }}</small>
                             </td>
                             <td>
                                 <span class="badge bg-light text-dark">{{ $reservation->guests }} {{ $reservation->guests == 1 ? 'Guest' : 'Guests' }}</span>

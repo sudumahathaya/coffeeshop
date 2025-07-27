@@ -189,7 +189,7 @@
                                         <h6 class="mb-1">Reservation #{{ $reservation->reservation_id }}</h6>
                                         <p class="text-muted mb-1">
                                             {{ $reservation->reservation_date->format('M d, Y') }} at 
-                                            {{ $reservation->reservation_time instanceof \Carbon\Carbon ? $reservation->reservation_time->format('g:i A') : $reservation->reservation_time }}
+                                            {{ is_string($reservation->reservation_time) ? date('g:i A', strtotime($reservation->reservation_time)) : $reservation->reservation_time->format('g:i A') }}
                                         </p>
                                         <small class="text-muted">{{ $reservation->guests }} {{ $reservation->guests == 1 ? 'guest' : 'guests' }}</small>
                                     </div>
