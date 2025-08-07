@@ -613,11 +613,6 @@
 
     <!-- Custom JavaScript -->
     <script>
-        // Add payment gateway script
-        const stripeScript = document.createElement('script');
-        stripeScript.src = 'https://js.stripe.com/v3/';
-        document.head.appendChild(stripeScript);
-        
         // Initialize AOS
         AOS.init({
             duration: 1000,
@@ -1109,8 +1104,14 @@
     <!-- Payment JavaScript -->
     <script src="{{ asset('js/payment.js') }}"></script>
     
+    <!-- Simulation Payment JavaScript -->
+    <script src="{{ asset('js/simulation-payment.js') }}"></script>
+    
     <!-- Coming Soon Features JavaScript -->
     <script src="{{ asset('js/coming-soon.js') }}"></script>
+
+    <!-- Payment Modal -->
+    @include('partials.payment-modal')
 
     @stack('scripts')
 </body>

@@ -148,6 +148,9 @@
                                             <i class="bi bi-box-arrow-in-right me-1"></i>Login to Order
                                         </a>
                                     @endauth
+                                    <button class="btn btn-outline-coffee btn-sm ms-2" data-payment-trigger>
+                                        <i class="bi bi-credit-card me-1"></i>Quick Pay
+                                    </button>
                                     <small class="text-muted">
                                         <i class="bi bi-clock me-1"></i>{{ $item->preparation_time ?? 'Ready soon' }}
                                     </small>

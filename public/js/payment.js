@@ -1,54 +1,62 @@
 // Enhanced Payment Gateway Integration
 class PaymentGateway {
     constructor() {
-        this.stripe = null;
-        this.elements = null;
-        this.card = null;
+        this.simulationMode = true;
+        this.supportedMethods = ['card', 'mobile', 'bank_transfer', 'digital_wallet', 'cash'];
         this.init();
     }
 
     async init() {
-        // Initialize Stripe (replace with your publishable key)
-        if (typeof Stripe !== 'undefined') {
-            this.stripe = Stripe('pk_test_your_stripe_publishable_key_here');
-            this.elements = this.stripe.elements();
-            
-            // Create card element
-            this.card = this.elements.create('card', {
-                style: {
-                    base: {
-                        fontSize: '16px',
-                        color: '#424770',
-                        '::placeholder': {
-                            color: '#aab7c4',
-                        },
-                    },
-                    invalid: {
-                        color: '#9e2146',
-                    },
-                },
-            });
-        }
+        console.log('Payment Gateway initialized in simulation mode');
+        this.bindEvents();
     }
 
-    mountCard(elementId) {
-        if (this.card) {
-            this.card.mount(elementId);
-            
-            this.card.on('change', (event) => {
-                const displayError = document.getElementById('card-errors');
-                if (event.error) {
-                    displayError.textContent = event.error.message;
-                    displayError.style.display = 'block';
-                } else {
-                    displayError.textContent = '';
-                    displayError.style.display = 'none';
-                }
-            });
-        }
+    bindEvents() {
+        // Payment modal trigger
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('[data-payment-trigger]')) {
+                e.preventDefault();
+                this.handlePaymentTrigger(e.target.closest('[data-payment-trigger]'));
+            }
+        });
     }
 
-    async createPaymentIntent(amount) {
+    handlePaymentTrigger(trigger) {
+        const orderData = this.extractOrderData(trigger);
+        this.showPaymentModal(orderData);
+    }
+
+    extractOrderData(trigger) {
+        // Extract order data from trigger element or cart
+        const cart = JSON.parse(localStorage.getItem('cafeElixirCart')) || [];
+        
+        if (cart.length === 0) {
+            this.showNotification('Your cart is empty!', 'warning');
+            return null;
+        }
+
+        const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        const tax = subtotal * 0.1;
+        const total = subtotal + tax;
+
+        return {
+            items: cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+            })),
+            subtotal: subtotal,
+            tax: tax,
+            total: total,
+            customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
+            customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
+            customer_phone: '',
+            order_id: 'ORD' + Date.now()
+        };
+    }
+
+    async createPaymentIntent(amount, method = 'card') {
         try {
             const response = await fetch('/api/payment/create-intent', {
                 method: 'POST',
@@ -56,7 +64,11 @@ class PaymentGateway {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
                 },
-                body: JSON.stringify({ amount: amount })
+                body: JSON.stringify({ 
+                    amount: amount,
+                    method: method,
+                    currency: 'LKR'
+                })
             });
 
             const data = await response.json();
@@ -67,42 +79,25 @@ class PaymentGateway {
         }
     }
 
-    async processPayment(clientSecret, orderData) {
-        if (!this.stripe || !this.card) {
-            return {
-                success: false,
-                message: 'Payment system not initialized'
-            };
-        }
-
+    async processPayment(paymentData) {
         try {
-            const { error, paymentIntent } = await this.stripe.confirmCardPayment(clientSecret, {
-                payment_method: {
-                    card: this.card,
-                    billing_details: {
-                        name: orderData.customer_name,
-                        email: orderData.customer_email,
-                    },
-                }
+            const response = await fetch('/api/payment/process', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify(paymentData)
             });
 
-            if (error) {
-                return {
-                    success: false,
-                    message: error.message
-                };
-            } else {
-                return {
-                    success: true,
-                    payment_intent: paymentIntent
-                };
-            }
+            const result = await response.json();
+            return result;
         } catch (error) {
             console.error('Payment processing error:', error);
-            return {
-                success: false,
-                message: 'Payment processing failed'
-            };
+            return [
+                'success' => false,
+                'message' => 'Payment processing failed'
+            ];
         }
     }
 
@@ -131,169 +126,155 @@ class PaymentGateway {
     }
 
     showPaymentModal(orderData) {
-        const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.id = 'paymentModal';
-        modal.innerHTML = `
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header bg-coffee text-white">
-                        <h5 class="modal-title">
-                            <i class="bi bi-credit-card me-2"></i>Complete Payment
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="mb-3">Order Summary</h6>
-                                <div class="order-summary">
-                                    ${orderData.items.map(item => `
-                                        <div class="d-flex justify-content-between mb-2">
-                                            <span>${item.name} x${item.quantity}</span>
-                                            <span>Rs. ${(item.price * item.quantity).toFixed(2)}</span>
-                                        </div>
-                                    `).join('')}
-                                    <hr>
-                                    <div class="d-flex justify-content-between">
-                                        <strong>Subtotal:</strong>
-                                        <strong>Rs. ${orderData.subtotal.toFixed(2)}</strong>
-                                    </div>
-                                    <div class="d-flex justify-content-between">
-                                        <span>Tax (10%):</span>
-                                        <span>Rs. ${orderData.tax.toFixed(2)}</span>
-                                    </div>
-                                    <hr>
-                                    <div class="d-flex justify-content-between">
-                                        <strong>Total:</strong>
-                                        <strong class="text-coffee">Rs. ${orderData.total.toFixed(2)}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <h6 class="mb-3">Payment Method</h6>
-                                
-                                <!-- Payment Method Tabs -->
-                                <ul class="nav nav-tabs mb-3" role="tablist">
-                                    <li class="nav-item">
-                                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#card-payment">
-                                            <i class="bi bi-credit-card me-1"></i>Card
-                                        </button>
-                                    </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#mobile-payment">
-                                            <i class="bi bi-phone me-1"></i>Mobile
-                                        </button>
-                                    </li>
-                                    <li class="nav-item">
-                                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#cash-payment">
-                                            <i class="bi bi-cash me-1"></i>Cash
-                                        </button>
-                                    </li>
-                                </ul>
+        if (!orderData) return;
+        
+        // Use the global function from payment modal partial
+        if (typeof showPaymentModal === 'function') {
+            showPaymentModal(orderData);
+        } else {
+            console.error('Payment modal not available');
+            this.showNotification('Payment system not available', 'error');
+        }
+    }
 
-                                <!-- Payment Method Content -->
-                                <div class="tab-content">
-                                    <!-- Card Payment -->
-                                    <div class="tab-pane fade show active" id="card-payment">
-                                        <div class="alert alert-info">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            <strong>Coming Soon!</strong> Credit card payments will be available soon.
-                                        </div>
-                                        <div id="card-element" class="form-control mb-3" style="padding: 12px; display: none;"></div>
-                                        <div id="card-errors" class="alert alert-danger" style="display: none;"></div>
-                                        <button class="btn btn-secondary w-100" disabled>
-                                            <i class="bi bi-lock me-2"></i>Card Payment Coming Soon
-                                        </button>
-                                    </div>
+    async verifyPayment(transactionId) {
+        try {
+            const response = await fetch(`/api/payment/verify/${transactionId}`, {
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            });
 
-                                    <!-- Mobile Payment -->
-                                    <div class="tab-pane fade" id="mobile-payment">
-                                        <div class="alert alert-info">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            <strong>Coming Soon!</strong> Mobile payments (Dialog, Mobitel, Hutch) will be available soon.
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Mobile Provider</label>
-                                            <select class="form-select" id="mobileProvider" disabled>
-                                                <option value="dialog">Dialog</option>
-                                                <option value="mobitel">Mobitel</option>
-                                                <option value="hutch">Hutch</option>
-                                            </select>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label class="form-label">Mobile Number</label>
-                                            <input type="tel" class="form-control" id="mobileNumber" placeholder="07X XXX XXXX" disabled>
-                                        </div>
-                                        <button class="btn btn-secondary w-100" disabled>
-                                            <i class="bi bi-phone me-2"></i>Mobile Payment Coming Soon
-                                        </button>
-                                    </div>
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Payment verification error:', error);
+            return [
+                'success' => false,
+                'message' => 'Verification failed'
+            ];
+        }
+    }
 
-                                    <!-- Cash Payment -->
-                                    <div class="tab-pane fade" id="cash-payment">
-                                        <div class="alert alert-success">
-                                            <i class="bi bi-info-circle me-2"></i>
-                                            You can pay with cash when you collect your order or at your table.
-                                        </div>
-                                        <div class="payment-instructions mb-3">
-                                            <h6>Payment Instructions:</h6>
-                                            <ul class="list-unstyled">
-                                                <li><i class="bi bi-check text-success me-2"></i>Order will be confirmed immediately</li>
-                                                <li><i class="bi bi-check text-success me-2"></i>Pay when you arrive at the café</li>
-                                                <li><i class="bi bi-check text-success me-2"></i>Show your order ID to our staff</li>
-                                                <li><i class="bi bi-check text-success me-2"></i>Exact change appreciated</li>
-                                            </ul>
-                                        </div>
-                                        <button class="btn btn-coffee w-100" onclick="processCashPayment()">
-                                            <i class="bi bi-cash me-2"></i>Confirm Order (Pay at Café)
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    async processRefund(transactionId, amount = null, reason = 'Customer request') {
+        try {
+            const response = await fetch('/api/payment/refund', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({
+                    transaction_id: transactionId,
+                    amount: amount,
+                    reason: reason
+                })
+            });
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Refund processing error:', error);
+            return [
+                'success' => false,
+                'message' => 'Refund processing failed'
+            ];
+        }
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} position-fixed notification-toast`;
+        notification.style.cssText = `
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 350px;
+            border-radius: 15px;
+            animation: slideInRight 0.5s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        `;
+
+        const iconMap = {
+            'success': 'check-circle-fill',
+            'error': 'exclamation-triangle-fill',
+            'warning': 'exclamation-triangle-fill',
+            'info': 'info-circle-fill'
+        };
+
+        notification.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="bi bi-${iconMap[type]} me-2"></i>
+                <span class="flex-grow-1">${message}</span>
+                <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
             </div>
         `;
 
-        document.body.appendChild(modal);
-        const bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
+        document.body.appendChild(notification);
 
-        // Mount card element after modal is shown (when available)
-        modal.addEventListener('shown.bs.modal', () => {
-            if (this.card) {
-                this.mountCard('#card-element');
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.style.animation = 'slideOutRight 0.5s ease';
+                setTimeout(() => notification.remove(), 500);
             }
-        });
-
-        // Clean up when modal is hidden
-        modal.addEventListener('hidden.bs.modal', () => {
-            document.body.removeChild(modal);
-        });
-
-        // Store order data for payment processing
-        window.currentOrderData = orderData;
+        }, 5000);
     }
 }
 
-// Payment processing functions
-async function processCardPayment() {
-    showNotification('Card payments coming soon! Please use cash payment for now.', 'info');
+// Update cart checkout function to use simulation payment gateway
+function proceedToCheckout() {
+    const cart = JSON.parse(localStorage.getItem('cafeElixirCart')) || [];
+
+    if (cart.length === 0) {
+        showNotification('Your cart is empty!', 'warning');
+        return;
+    }
+
+    // Calculate totals
+    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const tax = subtotal * 0.1;
+    const total = subtotal + tax;
+
+    // Prepare order data
+    const orderData = {
+        items: cart.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity
+        })),
+        customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
+        customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
+        order_type: 'dine_in',
+        subtotal: subtotal,
+        tax: tax,
+        total: total,
+        order_id: 'ORD' + Date.now()
+    };
+
+    // Show payment modal
+    if (typeof showPaymentModal === 'function') {
+        showPaymentModal(orderData);
+    } else {
+        console.error('Payment modal not available');
+        showNotification('Payment system not available', 'error');
+    }
 }
 
-async function processMobilePayment() {
-    showNotification('Mobile payments coming soon! Please use cash payment for now.', 'info');
-}
-
+// Process cash payment function
 async function processCashPayment() {
     const orderData = window.currentOrderData;
-    orderData.payment_method = 'cash';
+    if (!orderData) {
+        showNotification('Order data not found', 'error');
+        return;
+    }
     
+    orderData.payment_method = 'cash';
     await submitOrder(orderData);
 }
 
+// Submit order function
 async function submitOrder(orderData) {
     try {
         const response = await fetch('/api/orders', {
@@ -403,44 +384,19 @@ function showOrderSuccess(orderId, orderData) {
     });
 }
 
+// Legacy functions for backward compatibility
+async function processCardPayment() {
+    showNotification('Please use the payment form above to complete your card payment.', 'info');
+}
+
+async function processMobilePayment() {
+    showNotification('Please use the payment form above to complete your mobile payment.', 'info');
+}
+
 // Initialize payment gateway when page loads
 document.addEventListener('DOMContentLoaded', function() {
     window.paymentGateway = new PaymentGateway();
 });
-
-// Update cart checkout function to use payment gateway
-function proceedToCheckout() {
-    const cart = JSON.parse(localStorage.getItem('cafeElixirCart')) || [];
-
-    if (cart.length === 0) {
-        showNotification('Your cart is empty!', 'warning');
-        return;
-    }
-
-    // Calculate totals
-    const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.1;
-    const total = subtotal + tax;
-
-    // Prepare order data
-    const orderData = {
-        items: cart.map(item => ({
-            id: item.id,
-            quantity: item.quantity,
-            name: item.name,
-            price: item.price
-        })),
-        customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
-        customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
-        order_type: 'dine_in',
-        subtotal: subtotal,
-        tax: tax,
-        total: total
-    };
-
-    // Show payment modal
-    window.paymentGateway.showPaymentModal(orderData);
-}
 
 // Notification function
 function showNotification(message, type = 'info') {
