@@ -95,8 +95,8 @@ class PaymentGateway {
         } catch (error) {
             console.error('Payment processing error:', error);
             return [
-                'success' => false,
-                'message' => 'Payment processing failed'
+                success: false,
+                message: 'Payment processing failed'
             ];
         }
     }
@@ -150,8 +150,8 @@ class PaymentGateway {
         } catch (error) {
             console.error('Payment verification error:', error);
             return [
-                'success' => false,
-                'message' => 'Verification failed'
+                success: false,
+                message: 'Verification failed'
             ];
         }
     }
@@ -176,8 +176,8 @@ class PaymentGateway {
         } catch (error) {
             console.error('Refund processing error:', error);
             return [
-                'success' => false,
-                'message' => 'Refund processing failed'
+                success: false,
+                message: 'Refund processing failed'
             ];
         }
     }
