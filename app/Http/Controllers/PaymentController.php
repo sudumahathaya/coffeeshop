@@ -102,7 +102,7 @@ class PaymentController extends Controller
         switch ($request->method) {
             case 'card':
                 $paymentData['card'] = [
-                    'number' => $this->maskCardNumber($request->card_number),
+                    'number' => self::maskCardNumber($request->card_number),
                     'expiry' => $request->card_expiry,
                     'holder' => $request->card_holder
                 ];
@@ -118,7 +118,7 @@ class PaymentController extends Controller
             case 'bank_transfer':
                 $paymentData['bank'] = [
                     'code' => $request->bank_code,
-                    'account' => $this->maskAccountNumber($request->account_number)
+                    'account' => self::maskAccountNumber($request->account_number)
                 ];
                 break;
 
@@ -247,13 +247,13 @@ class PaymentController extends Controller
     /**
      * Helper methods
      */
-    private function maskCardNumber($cardNumber)
+    private static function maskCardNumber($cardNumber)
     {
         $cleaned = preg_replace('/\D/', '', $cardNumber);
         return substr($cleaned, 0, 4) . str_repeat('*', strlen($cleaned) - 8) . substr($cleaned, -4);
     }
 
-    private function maskAccountNumber($accountNumber)
+    private static function maskAccountNumber($accountNumber)
     {
         return str_repeat('*', strlen($accountNumber) - 4) . substr($accountNumber, -4);
     }

@@ -66,7 +66,7 @@ class PaymentTransaction extends Model
 
     public function getFormattedAmountAttribute()
     {
-        return 'Rs. ' . number_format($this->amount, 2);
+        return 'Rs. ' . number_format((float) $this->amount, 2);
     }
 
     public function getMethodDisplayNameAttribute()
