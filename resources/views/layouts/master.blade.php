@@ -696,6 +696,13 @@
                     handleReservationSubmission(form);
                     return;
                 }
+                
+                // Handle payment forms
+                if (form.id === 'paymentForm' || form.classList.contains('payment-form')) {
+                    e.preventDefault();
+                    // Payment form is handled by simulation-payment.js
+                    return;
+                }
             });
         });
         
