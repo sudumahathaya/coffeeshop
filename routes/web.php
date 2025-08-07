@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileChangeController;
 use App\Http\Controllers\ReservationChangeController;
 use App\Http\Controllers\AdminProfileController;
 use App\Http\Controllers\AdminReservationChangeController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -31,6 +32,24 @@ Route::post('/reservation', [HomeController::class, 'storeReservation'])->name('
 
 // Business status API
 Route::get('/api/business-status', [HomeController::class, 'getBusinessStatus'])->name('api.business-status');
+
+// Payment API routes
+Route::prefix('api/payment')->name('api.payment.')->group(function () {
+    Route::post('/create-intent', [PaymentController::class, 'createIntent'])->name('create-intent');
+    Route::post('/process', [PaymentController::class, 'processPayment'])->name('process');
+    Route::post('/mobile/send-otp', [PaymentController::class, 'sendMobileOTP'])->name('mobile.send-otp');
+    Route::post('/mobile/verify-otp', [PaymentController::class, 'verifyMobileOTP'])->name('mobile.verify-otp');
+    Route::get('/verify/{transactionId}', [PaymentController::class, 'verifyPayment'])->name('verify');
+    Route::post('/refund', [PaymentController::class, 'processRefund'])->name('refund');
+    Route::get('/methods', [PaymentController::class, 'getSupportedMethods'])->name('methods');
+    Route::get('/fees', [PaymentController::class, 'getPaymentFees'])->name('fees');
+});
+
+// Admin payment routes
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/payments', [PaymentController::class, 'getPaymentHistory'])->name('payments.index');
+    Route::post('/payments/{transactionId}/refund', [PaymentController::class, 'processRefund'])->name('payments.refund');
+});
 
 // Authentication routes
 require __DIR__.'/auth.php';
