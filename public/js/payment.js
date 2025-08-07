@@ -210,11 +210,21 @@ class PaymentGateway {
                 <button type="button" class="btn-close ms-2" onclick="this.parentElement.parentElement.remove()"></button>
             </div>
         `;
+                
+                // Validate card fields
+                if (!paymentData.card_number || !paymentData.card_expiry || !paymentData.card_cvc || !paymentData.card_holder) {
+                    throw new Error('Please fill in all card details');
+                }
 
         document.body.appendChild(notification);
 
         setTimeout(() => {
             if (notification.parentElement) {
+                
+                // Validate mobile fields
+                if (!paymentData.mobile_provider || !paymentData.mobile_number) {
+                    throw new Error('Please select mobile provider and enter phone number');
+                }
                 notification.style.animation = 'slideOutRight 0.5s ease';
                 setTimeout(() => notification.remove(), 500);
             }
@@ -309,32 +319,71 @@ function showNotification(message, type = 'info') {
         </div>
     `;
 
+                
+                // Validate bank fields
+                if (!paymentData.bank_code || !paymentData.account_number) {
+                    throw new Error('Please select bank and enter account number');
+                }
     document.body.appendChild(notification);
 
     setTimeout(() => {
         if (notification.parentElement) {
             notification.style.animation = 'slideOutRight 0.5s ease';
+                
+                // Validate wallet fields
+                if (!paymentData.wallet_type || !paymentData.wallet_id) {
+                    throw new Error('Please select wallet type and enter wallet ID');
+                }
             setTimeout(() => notification.remove(), 500);
         }
     }, 5000);
 }
 
-// CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from { transform: translateX(100%); opacity: 0; }
-        to { transform: translateX(0); opacity: 1; }
+        // Simulate payment processing
+        await this.delay(1500);
+        
+        // Simulate successful payment
+        const result = {
+            success: true,
+            transaction_id: this.generateTransactionId(method),
+            amount: paymentData.amount,
+            method: method,
+            processing_fee: this.calculateProcessingFee(paymentData.amount, method)
+        };
+
+        // Payment successful, now submit order
+        orderData.payment_method = method;
+        orderData.transaction_id = result.transaction_id;
+        orderData.payment_status = 'completed';
+        
+        if (typeof window.submitOrder === 'function') {
+            await window.submitOrder(orderData);
+        } else {
+            this.showPaymentSuccess(result);
+        }
     }
     
-    @keyframes slideOutRight {
-        from { transform: translateX(0); opacity: 1; }
-        to { transform: translateX(100%); opacity: 0; }
+    generateTransactionId(method) {
+        const prefix = {
+            'card': 'CC',
+            'mobile': 'MP',
+            'bank_transfer': 'BT',
+            'digital_wallet': 'DW'
+        }[method] || 'TX';
+        
+        return `${prefix}_sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     }
     
-    .notification-toast {
-        backdrop-filter: blur(10px);
-    }
+    calculateProcessingFee(amount, method) {
+        const fees = {
+            'card': { percentage: 2.9, fixed: 30 },
+            'mobile': { percentage: 1.5, fixed: 10 },
+            'bank_transfer': { percentage: 0.5, fixed: 25 },
+            'digital_wallet': { percentage: 2.0, fixed: 15 }
+        };
+        
+        const fee = fees[method] || fees['card'];
+        return Math.round(((amount * fee.percentage / 100) + fee.fixed) * 100) / 100;
     
     .bg-coffee {
         background: linear-gradient(45deg, #8B4513, #D2691E) !important;
