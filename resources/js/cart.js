@@ -262,10 +262,47 @@ class CafeElixirCart {
             return;
         }
 
-        // For now, show a message. In production, redirect to checkout page
-        this.showNotification('Checkout functionality coming soon!', 'info');
-        
-        // Example: window.location.href = '/checkout';
+        // Calculate totals
+        const subtotal = this.getTotal();
+        const tax = subtotal * 0.1;
+        const total = subtotal + tax;
+
+        // Prepare order data
+        const orderData = {
+            items: this.cart.map(item => ({
+                id: item.id,
+                name: item.name,
+                price: item.price,
+                quantity: item.quantity
+            })),
+            customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
+            customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
+            customer_phone: '',
+            order_type: 'dine_in',
+            subtotal: subtotal,
+            tax: tax,
+            total: total,
+            order_id: 'ORD' + Date.now()
+        };
+
+        // Store order data globally for payment modal
+        window.currentOrderData = orderData;
+
+        // Close cart modal
+        const cartModal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
+        if (cartModal) {
+            cartModal.hide();
+        }
+
+        // Show payment modal
+        setTimeout(() => {
+            if (typeof showPaymentModal === 'function') {
+                showPaymentModal(orderData);
+            } else {
+                console.error('Payment modal not available');
+                this.showNotification('Payment system not available', 'error');
+            }
+        }, 300);
     }
 
     showNotification(message, type = 'info') {

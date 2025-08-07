@@ -253,6 +253,9 @@ function proceedToCheckout() {
         order_id: 'ORD' + Date.now()
     };
 
+    // Store order data globally
+    window.currentOrderData = orderData;
+
     // Show payment modal
     if (typeof showPaymentModal === 'function') {
         showPaymentModal(orderData);
@@ -260,128 +263,6 @@ function proceedToCheckout() {
         console.error('Payment modal not available');
         showNotification('Payment system not available', 'error');
     }
-}
-
-// Process cash payment function
-async function processCashPayment() {
-    const orderData = window.currentOrderData;
-    if (!orderData) {
-        showNotification('Order data not found', 'error');
-        return;
-    }
-    
-    orderData.payment_method = 'cash';
-    await submitOrder(orderData);
-}
-
-// Submit order function
-async function submitOrder(orderData) {
-    try {
-        const response = await fetch('/api/orders', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify(orderData)
-        });
-
-        const result = await response.json();
-        
-        if (result.success) {
-            // Close payment modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentModal'));
-            if (modal) {
-                modal.hide();
-            }
-            
-            // Clear cart
-            localStorage.removeItem('cafeElixirCart');
-            if (typeof updateCartDisplay === 'function') {
-                updateCartDisplay();
-            }
-            
-            // Show success message
-            showOrderSuccess(result.order_id, result.order);
-        } else {
-            throw new Error(result.message);
-        }
-    } catch (error) {
-        console.error('Order submission error:', error);
-        showNotification('Failed to place order: ' + error.message, 'error');
-    }
-}
-
-function showOrderSuccess(orderId, orderData) {
-    const successModal = document.createElement('div');
-    successModal.className = 'modal fade';
-    successModal.innerHTML = `
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">
-                        <i class="bi bi-check-circle-fill me-2"></i>Order Placed Successfully!
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body text-center">
-                    <div class="success-icon mb-4">
-                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
-                    </div>
-                    <h4 class="text-success mb-3">Thank you for your order!</h4>
-                    <p class="lead">Your order has been confirmed and is being prepared.</p>
-                    
-                    <div class="order-details bg-light p-4 rounded mt-4">
-                        <h6 class="fw-bold mb-3">Order Details:</h6>
-                        <div class="row">
-                            <div class="col-6">
-                                <strong>Order ID:</strong><br>
-                                <span class="text-primary">${orderId}</span>
-                            </div>
-                            <div class="col-6">
-                                <strong>Total Amount:</strong><br>
-                                Rs. ${parseFloat(orderData.total).toFixed(2)}
-                            </div>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-6">
-                                <strong>Payment Method:</strong><br>
-                                ${orderData.payment_method.charAt(0).toUpperCase() + orderData.payment_method.slice(1)}
-                            </div>
-                            <div class="col-6">
-                                <strong>Order Type:</strong><br>
-                                ${orderData.order_type.replace('_', ' ').charAt(0).toUpperCase() + orderData.order_type.replace('_', ' ').slice(1)}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="alert alert-info mt-4">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <strong>What's Next?</strong><br>
-                        • You'll receive updates about your order status<br>
-                        • Estimated preparation time: 10-15 minutes<br>
-                        • ${orderData.payment_method === 'cash' ? 'Pay when you arrive at the café' : 'Payment processed successfully'}<br>
-                        • Show this order ID to our staff: <strong>${orderId}</strong>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="/dashboard" class="btn btn-coffee">
-                        <i class="bi bi-speedometer2 me-2"></i>View Dashboard
-                    </a>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.appendChild(successModal);
-    const modal = new bootstrap.Modal(successModal);
-    modal.show();
-
-    // Remove modal from DOM when closed
-    successModal.addEventListener('hidden.bs.modal', function() {
-        document.body.removeChild(successModal);
-    });
 }
 
 // Legacy functions for backward compatibility

@@ -148,9 +148,17 @@
                                             <i class="bi bi-box-arrow-in-right me-1"></i>Login to Order
                                         </a>
                                     @endauth
-                                    <button class="btn btn-outline-coffee btn-sm ms-2" data-payment-trigger>
+                                    @auth
+                                    <button class="btn btn-outline-coffee btn-sm ms-2" 
+                                            onclick="quickPay({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->image }}')"
+                                            data-payment-trigger>
                                         <i class="bi bi-credit-card me-1"></i>Quick Pay
                                     </button>
+                                    @else
+                                    <a href="{{ route('login') }}" class="btn btn-outline-coffee btn-sm ms-2">
+                                        <i class="bi bi-credit-card me-1"></i>Quick Pay
+                                    </a>
+                                    @endauth
                                     <small class="text-muted">
                                         <i class="bi bi-clock me-1"></i>{{ $item->preparation_time ?? 'Ready soon' }}
                                     </small>
@@ -435,6 +443,38 @@
 
 @push('scripts')
 <script>
+// Quick Pay functionality
+function quickPay(itemId, itemName, itemPrice, itemImage) {
+    // Create single item order data
+    const orderData = {
+        items: [{
+            id: itemId,
+            name: itemName,
+            price: parseFloat(itemPrice),
+            quantity: 1
+        }],
+        customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
+        customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
+        customer_phone: '',
+        order_type: 'dine_in',
+        subtotal: parseFloat(itemPrice),
+        tax: parseFloat(itemPrice) * 0.1,
+        total: parseFloat(itemPrice) * 1.1,
+        order_id: 'ORD' + Date.now()
+    };
+
+    // Store order data globally for payment modal
+    window.currentOrderData = orderData;
+
+    // Show payment modal
+    if (typeof showPaymentModal === 'function') {
+        showPaymentModal(orderData);
+    } else {
+        console.error('Payment modal not available');
+        showNotification('Payment system not available', 'error');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize menu functionality
     initializeMenuFilters();

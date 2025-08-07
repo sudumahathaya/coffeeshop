@@ -263,7 +263,7 @@ class SimulationPaymentGateway {
         try {
             if (paymentMethod === 'cash') {
                 // Handle cash payment (no gateway processing needed)
-                await this.processCashPayment(formData);
+                await this.processCashPayment();
             } else {
                 // Handle electronic payments
                 await this.processElectronicPayment(formData, paymentMethod);
@@ -277,15 +277,19 @@ class SimulationPaymentGateway {
         }
     }
 
-    async processCashPayment(formData) {
+    async processCashPayment() {
         // Simulate cash payment processing
         await this.delay(1000);
         
-        this.showNotification('Order confirmed! Pay with cash when you arrive.', 'success');
-        this.showPaymentSuccess({
-            method: 'cash',
-            message: 'Order confirmed for cash payment'
-        });
+        // Submit order directly for cash payment
+        const orderData = window.currentOrderData;
+        if (orderData) {
+            orderData.payment_method = 'cash';
+            orderData.payment_status = 'pending';
+            await window.submitOrder(orderData);
+        } else {
+            throw new Error('Order data not found');
+        }
     }
 
     async processElectronicPayment(formData, method) {
@@ -337,7 +341,31 @@ class SimulationPaymentGateway {
 
                 if (verifyData.success) {
                     // Step 4: Process payment
-                    await this.processDirectPayment(paymentData);
+                    const response = await fetch(`${this.apiBase}/process`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify(paymentData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Payment successful, now submit order
+                        const orderData = window.currentOrderData;
+                        if (orderData) {
+                            orderData.payment_method = paymentData.method;
+                            orderData.transaction_id = result.transaction_id;
+                            orderData.payment_status = 'completed';
+                            await window.submitOrder(orderData);
+                        } else {
+                            throw new Error('Order data not found');
+                        }
+                    } else {
+                        throw new Error(result.message || 'Payment processing failed');
+                    }
                 } else {
                     throw new Error(verifyData.message || 'OTP verification failed');
                 }
@@ -363,8 +391,16 @@ class SimulationPaymentGateway {
             const result = await response.json();
 
             if (result.success) {
-                this.showPaymentSuccess(result);
-                this.currentPayment = result;
+                // Payment successful, now submit order
+                const orderData = window.currentOrderData;
+                if (orderData) {
+                    orderData.payment_method = paymentData.method;
+                    orderData.transaction_id = result.transaction_id;
+                    orderData.payment_status = 'completed';
+                    await window.submitOrder(orderData);
+                } else {
+                    throw new Error('Order data not found');
+                }
             } else {
                 throw new Error(result.message || 'Payment processing failed');
             }

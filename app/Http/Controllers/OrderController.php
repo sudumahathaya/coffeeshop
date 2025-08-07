@@ -24,7 +24,8 @@ class OrderController extends Controller
             'order_type' => 'required|in:dine_in,takeaway,delivery',
             'special_instructions' => 'nullable|string|max:1000',
             'payment_method' => 'required|in:cash,card,online,mobile',
-            'payment_token' => 'nullable|string', // For online payments
+            'transaction_id' => 'nullable|string', // For electronic payments
+            'payment_status' => 'nullable|in:pending,completed,failed',
         ]);
 
         DB::beginTransaction();
@@ -58,20 +59,10 @@ class OrderController extends Controller
             $paymentStatus = 'pending';
             $transactionId = null;
             
-            if ($validatedData['payment_method'] === 'online' && $validatedData['payment_token']) {
-                $paymentService = new PaymentService();
-                $paymentResult = $paymentService->processPayment($validatedData['payment_token'], $total);
-                
-                if ($paymentResult['success']) {
-                    $paymentStatus = 'completed';
-                    $transactionId = $paymentResult['transaction_id'];
-                } else {
-                    throw new \Exception('Payment failed: ' . $paymentResult['message']);
-                }
-            } elseif ($validatedData['payment_method'] === 'mobile') {
-                // Mobile payment processing
+            if (in_array($validatedData['payment_method'], ['card', 'mobile', 'bank_transfer', 'digital_wallet'])) {
+                // Electronic payment - should already be processed
                 $paymentStatus = 'completed';
-                $transactionId = 'MOB' . time() . rand(1000, 9999);
+                $transactionId = $validatedData['transaction_id'] ?? null;
             } elseif ($validatedData['payment_method'] === 'cash') {
                 $paymentStatus = 'pending';
             } else {
