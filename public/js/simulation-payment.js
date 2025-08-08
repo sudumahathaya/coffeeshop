@@ -125,8 +125,10 @@ class SimulationPaymentGateway {
                 
                 <div class="alert alert-info mt-3">
                     <i class="bi bi-info-circle me-2"></i>
-                    <strong>Test Cards:</strong> Use 4242424242424242 for successful payments, 
-                    4000000000000002 for declined cards.
+                    <strong>Test Cards:</strong><br>
+                    • <code>4242424242424242</code> - ✅ Successful payment<br>
+                    • <code>4000000000000002</code> - ❌ Declined payment<br>
+                    <small class="text-muted">Use any future expiry date and any 3-digit CVC</small>
                 </div>
             </div>
         `;
