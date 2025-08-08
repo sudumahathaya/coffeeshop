@@ -122,12 +122,6 @@ class SimulationPaymentGateway {
                                placeholder="John Doe" required>
                     </div>
                 </div>
-                
-                <div class="alert alert-info mt-3">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Test Cards:</strong> Use 4242424242424242 for successful payments, 
-                    4000000000000002 for declined cards.
-                </div>
             </div>
         `;
     }
