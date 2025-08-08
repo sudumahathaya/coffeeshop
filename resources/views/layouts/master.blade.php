@@ -1237,9 +1237,6 @@
     <!-- Cart JavaScript -->
     <script src="{{ asset('js/cart.js') }}"></script>
     
-    <!-- Payment JavaScript -->
-    <script src="{{ asset('js/payment.js') }}"></script>
-    
     <!-- Simulation Payment JavaScript -->
     <script src="{{ asset('js/simulation-payment.js') }}"></script>
     
