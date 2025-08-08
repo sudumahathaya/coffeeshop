@@ -696,11 +696,7 @@
             // Show the modal
             const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
             modal.show();
-            
-            // Show the modal
-            const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
-            modal.show();
-            
+
             // Initialize with card payment method after modal is shown
             modal._element.addEventListener('shown.bs.modal', function() {
                 const cardRadio = document.getElementById('method_card');
@@ -711,6 +707,15 @@
                     }
                 }
             }, { once: true });
+
+            // Handle modal hide event to properly manage focus
+            modal._element.addEventListener('hide.bs.modal', function() {
+                // Remove focus from any focused element within the modal
+                const focusedElement = modal._element.querySelector(':focus');
+                if (focusedElement) {
+                    focusedElement.blur();
+                }
+            });
         }
 
         function populateOrderSummary(orderData) {
@@ -1082,19 +1087,21 @@
         }
 
         // Trigger counter animation when stats section is visible
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateCounters();
-                    observer.unobserve(entry.target);
-                }
+        (function() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounters();
+                        observer.unobserve(entry.target);
+                    }
+                });
             });
-        });
 
-        const statsSection = document.querySelector('.stats-counter');
-        if (statsSection) {
-            observer.observe(statsSection);
-        }
+            const statsSection = document.querySelector('.stats-counter');
+            if (statsSection) {
+                observer.observe(statsSection);
+            }
+        })();
 
         // Cart functionality
         function updateCartDisplay() {

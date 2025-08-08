@@ -32,6 +32,9 @@
     height: 60px;
     border-radius: 8px;
     object-fit: cover;
+    flex-shrink: 0;
+    max-width: 60px;
+    max-height: 60px;
 }
 
 .cart-counter {

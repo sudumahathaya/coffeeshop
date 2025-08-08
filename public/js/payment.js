@@ -605,8 +605,20 @@ class CafeElixirPaymentSystem {
         const bootstrapModal = new bootstrap.Modal(modal);
         bootstrapModal.show();
 
+        // Handle modal hide event to properly manage focus
+        modal.addEventListener('hide.bs.modal', function() {
+            const focusedElement = this.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+        });
+
         // Clean up when modal is hidden
         modal.addEventListener('hidden.bs.modal', () => {
+            // Ensure no elements retain focus after modal is completely hidden
+            if (document.activeElement && modal.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
             document.body.removeChild(modal);
         });
     }
