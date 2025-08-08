@@ -252,6 +252,7 @@
 function showPaymentModal(orderData) {
     if (!orderData) {
         console.error('No order data provided');
+        showNotification('Order data not found. Please try again.', 'error');
         return;
     }
 
@@ -271,6 +272,8 @@ function showPaymentModal(orderData) {
     // Show the modal
     const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
     modal.show();
+    
+    console.log('Payment modal opened with order data:', orderData);
 }
 
 function populateOrderSummary(orderData) {
@@ -540,6 +543,8 @@ function renderCashForm() {
 // Global function to submit order
 async function submitOrder(orderData) {
     try {
+        console.log('Submitting order:', orderData);
+        
         const response = await fetch('/api/orders', {
             method: 'POST',
             headers: {
@@ -552,6 +557,8 @@ async function submitOrder(orderData) {
         const result = await response.json();
 
         if (result.success) {
+            console.log('Order submitted successfully:', result);
+            
             // Clear cart
             if (typeof window.cart !== 'undefined') {
                 window.cart.clearCart();
@@ -564,7 +571,7 @@ async function submitOrder(orderData) {
             }
             
             // Show success notification
-            showNotification(`Order ${result.order_id} placed successfully!`, 'success');
+            showNotification(`Order ${result.order_id || 'placed'} successfully!`, 'success');
             
             // Redirect to dashboard or show order confirmation
             setTimeout(() => {
@@ -573,6 +580,7 @@ async function submitOrder(orderData) {
                 }
             }, 2000);
         } else {
+            console.error('Order submission failed:', result);
             throw new Error(result.message || 'Failed to place order');
         }
     } catch (error) {
@@ -593,7 +601,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize with card form by default
     setTimeout(() => {
         handlePaymentMethodChange('card');
-    }, 100);
+    }, 500);
 
     // Form submission handler
     document.addEventListener('submit', function(e) {
@@ -605,11 +613,11 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = true;
 
             // Handle payment processing
-            if (window.simulationPaymentGateway) {
-                window.simulationPaymentGateway.handlePaymentSubmission(e.target);
+            if (window.cafeElixirPaymentSystem) {
+                window.cafeElixirPaymentSystem.handlePaymentSubmission(e.target);
             } else {
-                console.error('Payment gateway not initialized');
-                showNotification('Payment system not available', 'error');
+                console.error('Payment system not initialized');
+                showNotification('Payment system is loading. Please try again in a moment.', 'warning');
                 submitButton.classList.remove('loading');
                 submitButton.disabled = false;
             }

@@ -14,6 +14,12 @@ class OrderController extends Controller
 {
     public function store(Request $request)
     {
+        try {
+            \Log::info('Order creation request received', [
+                'user_id' => Auth::id(),
+                'request_data' => $request->all()
+            ]);
+            
         $validatedData = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:menu_items,id',
@@ -28,9 +34,10 @@ class OrderController extends Controller
             'payment_status' => 'nullable|in:pending,completed,failed',
         ]);
 
+            \Log::info('Order validation passed', ['validated_data' => $validatedData]);
+            
         DB::beginTransaction();
         
-        try {
             // Calculate order totals
             $subtotal = 0;
             $orderItems = [];
@@ -88,6 +95,12 @@ class OrderController extends Controller
                 'status' => 'confirmed'
             ]);
 
+            \Log::info('Order created successfully', [
+                'order_id' => $orderId,
+                'total' => $total,
+                'payment_method' => $validatedData['payment_method']
+            ]);
+
             // Award loyalty points (1 point per Rs. 10 spent)
             if (Auth::check()) {
                 $pointsEarned = floor($total / 10);
@@ -98,6 +111,12 @@ class OrderController extends Controller
                     'type' => 'earned',
                     'description' => "Points earned from order #{$orderId}",
                     'order_id' => $order->id
+                ]);
+                
+                \Log::info('Loyalty points awarded', [
+                    'user_id' => Auth::id(),
+                    'points' => $pointsEarned,
+                    'order_id' => $orderId
                 ]);
             }
 
@@ -111,12 +130,29 @@ class OrderController extends Controller
                 'payment_status' => $paymentStatus
             ]);
 
-        } catch (\Exception $e) {
-            DB::rollback();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::warning('Order validation failed', [
+                'errors' => $e->errors(),
+                'input' => $request->all()
+            ]);
             
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to place order: ' . $e->getMessage()
+                'message' => 'Validation failed',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollback();
+            
+            \Log::error('Order creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => Auth::id()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to place order. Please try again.'
             ], 500);
         }
     }
