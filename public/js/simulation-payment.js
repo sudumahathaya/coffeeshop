@@ -46,6 +46,11 @@ class SimulationPaymentGateway {
                 this.handlePaymentSubmission(e.target);
             }
         });
+        
+        // Initialize card form by default
+        setTimeout(() => {
+            this.handlePaymentMethodChange('card');
+        }, 100);
     }
 
     handlePaymentMethodChange(method) {
@@ -876,6 +881,15 @@ document.addEventListener('DOMContentLoaded', function() {
             window.simulationPaymentGateway.formatExpiryDate(e.target);
         } else if (e.target.name === 'mobile_number') {
             window.simulationPaymentGateway.formatPhoneNumber(e.target);
+        }
+    });
+    
+    // Handle payment method changes for payment modal
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'payment_method') {
+            if (window.simulationPaymentGateway) {
+                window.simulationPaymentGateway.handlePaymentMethodChange(e.target.value);
+            }
         }
     });
 });
