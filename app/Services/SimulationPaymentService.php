@@ -234,6 +234,25 @@ class SimulationPaymentService
         // Simulate different scenarios based on amount and method
         $amount = $paymentData['amount'];
         $method = $paymentData['method'];
+        
+        // Check for specific test card numbers
+        if (isset($paymentData['card_number'])) {
+            $cardNumber = preg_replace('/\D/', '', $paymentData['card_number']);
+            
+            // Test card for successful payment
+            if ($cardNumber === '4242424242424242') {
+                return ['success' => true];
+            }
+            
+            // Test card for declined payment
+            if ($cardNumber === '4000000000000002') {
+                return [
+                    'success' => false,
+                    'error_code' => 'CARD_DECLINED',
+                    'message' => 'Your card was declined. Please try a different payment method.'
+                ];
+            }
+        }
 
         // Test scenarios for demonstration
         if ($amount == 9999.99) {

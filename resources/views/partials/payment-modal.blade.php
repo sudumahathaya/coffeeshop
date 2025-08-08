@@ -41,8 +41,10 @@
                             
                             <div class="alert alert-info mt-3">
                                 <i class="bi bi-shield-check me-2"></i>
-                                <strong>Secure Payment</strong><br>
-                                Your payment information is encrypted and secure.
+                                <strong>Test Cards:</strong><br>
+                                • <code>4242424242424242</code> - Successful payment<br>
+                                • <code>4000000000000002</code> - Declined payment<br>
+                                <small class="text-muted">Use any future expiry date and any 3-digit CVC</small>
                             </div>
                         </div>
                     </div>
@@ -443,7 +445,8 @@ function renderMobileForm() {
             
             <div class="alert alert-success mt-3">
                 <i class="bi bi-check-circle me-2"></i>
-                <strong>Secure Payment:</strong> You'll receive an OTP to confirm the payment.
+                <strong>Secure Payment:</strong> You'll receive an OTP to confirm the payment.<br>
+                <small class="text-muted">For testing, use any valid Sri Lankan mobile number</small>
             </div>
             
             <div class="provider-logos mt-3">

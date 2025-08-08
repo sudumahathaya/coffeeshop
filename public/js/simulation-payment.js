@@ -322,8 +322,26 @@ class SimulationPaymentGateway {
 
         // Validate payment data based on method
         this.validatePaymentData(paymentData, method);
+        
+        // Check for test card scenarios
+        if (method === 'card' && paymentData.card_number) {
+            const cardNumber = paymentData.card_number.replace(/\D/g, '');
+            
+            if (cardNumber === '4242424242424242') {
+                // Show success notification for test card
+                this.showNotification('Test card detected! Processing successful payment...', 'success');
+                await this.delay(1000);
+            } else if (cardNumber === '4000000000000002') {
+                // Show declined notification for test card
+                this.showNotification('Test card detected! Simulating declined payment...', 'warning');
+                await this.delay(1000);
+                throw new Error('Your card was declined. Please try a different payment method.');
+            }
+        }
 
         if (method === 'mobile') {
+            // Show OTP notification for mobile payments
+            this.showNotification('Sending OTP to your mobile number...', 'info');
             await this.processMobilePayment(paymentData);
         } else {
             await this.processDirectPayment(paymentData);
@@ -357,6 +375,9 @@ class SimulationPaymentGateway {
 
     async processMobilePayment(paymentData) {
         try {
+            // Show OTP sending notification
+            this.showNotification('Sending OTP to your mobile number...', 'info');
+            
             // Simulate OTP process for demo
             const otpData = {
                 success: true,
@@ -366,6 +387,9 @@ class SimulationPaymentGateway {
             };
 
             if (otpData.success) {
+                // Show OTP sent notification
+                this.showNotification('OTP sent successfully! Check your mobile phone.', 'success');
+                
                 // Step 2: Show OTP modal
                 const otpCode = await this.showOTPModal(otpData);
                 
@@ -376,6 +400,9 @@ class SimulationPaymentGateway {
                 };
 
                 if (verifyData.success) {
+                    // Show OTP verification success
+                    this.showNotification('OTP verified successfully! Processing payment...', 'success');
+                    
                     // Step 4: Simulate successful payment
                     const result = {
                         success: true,
@@ -412,6 +439,18 @@ class SimulationPaymentGateway {
 
     async processDirectPayment(paymentData) {
         try {
+            // Show processing notification for card payments
+            if (paymentData.method === 'card') {
+                const cardNumber = paymentData.card_number?.replace(/\D/g, '');
+                if (cardNumber === '4242424242424242') {
+                    this.showNotification('Processing payment with test card...', 'info');
+                } else if (cardNumber === '4000000000000002') {
+                    this.showNotification('Testing declined card scenario...', 'warning');
+                } else {
+                    this.showNotification('Processing your payment securely...', 'info');
+                }
+            }
+            
             const response = await fetch(`${this.apiBase}/process`, {
                 method: 'POST',
                 headers: {
@@ -423,14 +462,41 @@ class SimulationPaymentGateway {
             // Simulate payment processing
             await this.delay(1500);
             
-            // Simulate payment result
-            const result = {
-                success: true,
-                transaction_id: this.generateTransactionId(paymentData.method),
-                amount: paymentData.amount,
-                method: paymentData.method,
-                processing_fee: this.calculateProcessingFee(paymentData.amount, paymentData.method)
-            };
+            // Simulate payment result based on card number
+            let result;
+            if (paymentData.method === 'card' && paymentData.card_number) {
+                const cardNumber = paymentData.card_number.replace(/\D/g, '');
+                
+                if (cardNumber === '4000000000000002') {
+                    // Simulate declined payment
+                    throw new Error('Your card was declined. Please try a different payment method.');
+                } else {
+                    // Simulate successful payment
+                    result = {
+                        success: true,
+                        transaction_id: this.generateTransactionId(paymentData.method),
+                        amount: paymentData.amount,
+                        method: paymentData.method,
+                        processing_fee: this.calculateProcessingFee(paymentData.amount, paymentData.method)
+                    };
+                    
+                    if (cardNumber === '4242424242424242') {
+                        this.showNotification('Test card payment processed successfully!', 'success');
+                    } else {
+                        this.showNotification('Payment processed successfully!', 'success');
+                    }
+                }
+            } else {
+                // Non-card payments
+                result = {
+                    success: true,
+                    transaction_id: this.generateTransactionId(paymentData.method),
+                    amount: paymentData.amount,
+                    method: paymentData.method,
+                    processing_fee: this.calculateProcessingFee(paymentData.amount, paymentData.method)
+                };
+                this.showNotification('Payment processed successfully!', 'success');
+            }
 
             // Payment successful, now submit order
             const orderData = window.currentOrderData;
@@ -533,6 +599,12 @@ class SimulationPaymentGateway {
                             <h5>Enter OTP Code</h5>
                             <p class="text-muted">We've sent a 6-digit code to your mobile number</p>
                             
+                            <div class="alert alert-success mb-3">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <strong>OTP Sent Successfully!</strong><br>
+                                Check your mobile phone for the verification code.
+                            </div>
+                            
                             <div class="otp-input-group my-4">
                                 <input type="text" class="form-control form-control-lg text-center" 
                                        id="otpInput" maxlength="6" placeholder="000000"
@@ -582,6 +654,7 @@ class SimulationPaymentGateway {
             window.verifyOTP = () => {
                 const otpCode = document.getElementById('otpInput').value;
                 if (otpCode.length === 6) {
+                    this.showNotification('Verifying OTP...', 'info');
                     clearInterval(timer);
                     bootstrapModal.hide();
                     resolve(otpCode);
@@ -669,7 +742,8 @@ class SimulationPaymentGateway {
                             • You'll receive a confirmation email<br>
                             • Your order is being prepared<br>
                             • Estimated time: 10-15 minutes<br>
-                            ${result.method === 'cash' ? '• Pay when you arrive at the café' : '• Payment has been processed'}
+                            ${result.method === 'cash' ? '• Pay when you arrive at the café' : '• Payment has been processed successfully'}
+                            ${result.transaction_id && result.transaction_id.includes('sim') ? '<br>• This was a test transaction' : ''}
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -831,7 +905,7 @@ class SimulationPaymentGateway {
                 notification.style.animation = 'slideOutRight 0.5s ease';
                 setTimeout(() => notification.remove(), 500);
             }
-        }, 5000);
+        }, 4000);
     }
 
     delay(ms) {
