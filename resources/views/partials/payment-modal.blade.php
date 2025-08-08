@@ -406,8 +406,8 @@ function renderCardForm() {
             
             <div class="alert alert-info mt-3">
                 <i class="bi bi-info-circle me-2"></i>
-                <strong>Test Cards:</strong> Use 4242424242424242 for successful payments, 
-                4000000000000002 for declined cards.
+                <strong>Payment Info:</strong> Enter any valid card details for successful payment. 
+                Use 4000000000000002 to test declined payments.
             </div>
         </div>
     `;

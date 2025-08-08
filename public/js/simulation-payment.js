@@ -446,14 +446,6 @@ class SimulationPaymentGateway {
                 }
             }
             
-            const response = await fetch(`${this.apiBase}/process`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                },
-                body: JSON.stringify(paymentData)
-            });
             // Simulate payment processing
             await this.delay(1500);
             
@@ -466,7 +458,7 @@ class SimulationPaymentGateway {
                     // Simulate declined payment
                     throw new Error('Your card was declined. Please try a different payment method.');
                 } else {
-                    // Simulate successful payment
+                    // Simulate successful payment for any valid card number
                     result = {
                         success: true,
                         transaction_id: this.generateTransactionId(paymentData.method),
@@ -477,6 +469,9 @@ class SimulationPaymentGateway {
                     
                     if (cardNumber === '4242424242424242') {
                         this.showNotification('Test card payment processed successfully!', 'success');
+                    } else if (cardNumber && cardNumber.length >= 13) {
+                        // Any valid-looking card number should succeed
+                        this.showNotification('Payment processed successfully!', 'success');
                     } else {
                         this.showNotification('Payment processed successfully!', 'success');
                     }

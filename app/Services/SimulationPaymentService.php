@@ -236,7 +236,7 @@ class SimulationPaymentService
         $method = $paymentData['method'];
         
         // Check for specific test card numbers
-        if (isset($paymentData['card_number'])) {
+        if (isset($paymentData['card_number']) && $method === 'card') {
             $cardNumber = preg_replace('/\D/', '', $paymentData['card_number']);
             
             // Test card for successful payment
@@ -251,6 +251,11 @@ class SimulationPaymentService
                     'error_code' => 'CARD_DECLINED',
                     'message' => 'Your card was declined. Please try a different payment method.'
                 ];
+            }
+            
+            // Any other valid-looking card number (13+ digits) should succeed
+            if (strlen($cardNumber) >= 13) {
+                return ['success' => true];
             }
         }
 
@@ -292,12 +297,12 @@ class SimulationPaymentService
             }
         }
 
-        // Default success rate: 95%
-        $successRate = 0.95;
+        // Default success rate: 98% (higher success rate)
+        $successRate = 0.98;
         
         // Adjust success rate based on amount
         if ($amount > 10000) {
-            $successRate = 0.90; // Slightly lower for high amounts
+            $successRate = 0.95; // Slightly lower for high amounts
         }
 
         if (rand(1, 100) <= ($successRate * 100)) {
