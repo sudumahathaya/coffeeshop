@@ -665,6 +665,81 @@
             }, 5000);
         }
 
+        // Global function to show payment modal
+        function showPaymentModal(orderData) {
+            if (!orderData) {
+                console.error('No order data provided');
+                showNotification('Order data not found. Please try again.', 'error');
+                return;
+            }
+
+            console.log('Opening payment modal with data:', orderData);
+            
+            // Populate order summary
+            populateOrderSummary(orderData);
+
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            modal.show();
+            
+            // Ensure payment system is ready
+            setTimeout(() => {
+                if (window.cafeElixirPaymentSystem) {
+                    window.cafeElixirPaymentSystem.handlePaymentMethodChange('card');
+                }
+            }, 300);
+        }
+
+        function populateOrderSummary(orderData) {
+            // Implementation for populating order summary
+            console.log('Populating order summary with:', orderData);
+        }
+
+        // Global function to submit order
+        async function submitOrder(orderData) {
+            try {
+                console.log('Submitting order to API:', orderData);
+                
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify(orderData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    console.log('Order API response success:', result);
+                    
+                    // Clear cart
+                    if (typeof window.cart !== 'undefined') {
+                        window.cart.clearCart();
+                    } else if (localStorage.getItem('cafeElixirCart')) {
+                        localStorage.removeItem('cafeElixirCart');
+                    }
+                    
+                    // Show success notification
+                    showNotification(`Order ${result.order_id || 'placed'} successfully! 🎉`, 'success');
+                    
+                    // Redirect to dashboard or show order confirmation
+                    setTimeout(() => {
+                        if (window.location.pathname !== '/user/dashboard') {
+                            window.location.href = '/user/dashboard';
+                        }
+                    }, 2000);
+                } else {
+                    console.error('Order API response failed:', result);
+                    throw new Error(result.message || 'Failed to place order');
+                }
+            } catch (error) {
+                console.error('Order submission error:', error);
+                showNotification(`Failed to place order: ${error.message}`, 'error');
+            }
+        }
+
         // Prevent page refresh on form submissions
         document.addEventListener('DOMContentLoaded', function() {
             // Handle all form submissions that should be AJAX
@@ -704,6 +779,37 @@
                     return;
                 }
             });
+
+            // Quick Pay functionality
+            window.quickPay = function(itemId, itemName, itemPrice, itemImage) {
+                console.log('Quick pay initiated for:', itemName);
+                
+                // Create single item order data
+                const orderData = {
+                    items: [{
+                        id: itemId,
+                        name: itemName,
+                        price: itemPrice,
+                        quantity: 1,
+                        image: itemImage
+                    }],
+                    total: itemPrice,
+                    type: 'quick_pay'
+                };
+
+                // Store order data globally for payment modal
+                window.currentOrderData = orderData;
+
+                console.log('Quick pay order data prepared:', orderData);
+
+                // Show payment modal
+                if (typeof showPaymentModal === 'function') {
+                    showPaymentModal(orderData);
+                } else {
+                    console.error('Payment modal not available');
+                    showNotification('Payment modal is loading. Please try again.', 'warning');
+                }
+            };
         });
         
         // Newsletter submission handler

@@ -262,6 +262,8 @@ class CafeElixirCart {
             return;
         }
 
+        console.log('Proceeding to checkout with cart:', this.cart);
+
         // Calculate totals
         const subtotal = this.getTotal();
         const tax = subtotal * 0.1;
@@ -288,6 +290,8 @@ class CafeElixirCart {
         // Store order data globally for payment modal
         window.currentOrderData = orderData;
 
+        console.log('Checkout order data prepared:', orderData);
+
         // Close cart modal
         const cartModal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
         if (cartModal) {
@@ -300,7 +304,7 @@ class CafeElixirCart {
                 showPaymentModal(orderData);
             } else {
                 console.error('Payment modal not available');
-                this.showNotification('Payment system not available', 'error');
+                this.showNotification('Payment modal is loading. Please try again.', 'warning');
             }
         }, 300);
     }
