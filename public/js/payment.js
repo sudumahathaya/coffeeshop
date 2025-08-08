@@ -4,6 +4,7 @@ class CafeElixirPaymentSystem {
         this.apiBase = '/api/payment';
         this.supportedMethods = [];
         this.currentPayment = null;
+        this.isInitialized = false;
         this.init();
     }
 
@@ -11,9 +12,11 @@ class CafeElixirPaymentSystem {
         try {
             await this.loadSupportedMethods();
             this.bindEvents();
+            this.isInitialized = true;
             console.log('Café Elixir Payment System initialized successfully');
         } catch (error) {
             console.error('Failed to initialize payment system:', error);
+            this.isInitialized = false;
         }
     }
 
@@ -304,6 +307,12 @@ class CafeElixirPaymentSystem {
         const paymentMethod = formData.get('payment_method');
         const submitButton = form.querySelector('button[type="submit"]');
         const originalText = submitButton.innerHTML;
+
+        // Check if payment system is initialized
+        if (!this.isInitialized) {
+            this.showNotification('Payment system is still loading. Please wait a moment and try again.', 'warning');
+            return;
+        }
 
         // Show loading state
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';

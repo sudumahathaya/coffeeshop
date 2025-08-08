@@ -256,6 +256,8 @@ function showPaymentModal(orderData) {
         return;
     }
 
+    console.log('Opening payment modal with data:', orderData);
+
     // Populate order summary
     populateOrderSummary(orderData);
     
@@ -266,14 +268,29 @@ function showPaymentModal(orderData) {
     document.getElementById('paymentCustomerEmail').value = orderData.customer_email || '';
     document.getElementById('paymentCustomerPhone').value = orderData.customer_phone || '';
 
-    // Show card form by default
-    handlePaymentMethodChange('card');
-    
     // Show the modal
     const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
     modal.show();
     
-    console.log('Payment modal opened with order data:', orderData);
+    // Initialize payment method after modal is shown
+    modal._element.addEventListener('shown.bs.modal', function() {
+        // Ensure payment system is ready
+        const checkPaymentSystem = () => {
+            if (window.cafeElixirPaymentSystem && window.cafeElixirPaymentSystem.isInitialized) {
+                // Set default payment method to card
+                const cardRadio = document.getElementById('method_card');
+                if (cardRadio) {
+                    cardRadio.checked = true;
+                    handlePaymentMethodChange('card');
+                }
+            } else {
+                // Retry after a short delay
+                setTimeout(checkPaymentSystem, 100);
+            }
+        };
+        
+        checkPaymentSystem();
+    }, { once: true });
 }
 
 function populateOrderSummary(orderData) {

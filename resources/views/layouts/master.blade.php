@@ -675,6 +675,21 @@
 
             console.log('Opening payment modal with data:', orderData);
             
+            // Wait for payment system to be ready
+            const waitForPaymentSystem = () => {
+                if (window.cafeElixirPaymentSystem && window.cafeElixirPaymentSystem.isInitialized) {
+                    // Payment system is ready, proceed with modal
+                    proceedWithPaymentModal(orderData);
+                } else {
+                    // Payment system not ready, wait a bit more
+                    setTimeout(waitForPaymentSystem, 100);
+                }
+            };
+            
+            waitForPaymentSystem();
+        }
+        
+        function proceedWithPaymentModal(orderData) {
             // Populate order summary
             populateOrderSummary(orderData);
 
@@ -682,12 +697,20 @@
             const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
             modal.show();
             
-            // Ensure payment system is ready
-            setTimeout(() => {
-                if (window.cafeElixirPaymentSystem) {
-                    window.cafeElixirPaymentSystem.handlePaymentMethodChange('card');
+            // Show the modal
+            const modal = new bootstrap.Modal(document.getElementById('paymentModal'));
+            modal.show();
+            
+            // Initialize with card payment method after modal is shown
+            modal._element.addEventListener('shown.bs.modal', function() {
+                const cardRadio = document.getElementById('method_card');
+                if (cardRadio) {
+                    cardRadio.checked = true;
+                    if (window.cafeElixirPaymentSystem) {
+                        window.cafeElixirPaymentSystem.handlePaymentMethodChange('card');
+                    }
                 }
-            }, 300);
+            }, { once: true });
         }
 
         function populateOrderSummary(orderData) {
