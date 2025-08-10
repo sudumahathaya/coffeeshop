@@ -21,18 +21,6 @@
                         <i class="bi bi-calendar-check me-2"></i>Book Table
                     </a>
                 </div>
-                
-                <!-- Typewriter Text Elements -->
-                <div class="text-center mt-5 mb-4">
-                    <p id="sinhalaTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif; display: inline;">
-                    </p>
-                    <span id="sinhalaCursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
-                </div>
-                <div class="text-center mt-2 mb-2">
-                    <p id="englishTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif; display: inline;">
-                    </p>
-                    <span id="englishCursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
-                </div>
             </div>
             <div class="col-lg-4" data-aos="fade-left" data-aos-delay="200">
                 <div class="welcome-card">
@@ -573,11 +561,6 @@
     .text-coffee {
         color: var(--coffee-primary) !important;
     }
-    
-    @keyframes blink {
-        0%, 50% { opacity: 1; }
-        51%, 100% { opacity: 0; }
-    }
 
     .btn-coffee {
         background: linear-gradient(45deg, var(--coffee-primary), var(--coffee-secondary));
@@ -642,87 +625,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Typewriter effect for Sinhala text
-    const sinhalaTexts = [
-        "කෝපි ප්‍රේමීන්ගේ ස්වර්ගය",
-        "සෑම කෝපි කෝප්පයක්ම කතාවක්",
-        "ගුණාත්මක කෝපි අත්දැකීම"
-    ];
-
-    // Typewriter effect for English text
-    const englishTexts = [
-        "Paradise for Coffee Lovers",
-        "Every Cup Tells a Story",
-        "Premium Coffee Experience"
-    ];
-
-    let sinhalaIndex = 0;
-    let englishIndex = 0;
-    let sinhalaCharIndex = 0;
-    let englishCharIndex = 0;
-    let isDeleting = false;
-
-    function typewriterEffect() {
-        const sinhalaElement = document.getElementById('sinhalaTypewriter');
-        const englishElement = document.getElementById('englishTypewriter');
-        const sinhalaCursor = document.getElementById('sinhalaCursor');
-        const englishCursor = document.getElementById('englishCursor');
-
-        // Check if elements exist before proceeding
-        if (!sinhalaElement || !englishElement) {
-            console.warn('Typewriter elements not found, skipping effect');
-            return;
-        }
-
-        const currentSinhalaText = sinhalaTexts[sinhalaIndex];
-        const currentEnglishText = englishTexts[englishIndex];
-
-        if (!isDeleting) {
-            // Typing
-            if (sinhalaCharIndex < currentSinhalaText.length) {
-                sinhalaElement.textContent = currentSinhalaText.substring(0, sinhalaCharIndex + 1);
-                sinhalaCharIndex++;
-            }
-
-            if (englishCharIndex < currentEnglishText.length) {
-                englishElement.textContent = currentEnglishText.substring(0, englishCharIndex + 1);
-                englishCharIndex++;
-            }
-
-            if (sinhalaCharIndex === currentSinhalaText.length && englishCharIndex === currentEnglishText.length) {
-                // Both texts are complete, wait then start deleting
-                setTimeout(() => {
-                    isDeleting = true;
-                }, 2000);
-            }
-        } else {
-            // Deleting
-            if (sinhalaCharIndex > 0) {
-                sinhalaElement.textContent = currentSinhalaText.substring(0, sinhalaCharIndex - 1);
-                sinhalaCharIndex--;
-            }
-
-            if (englishCharIndex > 0) {
-                englishElement.textContent = currentEnglishText.substring(0, englishCharIndex - 1);
-                englishCharIndex--;
-            }
-
-            if (sinhalaCharIndex === 0 && englishCharIndex === 0) {
-                // Both texts are deleted, move to next texts
-                isDeleting = false;
-                sinhalaIndex = (sinhalaIndex + 1) % sinhalaTexts.length;
-                englishIndex = (englishIndex + 1) % englishTexts.length;
-            }
-        }
-
-        setTimeout(typewriterEffect, isDeleting ? 50 : 100);
-    }
-
-    // Start typewriter effect after a delay
-    setTimeout(() => {
-        typewriterEffect();
-    }, 1000);
-
     // Initialize loyalty circle progress
     const circleProgress = document.querySelector('.circle-progress');
     if (circleProgress) {

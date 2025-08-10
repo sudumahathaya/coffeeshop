@@ -203,22 +203,20 @@ class CafeElixirCart {
 
         // Add event listeners for proper focus management
         const cartModal = document.getElementById('cartModal');
-        if (cartModal) {
-            cartModal.addEventListener('hide.bs.modal', function() {
-                // Remove focus from any focused element within the modal
-                const focusedElement = this.querySelector(':focus');
-                if (focusedElement) {
-                    focusedElement.blur();
-                }
-            });
+        cartModal.addEventListener('hide.bs.modal', function() {
+            // Remove focus from any focused element within the modal
+            const focusedElement = this.querySelector(':focus');
+            if (focusedElement) {
+                focusedElement.blur();
+            }
+        });
 
-            cartModal.addEventListener('hidden.bs.modal', function() {
-                // Ensure no elements retain focus after modal is completely hidden
-                if (document.activeElement && this.contains(document.activeElement)) {
-                    document.activeElement.blur();
-                }
-            });
-        }
+        cartModal.addEventListener('hidden.bs.modal', function() {
+            // Ensure no elements retain focus after modal is completely hidden
+            if (document.activeElement && this.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        });
     }
 
     bindEvents() {

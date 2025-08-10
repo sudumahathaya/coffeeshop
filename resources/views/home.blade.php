@@ -23,12 +23,12 @@
                     <div class="text-center mt-5 mb-4">
                         <p id="sinhalaTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif; display: inline;">
                         </p>
-                        <span id="sinhalaCursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
+                        <span id="cursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
                     </div>
                     <div class="text-center mt-2 mb-2">
                         <p id="englishTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif; display: inline;">
                         </p>
-                        <span id="englishCursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
+                        <span id="cursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
                     </div>
                 </div>
             </div>
@@ -451,11 +451,6 @@
 
 @push('styles')
 <style>
-    @keyframes blink {
-        0%, 50% { opacity: 1; }
-        51%, 100% { opacity: 0; }
-    }
-    
     @keyframes bounce {
         0%, 20%, 50%, 80%, 100% {
             transform: translateY(0);
@@ -499,14 +494,8 @@
         function typewriterEffect() {
             const sinhalaElement = document.getElementById('sinhalaTypewriter');
             const englishElement = document.getElementById('englishTypewriter');
-            const sinhalaCursor = document.getElementById('sinhalaCursor');
-            const englishCursor = document.getElementById('englishCursor');
 
-            // Check if elements exist before proceeding
-            if (!sinhalaElement || !englishElement) {
-                console.warn('Typewriter elements not found, skipping effect');
-                return;
-            }
+            if (!sinhalaElement || !englishElement) return;
 
             const currentSinhalaText = sinhalaTexts[sinhalaIndex];
             const currentEnglishText = englishTexts[englishIndex];
@@ -553,9 +542,9 @@
         }
 
         // Start typewriter effect when page loads
-        setTimeout(() => {
-            typewriterEffect();
-        }, 1000);
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(typewriterEffect, 1000);
+        });
 
         // Stats counter animation
         function animateCounter(element, target) {

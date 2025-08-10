@@ -13,7 +13,7 @@ class SimulationPaymentGateway {
             await this.loadSupportedMethods();
             this.bindEvents();
             this.isInitialized = true;
-            console.log('Simulation Payment Gateway initialized successfully');
+            console.log('Simulation Payment Gateway initialized');
         } catch (error) {
             console.error('Failed to initialize payment gateway:', error);
             this.isInitialized = false;
@@ -36,7 +36,6 @@ class SimulationPaymentGateway {
 
     bindEvents() {
         // Payment method selection
-            console.log('Payment methods loaded successfully');
         document.addEventListener('change', (e) => {
             if (e.target.name === 'payment_method') {
                 this.handlePaymentMethodChange(e.target.value);
