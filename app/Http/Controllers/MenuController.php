@@ -13,7 +13,7 @@ class MenuController extends Controller
     public function index()
     {
         try {
-            $menuItems = MenuItem::all();
+            $menuItems = MenuItem::active()->get();
             $categories = MenuItem::select('category')->distinct()->pluck('category');
             
             return response()->json([

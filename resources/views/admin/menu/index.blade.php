@@ -421,7 +421,12 @@ function startRealTimeStatsUpdates() {
 }
 
 function updateMenuStats() {
-    fetch('/admin/api/menu-stats')
+    fetch('/admin/api/menu-stats', {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
         .then(response => response.json())
         .then(data => {
             if (data.success) {

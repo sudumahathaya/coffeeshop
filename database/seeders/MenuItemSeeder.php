@@ -18,7 +18,7 @@ class MenuItemSeeder extends Seeder
                 'description' => 'Rich, bold espresso shot with perfect crema. The foundation of all great coffee drinks.',
                 'category' => 'Hot Coffee',
                 'price' => 320.00,
-                'image' => 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400&h=300&fit=crop',
+                'image' => 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=400&h=300&fit=crop',
                 'preparation_time' => '2-3 min',
                 'ingredients' => ['Espresso beans', 'Water'],
                 'allergens' => [],

@@ -149,15 +149,15 @@
                                         </a>
                                     @endauth
                                     @auth
-                                    <button class="btn btn-outline-coffee btn-sm ms-2" 
-                                            onclick="quickPay({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->image }}')"
-                                            data-payment-trigger>
-                                        <i class="bi bi-credit-card me-1"></i>Quick Pay
-                                    </button>
+                                        <button class="btn btn-outline-coffee btn-sm ms-2" 
+                                                onclick="quickPay({{ $item->id }}, '{{ $item->name }}', {{ $item->price }}, '{{ $item->image }}')"
+                                                data-payment-trigger>
+                                            <i class="bi bi-credit-card me-1"></i>Quick Pay
+                                        </button>
                                     @else
-                                    <a href="{{ route('login') }}" class="btn btn-outline-coffee btn-sm ms-2">
-                                        <i class="bi bi-credit-card me-1"></i>Quick Pay
-                                    </a>
+                                        <a href="{{ route('login') }}" class="btn btn-outline-coffee btn-sm ms-2">
+                                            <i class="bi bi-credit-card me-1"></i>Quick Pay
+                                        </a>
                                     @endauth
                                 </div>
                                 <div class="mt-2">
@@ -165,8 +165,10 @@
                                         <i class="bi bi-clock me-1"></i>{{ $item->preparation_time ?? 'Ready soon' }}
                                     </small>
                                 </div>
+                            </div>
                         </div>
                     </div>
+                </div>
                 @endforeach
             </div>
         </div>

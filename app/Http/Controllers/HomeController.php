@@ -20,7 +20,7 @@ class HomeController extends Controller
 
     public function menu()
     {
-        $menuItems = MenuItem::active()->get();
+        $menuItems = MenuItem::where('status', 'active')->get();
         $categories = MenuItem::select('category')->distinct()->pluck('category');
         
         return view('menu', compact('menuItems', 'categories'));
