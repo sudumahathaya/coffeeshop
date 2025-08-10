@@ -159,7 +159,6 @@ Route::get('/admin/api/menu-stats', function() {
 
 // Order routes
 Route::post('/api/orders', [OrderController::class, 'store'])->name('api.orders.store');
-Route::middleware('auth')->post('/api/orders', [OrderController::class, 'store'])->name('api.orders.store.auth');
 Route::get('/api/orders/{orderId}', [OrderController::class, 'show'])->name('api.orders.show');
 Route::middleware('auth')->get('/api/user/orders', [OrderController::class, 'getUserOrders'])->name('api.user.orders');
 Route::get('/admin/api/orders', [OrderController::class, 'index'])->name('admin.api.orders');

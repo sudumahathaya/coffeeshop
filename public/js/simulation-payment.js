@@ -504,7 +504,14 @@ class CafeElixirPaymentSystem {
                 body: JSON.stringify(orderData)
             });
 
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('HTTP Error:', response.status, errorText);
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
+            }
+
             const result = await response.json();
+            console.log('Order API response:', result);
 
             if (result.success) {
                 console.log('Order placed successfully:', result);
@@ -544,11 +551,12 @@ class CafeElixirPaymentSystem {
                 });
                 
             } else {
+                console.error('Order API returned error:', result);
                 throw new Error(result.message || 'Failed to place order');
             }
         } catch (error) {
             console.error('Order submission error:', error);
-            throw new Error('Failed to place order. Please try again.');
+            throw new Error(error.message || 'Failed to place order. Please try again.');
         }
     }
 

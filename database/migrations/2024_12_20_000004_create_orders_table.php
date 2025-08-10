@@ -26,6 +26,9 @@ return new class extends Migration
             $table->enum('status', ['pending', 'confirmed', 'preparing', 'ready', 'completed', 'cancelled'])->default('pending');
             $table->enum('order_type', ['dine_in', 'takeaway', 'delivery'])->default('dine_in');
             $table->text('special_instructions')->nullable();
+            $table->string('payment_method')->default('cash');
+            $table->enum('payment_status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
+            $table->string('transaction_id')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamps();
         });

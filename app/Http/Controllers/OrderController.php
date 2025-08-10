@@ -5,10 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\MenuItem;
 use App\Models\LoyaltyPoint;
-use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -20,7 +20,7 @@ class OrderController extends Controller
                 'request_data' => $request->all()
             ]);
             
-        $validatedData = $request->validate([
+            $validatedData = $request->validate([
             'items' => 'required|array|min:1',
             'items.*.id' => 'required|exists:menu_items,id',
             'items.*.quantity' => 'required|integer|min:1',
@@ -32,11 +32,11 @@ class OrderController extends Controller
             'payment_method' => 'required|in:cash,card,online,mobile',
             'transaction_id' => 'nullable|string', // For electronic payments
             'payment_status' => 'nullable|in:pending,completed,failed',
-        ]);
+            ]);
 
             \Log::info('Order validation passed', ['validated_data' => $validatedData]);
             
-        DB::beginTransaction();
+            DB::beginTransaction();
         
             // Calculate order totals
             $subtotal = 0;
@@ -44,6 +44,10 @@ class OrderController extends Controller
 
             foreach ($validatedData['items'] as $item) {
                 $menuItem = MenuItem::find($item['id']);
+                if (!$menuItem) {
+                    throw new \Exception("Menu item with ID {$item['id']} not found");
+                }
+                
                 $itemTotal = $menuItem->price * $item['quantity'];
                 $subtotal += $itemTotal;
 
@@ -102,6 +106,7 @@ class OrderController extends Controller
             ]);
 
             // Award loyalty points (1 point per Rs. 10 spent)
+            $pointsEarned = 0;
             if (Auth::check()) {
                 $pointsEarned = max(50, floor($total / 10)); // 1 point per Rs. 10 spent, minimum 50 points
                 
@@ -118,9 +123,16 @@ class OrderController extends Controller
                     'points' => $pointsEarned,
                     'order_id' => $orderId
                 ]);
+            } else {
+                \Log::info('No user authenticated, skipping loyalty points');
             }
 
             DB::commit();
+            
+            \Log::info('Order transaction committed successfully', [
+                'order_id' => $orderId,
+                'user_id' => Auth::id()
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -154,7 +166,7 @@ class OrderController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to place order. Please try again.'
+                'message' => 'Failed to place order: ' . $e->getMessage()
             ], 500);
         }
     }

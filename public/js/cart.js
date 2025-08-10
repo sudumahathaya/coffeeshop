@@ -366,6 +366,9 @@ class CafeElixirCart {
             customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
             customer_phone: '',
             order_type: 'dine_in',
+            special_instructions: '',
+            payment_method: 'cash', // Default to cash, will be updated by payment system
+            payment_status: 'pending',
             subtotal: subtotal,
             tax: tax,
             total: total,

@@ -571,6 +571,15 @@ async function submitOrder(orderData) {
         
         console.log('Submitting order:', orderData);
         
+        // Validate orderData before submission
+        if (!orderData || !orderData.items || orderData.items.length === 0) {
+            throw new Error('Invalid order data: No items found');
+        }
+        
+        if (!orderData.customer_name) {
+            throw new Error('Customer name is required');
+        }
+        
         const response = await fetch('/api/orders', {
             method: 'POST',
             headers: {
@@ -580,7 +589,14 @@ async function submitOrder(orderData) {
             body: JSON.stringify(orderData)
         });
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('HTTP Error:', response.status, errorText);
+            throw new Error(`Server error: ${response.status}`);
+        }
+
         const result = await response.json();
+        console.log('Order submission result:', result);
 
         if (result.success) {
             console.log('Order submitted successfully:', result);
@@ -627,11 +643,12 @@ async function submitOrder(orderData) {
             }, 2000);
         } else {
             console.error('Order submission failed:', result);
-            throw new Error(result.message || 'Failed to place order');
+            throw new Error(result.message || 'Order submission failed. Please try again.');
         }
     } catch (error) {
         console.error('Order submission error:', error);
-        showNotification('Failed to place order. Please try again.', 'error');
+        showNotification(error.message || 'Failed to place order. Please try again.', 'error');
+        throw error; // Re-throw to be handled by payment system
     } finally {
         // Reset flags
         window.paymentInProgress = false;
