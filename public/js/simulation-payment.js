@@ -519,6 +519,23 @@ class CafeElixirPaymentSystem {
                 // Set success flag before clearing cart
                 window.orderSuccessful = true;
                 
+                // Store order completion data for dashboard updates
+                const orderCompletionData = {
+                    user_id: document.querySelector('meta[name="user-id"]')?.getAttribute('content'),
+                    order_id: result.order_id,
+                    total: orderData.total,
+                    points_earned: result.points_earned || 0,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Store in localStorage for cross-tab communication
+                localStorage.setItem('orderCompleted', JSON.stringify(orderCompletionData));
+                
+                // Trigger custom event for same-tab updates
+                window.dispatchEvent(new CustomEvent('orderCompleted', {
+                    detail: orderCompletionData
+                }));
+                
                 // Clear cart only after successful order
                 if (typeof window.cart !== 'undefined') {
                     window.cart.clearCart();

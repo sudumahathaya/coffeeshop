@@ -73,6 +73,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/user/reservation-updates', [UserController::class, 'getReservationUpdates'])->name('user.reservation-updates');
     Route::post('/user/update-profile', [UserController::class, 'updateProfile'])->name('user.update-profile');
     Route::get('/user/dashboard-stats', [UserController::class, 'getDashboardStats'])->name('user.dashboard-stats');
+    Route::get('/user/latest-order-stats', [UserController::class, 'getLatestOrderStats'])->name('user.latest-order-stats');
     
     // Profile change requests
     Route::post('/profile-change-requests', [ProfileChangeController::class, 'store'])->name('profile-change-requests.store');

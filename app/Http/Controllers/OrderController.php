@@ -134,6 +134,10 @@ class OrderController extends Controller
                 'user_id' => Auth::id()
             ]);
 
+            // Broadcast real-time update for dashboard stats
+            if (Auth::check()) {
+                broadcast(new \App\Events\OrderCreated($order))->toOthers();
+            }
             return response()->json([
                 'success' => true,
                 'message' => 'Order placed successfully!',

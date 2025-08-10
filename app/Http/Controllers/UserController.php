@@ -163,6 +163,32 @@ class UserController extends Controller
             'timestamp' => now()->toISOString()
         ]);
     }
+    
+    public function getLatestOrderStats()
+    {
+        $user = Auth::user();
+        
+        // Get the most recent order to check for updates
+        $latestOrder = $user->orders()->latest()->first();
+        
+        $stats = [
+            'total_orders' => $user->orders()->count(),
+            'total_spent' => $user->orders()->sum('total'),
+            'loyalty_points' => $user->total_loyalty_points,
+            'latest_order' => $latestOrder ? [
+                'id' => $latestOrder->order_id,
+                'total' => $latestOrder->total,
+                'created_at' => $latestOrder->created_at->toISOString(),
+                'points_earned' => $latestOrder->loyaltyPoints()->where('type', 'earned')->sum('points')
+            ] : null
+        ];
+        
+        return response()->json([
+            'success' => true,
+            'stats' => $stats,
+            'timestamp' => now()->toISOString()
+        ]);
+    }
 
     private function getPendingChangeRequests($user)
     {

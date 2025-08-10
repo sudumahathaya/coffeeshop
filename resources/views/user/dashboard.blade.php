@@ -56,7 +56,7 @@
                         <i class="bi bi-receipt"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>{{ $dashboardData['stats']['total_orders'] ?? 0 }}</h3>
+                        <h3 id="totalOrdersCount" data-stat="total_orders">{{ $dashboardData['stats']['total_orders'] ?? 0 }}</h3>
                         <p>Total Orders</p>
                         <small class="text-success">
                             <i class="bi bi-arrow-up"></i> Active member
@@ -71,7 +71,7 @@
                         <i class="bi bi-star-fill"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>{{ number_format($dashboardData['stats']['loyalty_points'] ?? 0) }}</h3>
+                        <h3 id="loyaltyPointsCount" data-stat="loyalty_points">{{ number_format($dashboardData['stats']['loyalty_points'] ?? 0) }}</h3>
                         <p>Loyalty Points</p>
                         <small class="text-info">
                             <i class="bi bi-gift"></i> {{ $dashboardData['stats']['current_tier'] ?? 'Bronze' }} tier
@@ -86,7 +86,7 @@
                         <i class="bi bi-calendar-check"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>{{ $dashboardData['stats']['total_reservations'] ?? 0 }}</h3>
+                        <h3 id="totalReservationsCount" data-stat="total_reservations">{{ $dashboardData['stats']['total_reservations'] ?? 0 }}</h3>
                         <p>Reservations</p>
                         <small class="text-primary">
                             <i class="bi bi-clock"></i> Upcoming: {{ count($dashboardData['upcoming_reservations'] ?? []) }}
@@ -101,7 +101,7 @@
                         <i class="bi bi-currency-dollar"></i>
                     </div>
                     <div class="stat-content">
-                        <h3>Rs. {{ number_format($dashboardData['stats']['total_spent'] ?? 0) }}</h3>
+                        <h3 id="totalSpentCount" data-stat="total_spent">Rs. {{ number_format($dashboardData['stats']['total_spent'] ?? 0) }}</h3>
                         <p>Total Spent</p>
                         <small class="text-success">
                             <i class="bi bi-trending-up"></i> Great savings!
@@ -657,8 +657,92 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Auto-refresh dashboard data every 30 seconds
     setInterval(refreshDashboardStats, 30000);
+    
+    // Listen for real-time order updates
+    setupRealTimeOrderUpdates();
+    
+    // Listen for order completion events
+    window.addEventListener('orderCompleted', function(event) {
+        console.log('Order completed event received:', event.detail);
+        handleNewOrderUpdate(event.detail);
+    });
 });
 
+function setupRealTimeOrderUpdates() {
+    // Listen for new orders from the current user
+    // This would typically use WebSockets/Pusher, but for now we'll use polling
+    
+    // Alternative: Listen for storage events (when order is completed)
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'orderCompleted' && e.newValue) {
+            const orderData = JSON.parse(e.newValue);
+            if (orderData.user_id === getCurrentUserId()) {
+                handleNewOrderUpdate(orderData);
+                localStorage.removeItem('orderCompleted'); // Clean up
+            }
+        }
+    });
+    
+    // Check for order success in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('order_success') === 'true') {
+        setTimeout(() => {
+            refreshDashboardStats();
+            showOrderSuccessCelebration();
+            
+            // Clean up URL parameters
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+        }, 500);
+    }
+}
+
+function handleNewOrderUpdate(orderData) {
+    console.log('New order detected:', orderData);
+    
+    // Update total orders count
+    const totalOrdersElement = document.getElementById('totalOrdersCount');
+    if (totalOrdersElement) {
+        const currentCount = parseInt(totalOrdersElement.textContent) || 0;
+        updateStatWithAnimation('total_orders', currentCount + 1);
+    }
+    
+    // Update total spent
+    const totalSpentElement = document.getElementById('totalSpentCount');
+    if (totalSpentElement && orderData.total) {
+        const currentSpent = parseFloat(totalSpentElement.textContent.replace(/[^\d.]/g, '')) || 0;
+        const newTotal = currentSpent + parseFloat(orderData.total);
+        updateStatWithAnimation('total_spent', 'Rs. ' + newTotal.toLocaleString());
+    }
+    
+    // Update loyalty points if earned
+    if (orderData.points_earned) {
+        const loyaltyPointsElement = document.getElementById('loyaltyPointsCount');
+        if (loyaltyPointsElement) {
+            const currentPoints = parseInt(loyaltyPointsElement.textContent.replace(/[^\d]/g, '')) || 0;
+            const newPoints = currentPoints + parseInt(orderData.points_earned);
+            updateStatWithAnimation('loyalty_points', newPoints.toLocaleString());
+            
+            // Update loyalty progress
+            updateLoyaltyProgress(newPoints, Math.max(0, 1500 - newPoints));
+        }
+    }
+    
+    // Show celebration notification
+    showNotification(`New order completed! 🎉 ${orderData.points_earned ? `+${orderData.points_earned} points earned!` : ''}`, 'success');
+    
+    // Refresh the page after a delay to show updated order list
+    setTimeout(() => {
+        if (window.location.pathname.includes('dashboard')) {
+            window.location.reload();
+        }
+    }, 2000);
+}
+
+function getCurrentUserId() {
+    const userMeta = document.querySelector('meta[name="user-id"]');
+    return userMeta ? parseInt(userMeta.getAttribute('content')) : null;
+}
 function showOrderSuccessCelebration() {
     // Create celebration animation
     const celebration = document.createElement('div');
@@ -717,7 +801,7 @@ function showOrderSuccessCelebration() {
 
 function refreshDashboardStats() {
     // Refresh key dashboard statistics
-    fetch('/user/dashboard-stats', {
+    fetch('/user/latest-order-stats', {
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
             'Accept': 'application/json'
@@ -729,11 +813,12 @@ function refreshDashboardStats() {
             // Update stats with animation
             updateStatWithAnimation('total_orders', data.stats.total_orders);
             updateStatWithAnimation('loyalty_points', data.stats.loyalty_points);
-            updateStatWithAnimation('total_reservations', data.stats.total_reservations);
             updateStatWithAnimation('total_spent', 'Rs. ' + data.stats.total_spent.toLocaleString());
             
             // Update loyalty progress
             updateLoyaltyProgress(data.stats.loyalty_points, data.stats.points_to_next_tier);
+            
+            console.log('Dashboard stats refreshed:', data.stats);
         }
     })
     .catch(error => {
