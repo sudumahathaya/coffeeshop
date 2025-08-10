@@ -447,6 +447,12 @@ class SimulationPaymentGateway {
                 } else {
                     this.showNotification('Processing your payment securely...', 'info');
                 }
+            } else if (localStorage.getItem('cafeElixirCart')) {
+                localStorage.removeItem('cafeElixirCart');
+                // Update cart display if cart object exists
+                if (window.cart && typeof window.cart.updateCartDisplay === 'function') {
+                    window.cart.updateCartDisplay();
+                }
             }
             
             // Simulate payment processing

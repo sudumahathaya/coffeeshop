@@ -17,8 +17,8 @@ class LoyaltyService
             return 0;
         }
 
-        // 1 point per Rs. 10 spent
-        $pointsEarned = floor($order->total / 10);
+        // Fixed 50 points per order
+        $pointsEarned = 50;
 
         LoyaltyPoint::create([
             'user_id' => $order->user_id,

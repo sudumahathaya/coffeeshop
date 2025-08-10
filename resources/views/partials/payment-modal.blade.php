@@ -274,22 +274,12 @@ function showPaymentModal(orderData) {
     
     // Initialize payment method after modal is shown
     modal._element.addEventListener('shown.bs.modal', function() {
-        // Ensure payment system is ready
-        const checkPaymentSystem = () => {
-            if (window.cafeElixirPaymentSystem && window.cafeElixirPaymentSystem.isInitialized) {
-                // Set default payment method to card
-                const cardRadio = document.getElementById('method_card');
-                if (cardRadio) {
-                    cardRadio.checked = true;
-                    handlePaymentMethodChange('card');
-                }
-            } else {
-                // Retry after a short delay
-                setTimeout(checkPaymentSystem, 100);
-            }
-        };
-        
-        checkPaymentSystem();
+        // Set default payment method to card
+        const cardRadio = document.getElementById('method_card');
+        if (cardRadio) {
+            cardRadio.checked = true;
+            handlePaymentMethodChange('card');
+        }
     }, { once: true });
 }
 
