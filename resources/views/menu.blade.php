@@ -72,7 +72,7 @@
         <!-- Menu Items -->
         <div class="menu-items">
             <!-- Hot Coffee Section -->
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="menu-grid">
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4" id="menu-grid">
                 @foreach($menuItems as $index => $item)
                     @php
                         $categoryMap = [
@@ -440,24 +440,29 @@
             width: 100%;
             margin: 0.25rem 0;
         }
-        
-        /* Ensure mobile shows 1 column */
-        #menu-grid {
-            --bs-columns: 1;
-        }
     }
     
-    @media (min-width: 769px) and (max-width: 991px) {
-        /* Tablet shows 2 columns */
-        #menu-grid {
-            --bs-columns: 2;
-        }
-    }
-    
+    /* Ensure consistent 3-column layout on larger screens */
     @media (min-width: 992px) {
-        /* Desktop shows 3 columns */
-        #menu-grid {
-            --bs-columns: 3;
+        .row-cols-lg-3 > * {
+            flex: 0 0 auto;
+            width: 33.333333%;
+        }
+    }
+    
+    /* 2 columns on tablets */
+    @media (min-width: 576px) and (max-width: 991px) {
+        .row-cols-sm-2 > * {
+            flex: 0 0 auto;
+            width: 50%;
+        }
+    }
+    
+    /* 1 column on mobile */
+    @media (max-width: 575px) {
+        .row-cols-1 > * {
+            flex: 0 0 auto;
+            width: 100%;
         }
     }
 </style>
