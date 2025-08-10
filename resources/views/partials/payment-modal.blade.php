@@ -564,8 +564,9 @@ function renderCashForm() {
 // Global function to submit order
 async function submitOrder(orderData) {
     try {
-        // Set flag to prevent cart clear notification
+        // Set flags to prevent cart clear notification and manage state
         window.paymentInProgress = true;
+        window.orderSuccessful = false;
         
         console.log('Submitting order:', orderData);
         
@@ -582,6 +583,9 @@ async function submitOrder(orderData) {
 
         if (result.success) {
             console.log('Order submitted successfully:', result);
+            
+            // Set success flag
+            window.orderSuccessful = true;
             
             // Clear cart
             if (typeof window.cart !== 'undefined') {
@@ -606,14 +610,14 @@ async function submitOrder(orderData) {
             }
             
             // Show success notification
-            const pointsMessage = result.points_earned ? ` You earned ${result.points_earned} loyalty points!` : '';
-            showNotification(`Order ${result.order_id || 'placed'} successfully!${pointsMessage} 🎉`, 'success');
+            const pointsMessage = result.points_earned ? ` 🌟 You earned ${result.points_earned} loyalty points!` : '';
+            showNotification(`Order ${result.order_id || 'placed'} successful!${pointsMessage} ☕`, 'success');
             
-            // Redirect to dashboard or show order confirmation
+            // Enhanced redirect logic with celebration
             setTimeout(() => {
                 if (typeof window.location !== 'undefined') {
                     if (window.location.pathname !== '/user/dashboard') {
-                        window.location.href = '/user/dashboard';
+                        window.location.href = '/user/dashboard?order_success=true&points=' + (result.points_earned || 0);
                     } else {
                         // If already on dashboard, refresh to show updated stats
                         window.location.reload();
@@ -628,8 +632,11 @@ async function submitOrder(orderData) {
         console.error('Order submission error:', error);
         showNotification('Failed to place order. Please try again.', 'error');
     } finally {
-        // Reset payment flag
+        // Reset flags
         window.paymentInProgress = false;
+        setTimeout(() => {
+            window.orderSuccessful = false;
+        }, 5000);
     }
 }
 

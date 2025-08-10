@@ -485,6 +485,10 @@ class CafeElixirPaymentSystem {
 
     async submitOrder(orderData) {
         try {
+            // Set flags to prevent unnecessary notifications
+            window.paymentInProgress = true;
+            window.orderSuccessful = false;
+            
             const response = await fetch('/api/orders', {
                 method: 'POST',
                 headers: {
@@ -499,6 +503,9 @@ class CafeElixirPaymentSystem {
             if (result.success) {
                 console.log('Order placed successfully:', result);
                 
+                // Set success flag
+                window.orderSuccessful = true;
+                
                 // Clear cart
                 if (typeof window.cart !== 'undefined') {
                     window.cart.clearCart();
@@ -507,10 +514,12 @@ class CafeElixirPaymentSystem {
                     localStorage.removeItem('cafeElixirCart');
                     console.log('Cart cleared via localStorage');
                     
-                    // Update cart display if cart object exists
-                    if (window.cart && typeof window.cart.updateCartDisplay === 'function') {
-                        window.cart.updateCartDisplay();
-                    }
+                    // Update cart counters directly
+                    const cartCounters = document.querySelectorAll('.cart-counter');
+                    cartCounters.forEach(counter => {
+                        counter.style.display = 'none';
+                        counter.textContent = '0';
+                    });
                 }
                 
                 // Close payment modal
@@ -534,6 +543,9 @@ class CafeElixirPaymentSystem {
         } catch (error) {
             console.error('Order submission error:', error);
             throw new Error('Failed to place order. Please try again.');
+        } finally {
+            // Reset payment flag
+            window.paymentInProgress = false;
         }
     }
 
@@ -612,6 +624,11 @@ class CafeElixirPaymentSystem {
         const bootstrapModal = new bootstrap.Modal(modal);
         bootstrapModal.show();
 
+        // Add celebration animation if points were earned
+        if (result.points_earned > 0) {
+            this.showCelebrationAnimation(result.points_earned);
+        }
+
         // Handle modal hide event to properly manage focus
         modal.addEventListener('hide.bs.modal', function() {
             const focusedElement = this.querySelector(':focus');
@@ -633,8 +650,54 @@ class CafeElixirPaymentSystem {
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
+            } else {
+                // Redirect to dashboard to show updated stats
+                setTimeout(() => {
+                    window.location.href = '/user/dashboard?order_success=true';
+                }, 1000);
             }
         });
+    }
+    
+    showCelebrationAnimation(pointsEarned) {
+        const celebration = document.createElement('div');
+        celebration.className = 'points-celebration';
+        celebration.innerHTML = `
+            <div class="celebration-content">
+                <div class="points-icon">
+                    <i class="bi bi-star-fill text-warning"></i>
+                </div>
+                <h4 class="text-warning">+${pointsEarned} Points!</h4>
+                <p>Added to your loyalty account</p>
+            </div>
+        `;
+        
+        celebration.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10001;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: celebrationBounce 0.6s ease;
+        `;
+        
+        document.body.appendChild(celebration);
+        
+        // Auto remove after 2 seconds
+        setTimeout(() => {
+            celebration.style.animation = 'celebrationFadeOut 0.5s ease';
+            setTimeout(() => {
+                if (celebration.parentElement) {
+                    celebration.remove();
+                }
+            }, 500);
+        }, 2000);
     }
 
     showOTPModal(otpData) {

@@ -141,6 +141,28 @@ class UserController extends Controller
             'updates' => $updates
         ]);
     }
+    
+    public function getDashboardStats()
+    {
+        $user = Auth::user();
+        
+        $stats = [
+            'total_orders' => $user->orders()->count(),
+            'loyalty_points' => $user->total_loyalty_points,
+            'total_reservations' => $user->reservations()->count(),
+            'total_spent' => $user->orders()->sum('total'),
+            'current_tier' => $user->loyalty_tier,
+            'points_to_next_tier' => $this->getPointsToNextTier($user->total_loyalty_points),
+            'recent_orders_count' => $user->orders()->where('created_at', '>', now()->subDays(7))->count(),
+            'pending_reservations' => $user->reservations()->where('status', 'pending')->count()
+        ];
+        
+        return response()->json([
+            'success' => true,
+            'stats' => $stats,
+            'timestamp' => now()->toISOString()
+        ]);
+    }
 
     private function getPendingChangeRequests($user)
     {

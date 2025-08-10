@@ -97,10 +97,22 @@ class CafeElixirCart {
         this.cart = [];
         this.saveCart();
         this.updateCartDisplay();
-        // Don't show notification when clearing cart after successful payment
-        if (!window.paymentInProgress) {
+        
+        // Enhanced cart clearing logic
+        if (!window.paymentInProgress && !window.orderSuccessful) {
             this.showNotification('Cart cleared successfully', 'info');
         }
+        
+        // Ensure cart counters are properly updated
+        this.updateCartCounters();
+    }
+    
+    updateCartCounters() {
+        const cartCounters = document.querySelectorAll('.cart-counter');
+        cartCounters.forEach(counter => {
+            counter.style.display = 'none';
+            counter.textContent = '0';
+        });
     }
 
     getTotal() {
@@ -128,6 +140,7 @@ class CafeElixirCart {
                 setTimeout(() => counter.classList.remove('animate-bounce'), 500);
             } else {
                 counter.style.display = 'none';
+                counter.textContent = '0';
             }
         });
 

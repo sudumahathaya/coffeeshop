@@ -138,8 +138,11 @@
                                         <p class="text-muted mb-1">{{ $order->created_at->format('M d, Y g:i A') }}</p>
                                         <small class="text-muted">
                                             {{ count($order->items ?? []) }} items
-                                            @if($order->loyaltyPoints->where('type', 'earned')->sum('points') > 0)
-                                                • <span class="text-success">+{{ $order->loyaltyPoints->where('type', 'earned')->sum('points') }} points earned</span>
+                                            @if(isset($order->loyaltyPoints) && $order->loyaltyPoints->where('type', 'earned')->sum('points') > 0)
+                                                • <span class="text-success">
+                                                    <i class="bi bi-star-fill me-1"></i>
+                                                    +{{ $order->loyaltyPoints->where('type', 'earned')->sum('points') }} points earned
+                                                </span>
                                             @endif
                                         </small>
                                     </div>
@@ -651,6 +654,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Clean up URL
         window.history.replaceState({}, document.title, window.location.pathname);
     }
+    
+    // Auto-refresh dashboard data every 30 seconds
+    setInterval(refreshDashboardStats, 30000);
 });
 
 function showOrderSuccessCelebration() {
@@ -664,6 +670,10 @@ function showOrderSuccessCelebration() {
             </div>
             <h3 class="text-success mb-3">Order Successful!</h3>
             <p class="lead">Your coffee is being prepared with love ☕</p>
+            <div class="points-celebration">
+                <i class="bi bi-star-fill text-warning me-2"></i>
+                <span class="text-warning fw-bold">Loyalty points earned!</span>
+            </div>
             <div class="confetti"></div>
         </div>
     `;
@@ -703,6 +713,71 @@ function showOrderSuccessCelebration() {
             }
         }, 500);
     });
+}
+
+function refreshDashboardStats() {
+    // Refresh key dashboard statistics
+    fetch('/user/dashboard-stats', {
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update stats with animation
+            updateStatWithAnimation('total_orders', data.stats.total_orders);
+            updateStatWithAnimation('loyalty_points', data.stats.loyalty_points);
+            updateStatWithAnimation('total_reservations', data.stats.total_reservations);
+            updateStatWithAnimation('total_spent', 'Rs. ' + data.stats.total_spent.toLocaleString());
+            
+            // Update loyalty progress
+            updateLoyaltyProgress(data.stats.loyalty_points, data.stats.points_to_next_tier);
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing dashboard stats:', error);
+    });
+}
+
+function updateStatWithAnimation(statKey, newValue) {
+    const statElements = document.querySelectorAll(`[data-stat="${statKey}"]`);
+    
+    statElements.forEach(element => {
+        if (element.textContent !== newValue.toString()) {
+            element.style.transform = 'scale(1.1)';
+            element.style.color = '#28a745';
+            element.style.transition = 'all 0.3s ease';
+            
+            setTimeout(() => {
+                element.textContent = newValue;
+                element.style.transform = 'scale(1)';
+                element.style.color = '';
+            }, 150);
+        }
+    });
+}
+
+function updateLoyaltyProgress(currentPoints, pointsToNext) {
+    const circleProgress = document.querySelector('.circle-progress');
+    const pointsDisplay = document.querySelector('.points');
+    const progressBar = document.querySelector('.progress-bar');
+    
+    if (pointsDisplay) {
+        pointsDisplay.textContent = currentPoints;
+    }
+    
+    if (progressBar) {
+        const percentage = Math.min((currentPoints / 1500) * 100, 100);
+        progressBar.style.width = percentage + '%';
+    }
+    
+    if (circleProgress) {
+        const percentage = Math.min((currentPoints / 1500) * 100, 100);
+        const degrees = (percentage / 100) * 360;
+        circleProgress.style.background = `conic-gradient(var(--coffee-primary) 0deg, var(--coffee-primary) ${degrees}deg, #e9ecef ${degrees}deg)`;
+    }
 }
 
 function reorderItems(orderId) {
