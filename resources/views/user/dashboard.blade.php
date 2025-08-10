@@ -625,47 +625,6 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Check for payment success parameter
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('payment_success') === 'true') {
-        const orderId = urlParams.get('order_id');
-        const loyaltyPoints = urlParams.get('loyalty_points') || '50';
-        
-        // Show success notification
-        showNotification(`🎉 Payment successful! Order ${orderId || ''} confirmed and you earned ${loyaltyPoints} loyalty points!`, 'success');
-        
-        // Clear the URL parameters
-        window.history.replaceState({}, document.title, window.location.pathname);
-        
-        // Clear cart if it exists
-        if (typeof window.cart !== 'undefined') {
-            window.cart.clearCartSilently();
-        } else if (localStorage.getItem('cafeElixirCart')) {
-            localStorage.removeItem('cafeElixirCart');
-        }
-        
-        // Set flag to prevent cart clear notification
-        window.paymentSuccessful = true;
-        
-        // Update loyalty points display if visible
-        setTimeout(() => {
-            const loyaltyPointsElement = document.querySelector('.points');
-            if (loyaltyPointsElement) {
-                const currentPoints = parseInt(loyaltyPointsElement.textContent) || 0;
-                const newPoints = currentPoints + parseInt(loyaltyPoints);
-                loyaltyPointsElement.textContent = newPoints;
-                
-                // Add animation to loyalty points
-                loyaltyPointsElement.style.transform = 'scale(1.2)';
-                loyaltyPointsElement.style.color = '#28a745';
-                setTimeout(() => {
-                    loyaltyPointsElement.style.transform = 'scale(1)';
-                    loyaltyPointsElement.style.color = '';
-                }, 500);
-            }
-        }, 1000);
-    }
-    
     // Initialize loyalty circle progress
     const circleProgress = document.querySelector('.circle-progress');
     if (circleProgress) {
