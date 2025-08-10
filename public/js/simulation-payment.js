@@ -507,7 +507,13 @@ class SimulationPaymentGateway {
                 if (typeof window.submitOrder === 'function') {
                     await window.submitOrder(orderData);
                 } else {
-                    this.showPaymentSuccess(result);
+                    this.showPaymentSuccess({
+                        ...result,
+                        loyalty_points_earned: 50
+                    });
+                        ...result,
+                        loyalty_points_earned: 50
+                    });
                 }
             } else {
                 throw new Error('Order data not found');
@@ -741,6 +747,7 @@ class SimulationPaymentGateway {
                             • You'll receive a confirmation email<br>
                             • Your order is being prepared<br>
                             • Estimated time: 10-15 minutes<br>
+                            • You earned 50 loyalty points!<br>
                             ${result.method === 'cash' ? '• Pay when you arrive at the café' : '• Payment has been processed successfully'}
                             ${result.transaction_id && result.transaction_id.includes('sim') ? '<br>• This was a test transaction' : ''}
                         </div>
@@ -750,9 +757,9 @@ class SimulationPaymentGateway {
                         <button type="button" class="btn btn-success" onclick="printReceipt()">
                             <i class="bi bi-printer me-2"></i>Print Receipt
                         </button>
-                        <a href="/dashboard" class="btn btn-coffee">
+                        <button type="button" class="btn btn-coffee" onclick="goToDashboard()">
                             <i class="bi bi-speedometer2 me-2"></i>View Dashboard
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -770,6 +777,23 @@ class SimulationPaymentGateway {
         // Print receipt function
         window.printReceipt = () => {
             this.printPaymentReceipt(result);
+        };
+        
+        // Dashboard navigation function
+        window.goToDashboard = () => {
+            this.showNotification('Redirecting to dashboard...', 'info');
+            
+            // Clear cart before redirecting
+            if (typeof window.cart !== 'undefined') {
+                window.cart.clearCartSilently();
+            } else if (localStorage.getItem('cafeElixirCart')) {
+                localStorage.removeItem('cafeElixirCart');
+            }
+            
+            setTimeout(() => {
+                const orderId = result.order_id || result.transaction_id || 'ORDER_COMPLETED';
+                window.location.href = `/user/dashboard?payment_success=true&order_id=${orderId}&loyalty_points=50`;
+            }, 1000);
         };
     }
 

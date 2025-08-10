@@ -127,7 +127,8 @@ class OrderController extends Controller
                 'message' => 'Order placed successfully!',
                 'order_id' => $orderId,
                 'order' => $order,
-                'payment_status' => $paymentStatus
+                'payment_status' => $paymentStatus,
+                'loyalty_points_earned' => Auth::check() ? 50 : 0
             ]);
 
         } catch (\Illuminate\Validation\ValidationException $e) {

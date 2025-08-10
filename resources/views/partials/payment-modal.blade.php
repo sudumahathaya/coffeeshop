@@ -596,7 +596,7 @@ async function submitOrder(orderData) {
             
             // Redirect to dashboard or show order confirmation
             setTimeout(() => {
-                if (typeof window.location !== 'undefined') {
+                if (typeof window.location !== 'undefined' && window.location.pathname !== '/user/dashboard') {
                     window.location.href = '/user/dashboard';
                 }
             }, 2000);
@@ -606,7 +606,7 @@ async function submitOrder(orderData) {
         }
     } catch (error) {
         console.error('Order submission error:', error);
-        showNotification('Failed to place order. Please try again.', 'error');
+        showNotification(`Failed to place order: ${error.message}`, 'error');
     }
 }
 

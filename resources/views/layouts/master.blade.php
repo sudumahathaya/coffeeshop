@@ -737,6 +737,12 @@
                         window.cart.clearCart();
                     } else if (localStorage.getItem('cafeElixirCart')) {
                         localStorage.removeItem('cafeElixirCart');
+                        // Update cart display if cart object exists
+                        if (window.cart && typeof window.cart.updateCartDisplay === 'function') {
+                            window.cart.updateCartDisplay();
+                        }
+                    } else if (localStorage.getItem('cafeElixirCart')) {
+                        localStorage.removeItem('cafeElixirCart');
                     }
                     
                     // Show success notification
@@ -745,7 +751,7 @@
                     // Redirect to dashboard or show order confirmation
                     setTimeout(() => {
                         if (window.location.pathname !== '/user/dashboard') {
-                            window.location.href = '/user/dashboard';
+                            window.location.href = `/user/dashboard?payment_success=true&order_id=${result.order_id || ''}&loyalty_points=${result.loyalty_points_earned || 50}`;
                         }
                     }, 2000);
                 } else {

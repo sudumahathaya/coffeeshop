@@ -97,7 +97,11 @@ class CafeElixirCart {
         this.cart = [];
         this.saveCart();
         this.updateCartDisplay();
-        this.showNotification('Cart cleared successfully', 'info');
+        
+        // Only show notification if manually cleared (not from successful payment)
+        if (!window.paymentSuccessful) {
+            this.showNotification('Cart cleared successfully', 'info');
+        }
     }
 
     getTotal() {
@@ -373,6 +377,14 @@ class CafeElixirCart {
                 this.showNotification('Payment system is loading. Please try again in a moment.', 'warning');
             }
         }, 300);
+    }
+
+    // Method to clear cart silently (for successful payments)
+    clearCartSilently() {
+        console.log('Clearing cart silently after successful payment');
+        this.cart = [];
+        this.saveCart();
+        this.updateCartDisplay();
     }
 
     showNotification(message, type = 'info') {

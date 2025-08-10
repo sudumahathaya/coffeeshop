@@ -500,6 +500,12 @@ class CafeElixirPaymentSystem {
                 // Clear cart
                 if (typeof window.cart !== 'undefined') {
                     window.cart.clearCart();
+                } else if (localStorage.getItem('cafeElixirCart')) {
+                    localStorage.removeItem('cafeElixirCart');
+                    // Update cart display if cart object exists
+                    if (window.cart && typeof window.cart.updateCartDisplay === 'function') {
+                        window.cart.updateCartDisplay();
+                    }
                 }
                 
                 // Close payment modal
@@ -513,7 +519,8 @@ class CafeElixirPaymentSystem {
                     transaction_id: orderData.transaction_id || 'CASH_PAYMENT',
                     amount: orderData.total,
                     method: orderData.payment_method,
-                    order_id: result.order_id
+                    order_id: result.order_id,
+                    loyalty_points_earned: 50
                 });
                 
             } else {
@@ -582,14 +589,15 @@ class CafeElixirPaymentSystem {
                             • You'll receive a confirmation email<br>
                             • Your order is being prepared<br>
                             • Estimated time: 10-15 minutes<br>
+                            • You earned 50 loyalty points!<br>
                             ${result.method === 'cash' ? '• Pay when you arrive at the café' : '• Payment has been processed successfully'}
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <a href="/user/dashboard" class="btn btn-coffee">
+                        <button type="button" class="btn btn-coffee" onclick="goToDashboard()">
                             <i class="bi bi-speedometer2 me-2"></i>View Dashboard
-                        </a>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -846,6 +854,17 @@ class CafeElixirPaymentSystem {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    // Global function to navigate to dashboard
+    goToDashboard() {
+        // Show loading notification
+        this.showNotification('Redirecting to dashboard...', 'info');
+        
+        // Redirect after short delay
+        setTimeout(() => {
+            window.location.href = '/user/dashboard';
+        }, 1000);
+    }
+
     // Card number formatting
     formatCardNumber(input) {
         let value = input.value.replace(/\D/g, '');
@@ -875,6 +894,14 @@ class CafeElixirPaymentSystem {
         
         input.value = value;
     }
+}
+
+// Global function for dashboard navigation
+function goToDashboard() {
+    showNotification('Redirecting to dashboard...', 'info');
+    setTimeout(() => {
+        window.location.href = '/user/dashboard';
+    }, 1000);
 }
 
 // Initialize payment system when DOM is loaded
