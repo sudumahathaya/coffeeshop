@@ -294,11 +294,18 @@ function showPaymentModal(orderData) {
 }
 
 function populateOrderSummary(orderData) {
+    console.log('Populating order summary with:', orderData);
+    
     const itemsContainer = document.getElementById('orderSummaryItems');
-    const subtotal = orderData.subtotal || 0;
-    const tax = orderData.tax || (subtotal * 0.1);
-    const processingFee = calculateProcessingFee(subtotal, 'card'); // Default to card fee
-    const total = subtotal + tax + processingFee;
+    const subtotalElement = document.getElementById('summarySubtotal');
+    const taxElement = document.getElementById('summaryTax');
+    const totalElement = document.getElementById('summaryTotal');
+    const amountInput = document.getElementById('paymentAmount');
+    
+    if (!itemsContainer) {
+        console.error('Order summary container not found');
+        return;
+    }
 
     // Populate items
     if (orderData.items && orderData.items.length > 0) {
@@ -315,16 +322,23 @@ function populateOrderSummary(orderData) {
                 </div>
             </div>
         `).join('');
+    } else {
+        itemsContainer.innerHTML = '<p class="text-muted">No items in order</p>';
     }
 
     // Update totals
-    document.getElementById('summarySubtotal').textContent = `Rs. ${subtotal.toFixed(2)}`;
-    document.getElementById('summaryTax').textContent = `Rs. ${tax.toFixed(2)}`;
-    document.getElementById('summaryProcessingFee').textContent = `Rs. ${processingFee.toFixed(2)}`;
-    document.getElementById('summaryTotal').textContent = `Rs. ${total.toFixed(2)}`;
+    const subtotal = orderData.subtotal || orderData.total || 0;
+    const tax = orderData.tax || (subtotal * 0.1);
+    const processingFee = calculateProcessingFee(subtotal, 'card'); // Default to card fee
+    const total = orderData.total || (subtotal + tax + processingFee);
     
-    // Update hidden amount field
-    document.getElementById('paymentAmount').value = total;
+    if (subtotalElement) subtotalElement.textContent = `Rs. ${subtotal.toFixed(2)}`;
+    if (taxElement) taxElement.textContent = `Rs. ${tax.toFixed(2)}`;
+    if (document.getElementById('summaryProcessingFee')) document.getElementById('summaryProcessingFee').textContent = `Rs. ${processingFee.toFixed(2)}`;
+    if (totalElement) totalElement.textContent = `Rs. ${total.toFixed(2)}`;
+    if (amountInput) amountInput.value = total;
+    
+    console.log('Order summary populated successfully');
 }
 
 function calculateProcessingFee(amount, method) {

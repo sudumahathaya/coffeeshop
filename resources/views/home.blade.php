@@ -624,69 +624,31 @@
 
         // Add to cart functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const addToCartButtons = document.querySelectorAll('.add-to-cart');
-
-            addToCartButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const productId = this.getAttribute('data-id');
-                    const productName = this.getAttribute('data-name');
-                    const productPrice = parseFloat(this.getAttribute('data-price'));
-                    const productImage = this.getAttribute('data-image');
-
-                    // Get existing cart from localStorage
-                    let cart = JSON.parse(localStorage.getItem('cafeElixirCart')) || [];
-
-                    // Check if item already exists in cart
-                    const existingItemIndex = cart.findIndex(item => item.id === productId);
-
-                    if (existingItemIndex !== -1) {
-                        // Item exists, increase quantity
-                        cart[existingItemIndex].quantity += 1;
-                        showNotification(`Increased ${productName} quantity in cart!`, 'info');
-                    } else {
-                        // New item, add to cart
-                        cart.push({
-                            id: productId,
-                            name: productName,
-                            price: productPrice,
-                            image: productImage,
-                            quantity: 1
-                        });
-                        showNotification(`${productName} added to cart!`, 'success');
-                    }
-
-                    // Save updated cart to localStorage
-                    localStorage.setItem('cafeElixirCart', JSON.stringify(cart));
-
-                    // Update cart display if the function exists
-                    if (typeof updateCartDisplay === 'function') {
-                        updateCartDisplay();
-                    }
-
-                    // Add visual feedback
-                    const originalText = this.innerHTML;
-                    this.innerHTML = '<i class="bi bi-check me-1"></i>Added!';
-                    this.disabled = true;
-
-                    setTimeout(() => {
-                        this.innerHTML = originalText;
-                        this.disabled = false;
-                    }, 1500);
-                });
-            });
+            // Cart functionality is now handled by cart.js
+            console.log('Home page loaded, cart should be available');
+            
+            // Debug cart availability
+            setTimeout(() => {
+                if (window.cart) {
+                    console.log('Cart is working properly');
+                } else {
+                    console.error('Cart not available on home page');
+                }
+            }, 1000);
         });
 
-        // Cart functionality is now handled by cart.js
-        
         // Quick Pay functionality
         window.quickPay = function(itemId, itemName, itemPrice, itemImage) {
+            console.log('Quick pay initiated from home page');
+            
             // Create single item order data
             const orderData = {
                 items: [{
                     id: itemId,
                     name: itemName,
                     price: parseFloat(itemPrice),
-                    quantity: 1
+                    quantity: 1,
+                    image: itemImage
                 }],
                 customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
                 customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',

@@ -159,11 +159,12 @@
                                         <i class="bi bi-credit-card me-1"></i>Quick Pay
                                     </a>
                                     @endauth
+                                </div>
+                                <div class="mt-2">
                                     <small class="text-muted">
                                         <i class="bi bi-clock me-1"></i>{{ $item->preparation_time ?? 'Ready soon' }}
                                     </small>
                                 </div>
-                            </div>
                         </div>
                     </div>
                 @endforeach
@@ -445,13 +446,16 @@
 <script>
 // Quick Pay functionality
 function quickPay(itemId, itemName, itemPrice, itemImage) {
+    console.log('Quick pay initiated for:', itemName);
+    
     // Create single item order data
     const orderData = {
         items: [{
             id: itemId,
             name: itemName,
             price: parseFloat(itemPrice),
-            quantity: 1
+            quantity: 1,
+            image: itemImage
         }],
         customer_name: document.querySelector('meta[name="user-name"]')?.getAttribute('content') || 'Guest Customer',
         customer_email: document.querySelector('meta[name="user-email"]')?.getAttribute('content') || '',
@@ -465,6 +469,8 @@ function quickPay(itemId, itemName, itemPrice, itemImage) {
 
     // Store order data globally for payment modal
     window.currentOrderData = orderData;
+
+    console.log('Quick pay order data prepared:', orderData);
 
     // Show payment modal
     if (typeof showPaymentModal === 'function') {
@@ -488,6 +494,17 @@ document.addEventListener('DOMContentLoaded', function() {
             block: 'start'
         });
     });
+    
+    // Debug cart functionality
+    console.log('Menu page loaded, checking cart...');
+    setTimeout(() => {
+        if (window.cart) {
+            console.log('Cart is available:', window.cart);
+            console.log('Current cart contents:', window.cart.getCartData());
+        } else {
+            console.log('Cart not yet available');
+        }
+    }, 1000);
 });
 
 // Menu filtering functionality
