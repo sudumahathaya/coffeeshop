@@ -15,9 +15,9 @@ class UserController extends Controller
         $dashboardData = [
             'user' => $user,
             'stats' => [
-                'total_orders' => $user->orders()->count(),
+                'total_orders' => $user->orders()->count('id'),
                 'loyalty_points' => $user->total_loyalty_points,
-                'total_reservations' => $user->reservations()->count(),
+                'total_reservations' => $user->reservations()->count('id'),
                 'favorite_items' => 12,
                 'total_spent' => $user->orders()->sum('total'),
                 'current_tier' => $user->loyalty_tier,
@@ -34,7 +34,7 @@ class UserController extends Controller
 
     public function orders()
     {
-        $orders = Auth::user()->orders()->latest()->paginate(10);
+        $orders = Auth::user()->orders()->latest('created_at')->paginate(10);
         return view('user.orders', compact('orders'));
     }
 
@@ -147,14 +147,14 @@ class UserController extends Controller
         $user = Auth::user();
         
         $stats = [
-            'total_orders' => $user->orders()->count(),
+            'total_orders' => $user->orders()->count('id'),
             'loyalty_points' => $user->total_loyalty_points,
-            'total_reservations' => $user->reservations()->count(),
+            'total_reservations' => $user->reservations()->count('id'),
             'total_spent' => $user->orders()->sum('total'),
             'current_tier' => $user->loyalty_tier,
             'points_to_next_tier' => $this->getPointsToNextTier($user->total_loyalty_points),
-            'recent_orders_count' => $user->orders()->where('created_at', '>', now()->subDays(7))->count(),
-            'pending_reservations' => $user->reservations()->where('status', 'pending')->count()
+            'recent_orders_count' => $user->orders()->where('created_at', '>', now()->subDays(7))->count('id'),
+            'pending_reservations' => $user->reservations()->where('status', 'pending')->count('id')
         ];
         
         return response()->json([

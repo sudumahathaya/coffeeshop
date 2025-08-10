@@ -108,7 +108,7 @@ class OrderController extends Controller
             // Award loyalty points (1 point per Rs. 10 spent)
             $pointsEarned = 0;
             if (Auth::check()) {
-                $pointsEarned = max(50, floor($total / 10)); // 1 point per Rs. 10 spent, minimum 50 points
+                $pointsEarned = max(50, floor($total / 10)); // Minimum 50 points, 1 point per Rs. 10 spent
                 
                 LoyaltyPoint::create([
                     'user_id' => Auth::id(),
@@ -131,7 +131,9 @@ class OrderController extends Controller
             
             \Log::info('Order transaction committed successfully', [
                 'order_id' => $orderId,
-                'user_id' => Auth::id()
+                'user_id' => Auth::id(),
+                'total_amount' => $total,
+                'points_earned' => $pointsEarned
             ]);
 
             return response()->json([
@@ -140,7 +142,7 @@ class OrderController extends Controller
                 'order_id' => $orderId,
                 'order' => $order,
                 'payment_status' => $paymentStatus,
-                'points_earned' => $pointsEarned ?? 0,
+                'points_earned' => $pointsEarned,
                 'total_amount' => $total
             ]);
 

@@ -664,7 +664,12 @@ class CafeElixirPaymentSystem {
             // Trigger dashboard refresh if on dashboard page
             if (window.location.pathname.includes('dashboard')) {
                 setTimeout(() => {
-                    window.location.reload();
+                    // Refresh dashboard stats without full page reload
+                    if (typeof refreshDashboardStats === 'function') {
+                        refreshDashboardStats();
+                    } else {
+                        window.location.reload();
+                    }
                 }, 1000);
             } else {
                 // Redirect to dashboard to show updated stats

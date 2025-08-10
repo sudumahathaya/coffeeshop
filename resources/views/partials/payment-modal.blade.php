@@ -688,7 +688,12 @@ document.addEventListener('DOMContentLoaded', function() {
             submitButton.disabled = true;
 
             // Handle payment processing
-            if (window.cafeElixirPaymentSystem) {
+                    // Refresh dashboard stats without full page reload
+                    if (typeof refreshDashboardStats === 'function') {
+                        refreshDashboardStats();
+                    } else {
+                        window.location.reload();
+                    }
                 window.cafeElixirPaymentSystem.handlePaymentSubmission(e.target);
             } else {
                 console.error('Payment system not initialized');

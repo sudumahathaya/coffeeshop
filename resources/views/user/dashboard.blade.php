@@ -726,11 +726,12 @@ function refreshDashboardStats() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            console.log('Dashboard stats refreshed:', data.stats);
             // Update stats with animation
-            updateStatWithAnimation('total_orders', data.stats.total_orders);
-            updateStatWithAnimation('loyalty_points', data.stats.loyalty_points);
-            updateStatWithAnimation('total_reservations', data.stats.total_reservations);
-            updateStatWithAnimation('total_spent', 'Rs. ' + data.stats.total_spent.toLocaleString());
+            updateStatDisplay('total_orders', data.stats.total_orders);
+            updateStatDisplay('loyalty_points', data.stats.loyalty_points);
+            updateStatDisplay('total_reservations', data.stats.total_reservations);
+            updateStatDisplay('total_spent', data.stats.total_spent);
             
             // Update loyalty progress
             updateLoyaltyProgress(data.stats.loyalty_points, data.stats.points_to_next_tier);
@@ -741,20 +742,45 @@ function refreshDashboardStats() {
     });
 }
 
-function updateStatWithAnimation(statKey, newValue) {
-    const statElements = document.querySelectorAll(`[data-stat="${statKey}"]`);
+function updateStatDisplay(statKey, newValue) {
+    // Update stat cards
+    const statCards = document.querySelectorAll('.stat-card');
     
-    statElements.forEach(element => {
-        if (element.textContent !== newValue.toString()) {
-            element.style.transform = 'scale(1.1)';
-            element.style.color = '#28a745';
-            element.style.transition = 'all 0.3s ease';
+    statCards.forEach(card => {
+        const statContent = card.querySelector('.stat-content h3');
+        if (!statContent) return;
+        
+        // Identify which stat this card represents
+        const statIcon = card.querySelector('.stat-icon i');
+        let isTargetStat = false;
+        
+        if (statKey === 'total_orders' && statIcon.classList.contains('bi-receipt')) {
+            isTargetStat = true;
+        } else if (statKey === 'loyalty_points' && statIcon.classList.contains('bi-star-fill')) {
+            isTargetStat = true;
+        } else if (statKey === 'total_reservations' && statIcon.classList.contains('bi-calendar-check')) {
+            isTargetStat = true;
+        } else if (statKey === 'total_spent' && statIcon.classList.contains('bi-currency-dollar')) {
+            isTargetStat = true;
+        }
+        
+        if (isTargetStat) {
+            const displayValue = statKey === 'total_spent' ? 
+                'Rs. ' + Number(newValue).toLocaleString() : 
+                Number(newValue).toLocaleString();
             
-            setTimeout(() => {
-                element.textContent = newValue;
-                element.style.transform = 'scale(1)';
-                element.style.color = '';
-            }, 150);
+            if (statContent.textContent !== displayValue) {
+                // Add animation
+                statContent.style.transform = 'scale(1.1)';
+                statContent.style.color = '#28a745';
+                statContent.style.transition = 'all 0.3s ease';
+                
+                setTimeout(() => {
+                    statContent.textContent = displayValue;
+                    statContent.style.transform = 'scale(1)';
+                    statContent.style.color = '';
+                }, 150);
+            }
         }
     });
 }
