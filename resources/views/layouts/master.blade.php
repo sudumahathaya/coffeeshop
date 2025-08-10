@@ -675,18 +675,8 @@
 
             console.log('Opening payment modal with data:', orderData);
             
-            // Wait for payment system to be ready
-            const waitForPaymentSystem = () => {
-                if (window.cafeElixirPaymentSystem && window.cafeElixirPaymentSystem.isInitialized) {
-                    // Payment system is ready, proceed with modal
-                    proceedWithPaymentModal(orderData);
-                } else {
-                    // Payment system not ready, wait a bit more
-                    setTimeout(waitForPaymentSystem, 100);
-                }
-            };
-            
-            waitForPaymentSystem();
+            // Proceed directly with payment modal
+            proceedWithPaymentModal(orderData);
         }
         
         function proceedWithPaymentModal(orderData) {

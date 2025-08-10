@@ -259,12 +259,6 @@ class SimulationPaymentGateway {
         const submitButton = form.querySelector('button[type="submit"]');
         const originalText = submitButton.innerHTML;
 
-        // Check if payment system is initialized
-        if (!this.isInitialized) {
-            this.showNotification('Payment system is still loading. Please wait a moment and try again.', 'warning');
-            return;
-        }
-
         // Show loading state
         submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
         submitButton.disabled = true;

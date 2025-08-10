@@ -103,7 +103,7 @@ class OrderController extends Controller
 
             // Award loyalty points (1 point per Rs. 10 spent)
             if (Auth::check()) {
-                $pointsEarned = floor($total / 10);
+                $pointsEarned = 50; // Fixed 50 points per order
                 
                 LoyaltyPoint::create([
                     'user_id' => Auth::id(),
