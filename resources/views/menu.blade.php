@@ -72,7 +72,7 @@
         <!-- Menu Items -->
         <div class="menu-items">
             <!-- Hot Coffee Section -->
-            <div class="row g-4" id="menu-grid">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="menu-grid">
                 @foreach($menuItems as $index => $item)
                     @php
                         $categoryMap = [
@@ -108,7 +108,7 @@
                         }
                     @endphp
                     
-                    <div class="col-lg-4 col-md-6 menu-item" data-category="{{ $categoryClass }}" data-aos="fade-up" data-aos-delay="{{ (($index % 3) + 1) * 100 }}">
+                    <div class="col menu-item" data-category="{{ $categoryClass }}" data-aos="fade-up" data-aos-delay="{{ (($index % 3) + 1) * 100 }}">
                         <div class="card menu-card h-100">
                             <div class="position-relative overflow-hidden">
                                 <img src="{{ $item->image }}" class="card-img-top" alt="{{ $item->name }}">
@@ -439,6 +439,25 @@
         .category-filters .btn {
             width: 100%;
             margin: 0.25rem 0;
+        }
+        
+        /* Ensure mobile shows 1 column */
+        #menu-grid {
+            --bs-columns: 1;
+        }
+    }
+    
+    @media (min-width: 769px) and (max-width: 991px) {
+        /* Tablet shows 2 columns */
+        #menu-grid {
+            --bs-columns: 2;
+        }
+    }
+    
+    @media (min-width: 992px) {
+        /* Desktop shows 3 columns */
+        #menu-grid {
+            --bs-columns: 3;
         }
     }
 </style>
