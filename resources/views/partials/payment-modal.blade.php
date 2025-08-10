@@ -612,18 +612,6 @@ async function submitOrder(orderData) {
                 localStorage.removeItem('cafeElixirCart');
                 console.log('Cart cleared via localStorage');
                 
-                // Store order completion data for real-time updates
-                if (result.order && Auth::check()) {
-                    const orderCompletionData = {
-                        user_id: {{ Auth::id() ?? 'null' }},
-                        order_id: result.order_id,
-                        total: orderData.total,
-                        points_earned: result.points_earned || 0,
-                        timestamp: new Date().toISOString()
-                    };
-                    localStorage.setItem('orderCompleted', JSON.stringify(orderCompletionData));
-                }
-                
                 // Update cart counters
                 const cartCounters = document.querySelectorAll('.cart-counter');
                 cartCounters.forEach(counter => {
@@ -645,7 +633,7 @@ async function submitOrder(orderData) {
             // Enhanced redirect logic with celebration
             setTimeout(() => {
                 if (typeof window.location !== 'undefined') {
-                            window.location.href = '/user/dashboard?order_success=true&order_id=' + (result.order_id || '') + '&points=' + (result.points_earned || 0);
+                    if (window.location.pathname !== '/user/dashboard') {
                         window.location.href = '/user/dashboard?order_success=true&points=' + (result.points_earned || 0);
                     } else {
                         // If already on dashboard, refresh to show updated stats

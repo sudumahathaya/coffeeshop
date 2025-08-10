@@ -8,7 +8,6 @@
     @auth
         <meta name="user-name" content="{{ Auth::user()->name }}">
         <meta name="user-email" content="{{ Auth::user()->email }}">
-        <meta name="user-id" content="{{ Auth::user()->id }}">
     @endauth
 
     <title>@yield('title', 'Coffee Paradise - Premium Coffee Experience')</title>
