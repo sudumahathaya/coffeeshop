@@ -959,49 +959,8 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const text = '"කෝපි සුවඳට දුඹුරු පාටට ආස කරන ආත්ම එකතුවෙන නිවහන"';
-                const element = document.getElementById('sinhalaTypewriter');
-                const cursor = document.getElementById('cursor');
-                let index = 0;
-
-                function typeWriter() {
-                    if (index < text.length) {
-                        element.textContent += text.charAt(index);
-                        index++;
-                        setTimeout(typeWriter, 120);
-                    } else {
-                        setTimeout(() => {
-                            cursor.style.opacity = '0';
-                        }, 2000);
-                    }
-                }
-
-                typeWriter();
-            }, 1500);
-        });
-
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const text = '"A home where souls who love the smell of coffee and the color brown gather"';
-                const element = document.getElementById('englishTypewriter');
-                const cursor = document.getElementById('cursor');
-                let index = 0;
-
-                function typeWriter() {
-                    if (index < text.length) {
-                        element.textContent += text.charAt(index);
-                        index++;
-                        setTimeout(typeWriter, 130);
-                    } else {
-                        setTimeout(() => {
-                            cursor.style.opacity = '0';
-                        }, 2000);
-                    }
-                }
-
-                typeWriter();
-            }, 1500);
+            // Typewriter effects are now handled in individual page scripts
+            // This prevents errors when elements don't exist on certain pages
         });
 
         // Navbar scroll effect
