@@ -21,14 +21,14 @@
                         </a>
                     </div>
                     <div class="text-center mt-5 mb-4">
-                        <p id="sinhalaTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif;">
+                        <p id="sinhalaTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif; display: inline;">
                         </p>
-                        <span id="sinhalaCursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
+                        <span id="cursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
                     </div>
                     <div class="text-center mt-2 mb-2">
-                        <p id="englishTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif;">
+                        <p id="englishTypewriter" style="font-size: 1.3rem; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); font-weight: 500; min-height: 2em; font-family: 'Noto Sans Sinhala', serif; display: inline;">
                         </p>
-                        <span id="englishCursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
+                        <span id="cursor" style="color: #fff; font-size: 20px; animation: blink 1s infinite;">|</span>
                     </div>
                 </div>
             </div>
@@ -543,49 +543,7 @@
 
         // Start typewriter effect when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Sinhala typewriter
-            setTimeout(function() {
-                const text = '"කෝපි සුවඳට දුඹුරු පාටට ආස කරන ආත්ම එකතුවෙන නිවහන"';
-                const element = document.getElementById('sinhalaTypewriter');
-                const cursor = document.getElementById('sinhalaCursor');
-                let index = 0;
-
-                function typeWriter() {
-                    if (element && index < text.length) {
-                        element.textContent += text.charAt(index);
-                        index++;
-                        setTimeout(typeWriter, 120);
-                    } else if (cursor) {
-                        setTimeout(() => {
-                            cursor.style.opacity = '0';
-                        }, 2000);
-                    }
-                }
-
-                typeWriter();
-            }, 1500);
-
-            // English typewriter
-            setTimeout(function() {
-                const text = '"A home where souls who love the smell of coffee and the color brown gather"';
-                const element = document.getElementById('englishTypewriter');
-                const cursor = document.getElementById('englishCursor');
-                let index = 0;
-
-                function typeWriter() {
-                    if (element && index < text.length) {
-                        element.textContent += text.charAt(index);
-                        index++;
-                        setTimeout(typeWriter, 130);
-                    } else if (cursor) {
-                        setTimeout(() => {
-                            cursor.style.opacity = '0';
-                        }, 2000);
-                    }
-                }
-
-                typeWriter();
-            }, 3000);
+            setTimeout(typewriterEffect, 1000);
         });
 
         // Stats counter animation
