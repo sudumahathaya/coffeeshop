@@ -735,18 +735,29 @@
                     // Clear cart
                     if (typeof window.cart !== 'undefined') {
                         window.cart.clearCart();
+                        console.log('Cart cleared successfully via cart object');
                     } else if (localStorage.getItem('cafeElixirCart')) {
                         localStorage.removeItem('cafeElixirCart');
+                        console.log('Cart cleared successfully via localStorage');
+                        
+                        // Update cart display if available
+                        const cartCounters = document.querySelectorAll('.cart-counter');
+                        cartCounters.forEach(counter => {
+                            counter.style.display = 'none';
+                        });
                     }
                     
                     // Show success notification
-                    showNotification(`Order ${result.order_id || 'placed'} successfully! 🎉`, 'success');
+                    const pointsMessage = result.points_earned ? ` You earned ${result.points_earned} loyalty points!` : '';
+                    showNotification(`Order ${result.order_id || 'placed'} successfully! 🎉${pointsMessage}`, 'success');
                     
                     // Redirect to dashboard or show order confirmation
                     setTimeout(() => {
                         if (window.location.pathname !== '/user/dashboard') {
                             window.location.href = '/user/dashboard';
                         }
+                            // If already on dashboard, refresh to show updated stats
+                            window.location.reload();
                     }, 2000);
                 } else {
                     console.error('Order API response failed:', result);

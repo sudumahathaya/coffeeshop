@@ -466,12 +466,6 @@ class SimulationPaymentGateway {
                 if (cardNumber === '4000000000000002') {
                     // Simulate declined payment
                     throw new Error('Your card was declined. Please try a different payment method.');
-                } else {
-                    // Simulate successful payment for any valid card number
-                    result = {
-                        success: true,
-                        transaction_id: this.generateTransactionId(paymentData.method),
-                        amount: paymentData.amount,
                         method: paymentData.method,
                         processing_fee: this.calculateProcessingFee(paymentData.amount, paymentData.method)
                     };

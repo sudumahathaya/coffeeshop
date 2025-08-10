@@ -564,6 +564,9 @@ function renderCashForm() {
 // Global function to submit order
 async function submitOrder(orderData) {
     try {
+        // Set flag to prevent cart clear notification
+        window.paymentInProgress = true;
+        
         console.log('Submitting order:', orderData);
         
         const response = await fetch('/api/orders', {
@@ -583,6 +586,17 @@ async function submitOrder(orderData) {
             // Clear cart
             if (typeof window.cart !== 'undefined') {
                 window.cart.clearCart();
+                console.log('Cart cleared via cart object');
+            } else if (localStorage.getItem('cafeElixirCart')) {
+                localStorage.removeItem('cafeElixirCart');
+                console.log('Cart cleared via localStorage');
+                
+                // Update cart counters
+                const cartCounters = document.querySelectorAll('.cart-counter');
+                cartCounters.forEach(counter => {
+                    counter.style.display = 'none';
+                    counter.textContent = '0';
+                });
             }
             
             // Close payment modal
@@ -592,12 +606,18 @@ async function submitOrder(orderData) {
             }
             
             // Show success notification
-            showNotification(`Order ${result.order_id || 'placed'} successfully!`, 'success');
+            const pointsMessage = result.points_earned ? ` You earned ${result.points_earned} loyalty points!` : '';
+            showNotification(`Order ${result.order_id || 'placed'} successfully!${pointsMessage} 🎉`, 'success');
             
             // Redirect to dashboard or show order confirmation
             setTimeout(() => {
                 if (typeof window.location !== 'undefined') {
-                    window.location.href = '/user/dashboard';
+                    if (window.location.pathname !== '/user/dashboard') {
+                        window.location.href = '/user/dashboard';
+                    } else {
+                        // If already on dashboard, refresh to show updated stats
+                        window.location.reload();
+                    }
                 }
             }, 2000);
         } else {
@@ -607,6 +627,9 @@ async function submitOrder(orderData) {
     } catch (error) {
         console.error('Order submission error:', error);
         showNotification('Failed to place order. Please try again.', 'error');
+    } finally {
+        // Reset payment flag
+        window.paymentInProgress = false;
     }
 }
 

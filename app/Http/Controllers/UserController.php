@@ -23,7 +23,7 @@ class UserController extends Controller
                 'current_tier' => $user->loyalty_tier,
                 'points_to_next_tier' => $this->getPointsToNextTier($user->total_loyalty_points)
             ],
-            'recent_orders' => $user->orders()->latest()->take(3)->get(),
+            'recent_orders' => $user->orders()->with('loyaltyPoints')->latest()->take(3)->get(),
             'upcoming_reservations' => $user->reservations()->upcoming()->take(3)->get(),
             'favorite_items' => $this->getFavoriteItems($user),
             'pending_change_requests' => $this->getPendingChangeRequests($user)

@@ -497,9 +497,20 @@ class CafeElixirPaymentSystem {
             const result = await response.json();
 
             if (result.success) {
+                console.log('Order placed successfully:', result);
+                
                 // Clear cart
                 if (typeof window.cart !== 'undefined') {
                     window.cart.clearCart();
+                    console.log('Cart cleared via cart object');
+                } else if (localStorage.getItem('cafeElixirCart')) {
+                    localStorage.removeItem('cafeElixirCart');
+                    console.log('Cart cleared via localStorage');
+                    
+                    // Update cart display if cart object exists
+                    if (window.cart && typeof window.cart.updateCartDisplay === 'function') {
+                        window.cart.updateCartDisplay();
+                    }
                 }
                 
                 // Close payment modal
@@ -513,7 +524,8 @@ class CafeElixirPaymentSystem {
                     transaction_id: orderData.transaction_id || 'CASH_PAYMENT',
                     amount: orderData.total,
                     method: orderData.payment_method,
-                    order_id: result.order_id
+                    order_id: result.order_id,
+                    points_earned: result.points_earned || 0
                 });
                 
             } else {
@@ -582,6 +594,7 @@ class CafeElixirPaymentSystem {
                             • You'll receive a confirmation email<br>
                             • Your order is being prepared<br>
                             • Estimated time: 10-15 minutes<br>
+                            ${result.points_earned ? `• You earned ${result.points_earned} loyalty points!<br>` : ''}
                             ${result.method === 'cash' ? '• Pay when you arrive at the café' : '• Payment has been processed successfully'}
                         </div>
                     </div>
@@ -614,6 +627,13 @@ class CafeElixirPaymentSystem {
                 document.activeElement.blur();
             }
             document.body.removeChild(modal);
+            
+            // Trigger dashboard refresh if on dashboard page
+            if (window.location.pathname.includes('dashboard')) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
         });
     }
 

@@ -97,7 +97,10 @@ class CafeElixirCart {
         this.cart = [];
         this.saveCart();
         this.updateCartDisplay();
-        this.showNotification('Cart cleared successfully', 'info');
+        // Don't show notification when clearing cart after successful payment
+        if (!window.paymentInProgress) {
+            this.showNotification('Cart cleared successfully', 'info');
+        }
     }
 
     getTotal() {

@@ -17,8 +17,8 @@ class LoyaltyService
             return 0;
         }
 
-        // Fixed 50 points per order
-        $pointsEarned = 50;
+        // Calculate points: 1 point per Rs. 10 spent, minimum 50 points
+        $pointsEarned = max(50, floor($order->total / 10));
 
         LoyaltyPoint::create([
             'user_id' => $order->user_id,
