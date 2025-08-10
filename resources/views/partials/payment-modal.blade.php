@@ -564,9 +564,10 @@ function renderCashForm() {
 // Global function to submit order
 async function submitOrder(orderData) {
     try {
-        // Set flags to prevent cart clear notification and manage state
+        // Set flags to manage cart clearing properly during payment
         window.paymentInProgress = true;
         window.orderSuccessful = false;
+        window.checkoutInProgress = false; // Reset checkout flag
         
         console.log('Submitting order:', orderData);
         
@@ -587,7 +588,7 @@ async function submitOrder(orderData) {
             // Set success flag
             window.orderSuccessful = true;
             
-            // Clear cart
+            // Clear cart only after successful order submission
             if (typeof window.cart !== 'undefined') {
                 window.cart.clearCart();
                 console.log('Cart cleared via cart object');
@@ -634,6 +635,7 @@ async function submitOrder(orderData) {
     } finally {
         // Reset flags
         window.paymentInProgress = false;
+        window.checkoutInProgress = false;
         setTimeout(() => {
             window.orderSuccessful = false;
         }, 5000);
@@ -642,6 +644,11 @@ async function submitOrder(orderData) {
 
 // Initialize payment modal functionality
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize payment state flags
+    window.paymentInProgress = false;
+    window.orderSuccessful = false;
+    window.checkoutInProgress = false;
+    
     // Payment method change handlers
     document.addEventListener('change', function(e) {
         if (e.target.name === 'payment_method') {
@@ -671,6 +678,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 showNotification('Payment system is loading. Please try again in a moment.', 'warning');
                 submitButton.classList.remove('loading');
                 submitButton.disabled = false;
+                // Reset checkout flag on error
+                window.checkoutInProgress = false;
             }
         }
     });
@@ -685,6 +694,28 @@ document.addEventListener('DOMContentLoaded', function() {
             formatPhoneNumber(e.target);
         }
     });
+    
+    // Handle payment modal close events
+    const paymentModal = document.getElementById('paymentModal');
+    if (paymentModal) {
+        paymentModal.addEventListener('hide.bs.modal', function() {
+            // Only reset flags if order was not successful
+            if (!window.orderSuccessful) {
+                window.paymentInProgress = false;
+                window.checkoutInProgress = false;
+            }
+        });
+        
+        paymentModal.addEventListener('hidden.bs.modal', function() {
+            // Reset all flags when modal is completely hidden
+            setTimeout(() => {
+                if (!window.orderSuccessful) {
+                    window.paymentInProgress = false;
+                    window.checkoutInProgress = false;
+                }
+            }, 100);
+        });
+    }
 });
 
 // Input formatting functions

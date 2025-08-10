@@ -98,8 +98,8 @@ class CafeElixirCart {
         this.saveCart();
         this.updateCartDisplay();
         
-        // Enhanced cart clearing logic
-        if (!window.paymentInProgress && !window.orderSuccessful) {
+        // Only show notification if not during payment process
+        if (!window.paymentInProgress) {
             this.showNotification('Cart cleared successfully', 'info');
         }
         
@@ -345,6 +345,9 @@ class CafeElixirCart {
             return;
         }
 
+        // Set flag to prevent cart clearing during checkout process
+        window.checkoutInProgress = true;
+
         // Calculate totals
         const subtotal = this.getTotal();
         const tax = subtotal * 0.1;
@@ -387,6 +390,8 @@ class CafeElixirCart {
             } else {
                 console.error('Payment modal function not available');
                 this.showNotification('Payment system is loading. Please try again in a moment.', 'warning');
+                // Reset checkout flag if payment modal fails
+                window.checkoutInProgress = false;
             }
         }, 300);
     }

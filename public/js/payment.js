@@ -485,9 +485,10 @@ class CafeElixirPaymentSystem {
 
     async submitOrder(orderData) {
         try {
-            // Set flags to prevent unnecessary notifications
+            // Set flags to manage cart clearing properly
             window.paymentInProgress = true;
             window.orderSuccessful = false;
+            window.checkoutInProgress = false; // Reset checkout flag
             
             const response = await fetch('/api/orders', {
                 method: 'POST',
@@ -506,7 +507,7 @@ class CafeElixirPaymentSystem {
                 // Set success flag
                 window.orderSuccessful = true;
                 
-                // Clear cart
+                // Clear cart only after successful order
                 if (typeof window.cart !== 'undefined') {
                     window.cart.clearCart();
                     console.log('Cart cleared via cart object');
@@ -546,6 +547,7 @@ class CafeElixirPaymentSystem {
         } finally {
             // Reset payment flag
             window.paymentInProgress = false;
+            window.checkoutInProgress = false;
         }
     }
 
@@ -644,6 +646,11 @@ class CafeElixirPaymentSystem {
                 document.activeElement.blur();
             }
             document.body.removeChild(modal);
+            
+            // Reset all payment flags when modal is completely closed
+            window.paymentInProgress = false;
+            window.orderSuccessful = false;
+            window.checkoutInProgress = false;
             
             // Trigger dashboard refresh if on dashboard page
             if (window.location.pathname.includes('dashboard')) {

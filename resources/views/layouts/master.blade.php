@@ -716,6 +716,11 @@
         // Global function to submit order
         async function submitOrder(orderData) {
             try {
+                // Ensure proper flag management
+                window.paymentInProgress = true;
+                window.orderSuccessful = false;
+                window.checkoutInProgress = false;
+                
                 console.log('Submitting order to API:', orderData);
                 
                 const response = await fetch('/api/orders', {
@@ -732,6 +737,9 @@
                 if (result.success) {
                     console.log('Order API response success:', result);
                     
+                    // Set success flag before clearing cart
+                    window.orderSuccessful = true;
+                    
                     // Clear cart
                     if (typeof window.cart !== 'undefined') {
                         window.cart.clearCart();
@@ -744,6 +752,7 @@
                         const cartCounters = document.querySelectorAll('.cart-counter');
                         cartCounters.forEach(counter => {
                             counter.style.display = 'none';
+                            counter.textContent = '0';
                         });
                     }
                     
@@ -766,6 +775,10 @@
             } catch (error) {
                 console.error('Order submission error:', error);
                 showNotification(`Failed to place order: ${error.message}`, 'error');
+            } finally {
+                // Always reset flags after order attempt
+                window.paymentInProgress = false;
+                window.checkoutInProgress = false;
             }
         }
 
@@ -1205,10 +1218,14 @@
         }
 
         function clearCart() {
-            if (confirm('Are you sure you want to clear your cart?')) {
+            // Only show confirmation if not during payment process
+            if (!window.paymentInProgress && !window.checkoutInProgress && confirm('Are you sure you want to clear your cart?')) {
                 localStorage.removeItem('cafeElixirCart');
                 updateCartDisplay();
                 showNotification('Cart cleared successfully', 'info');
+            } else if (window.paymentInProgress || window.checkoutInProgress) {
+                // Don't clear cart during payment/checkout
+                showNotification('Cannot clear cart during payment process', 'warning');
             }
         }
 
@@ -1230,6 +1247,11 @@
 
         // Initialize cart display when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize payment state flags
+            window.paymentInProgress = false;
+            window.orderSuccessful = false;
+            window.checkoutInProgress = false;
+            
             updateCartDisplay();
 
             // Update cart display when cart modal is opened
@@ -1237,6 +1259,15 @@
             if (cartModal) {
                 cartModal.addEventListener('show.bs.modal', function() {
                     updateCartDisplay();
+                });
+                
+                // Handle cart modal close during payment
+                cartModal.addEventListener('hide.bs.modal', function() {
+                    // Don't allow cart modal to close during active payment
+                    if (window.paymentInProgress && !window.orderSuccessful) {
+                        console.log('Preventing cart modal close during payment');
+                        // Could optionally prevent closing here
+                    }
                 });
             }
         });
